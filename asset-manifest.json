@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/ennore-delivery/static/js/main.e26e039c.js",
-    "index.html": "/ennore-delivery/index.html",
-    "main.e26e039c.js.map": "/ennore-delivery/static/js/main.e26e039c.js.map"
+    "main.js": "/ennore-delivery/signin/static/js/main.8a39542c.js",
+    "index.html": "/ennore-delivery/signin/index.html",
+    "main.8a39542c.js.map": "/ennore-delivery/signin/static/js/main.8a39542c.js.map"
   },
   "entrypoints": [
-    "static/js/main.e26e039c.js"
+    "static/js/main.8a39542c.js"
   ]
 }
