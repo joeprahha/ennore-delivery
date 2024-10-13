@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/ennore-delivery/static/css/main.e6c13ad2.css",
+    "main.js": "/ennore-delivery/static/js/main.3d75d564.js",
+    "static/js/453.39815932.chunk.js": "/ennore-delivery/static/js/453.39815932.chunk.js",
+    "index.html": "/ennore-delivery/index.html",
+    "main.e6c13ad2.css.map": "/ennore-delivery/static/css/main.e6c13ad2.css.map",
+    "main.3d75d564.js.map": "/ennore-delivery/static/js/main.3d75d564.js.map",
+    "453.39815932.chunk.js.map": "/ennore-delivery/static/js/453.39815932.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.3d75d564.js"
+  ]
+}
