@@ -17,6 +17,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getCartFromLocalStorage, setCartToLocalStorage } from '../utils/localStorage';
 import { isTokenValid, logout } from '../utils/auth';
+import { baseUrl } from '../utils/api';
+
 
 const StoreDetail = () => {
     const { storeId } = useParams();
@@ -27,14 +29,14 @@ const StoreDetail = () => {
     const [activeTab, setActiveTab] = useState(0);
     const [cart, setCart] = useState(getCartFromLocalStorage());
     const navigate = useNavigate();
-    const baseUrl = 'http://localhost:5000/ennore-delivery';
+    const baseUrl = `${baseUrl}`;
 
     // Fetch store details and menu
     const fetchMenu = async () => {
         try {
             const response = await axios.get(`${baseUrl}/menus/${storeId}`);
             setMenuItems(response.data);
-            const storeResponse = await axios.get(`${baseUrl}/stores/${storeId}`);
+            const storeResponse = await axios.get(`${baseUrl} /stores/${storeId}`);
             setStoreInfo(storeResponse.data);
         } catch (error) {
             console.error('Error fetching menu items:', error);
@@ -155,20 +157,20 @@ const StoreDetail = () => {
                 <Grid container spacing={2}>
                     {filteredItems.map(item => (
                         <Grid item xs={12} sm={6} md={4} key={item.id}>
-                            <Box 
-                                sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    mb: 2, 
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    mb: 2,
                                     padding: 1,
-                                    border: '1px solid #ccc', 
+                                    border: '1px solid #ccc',
                                     borderRadius: 1,
                                     width: '92%',
                                     justifyContent: 'space-between',
                                 }}
                             >
                                 <img
-                                    src={`path/to/item/images/${item.item_name}.jpg`}
+                                    src={`path / to / item / images / ${item.item_name}.jpg`}
                                     alt={item.item_name}
                                     style={{ width: 50, height: 50, borderRadius: '4px', marginRight: '10px' }}
                                 />

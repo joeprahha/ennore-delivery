@@ -25,7 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getCartFromLocalStorage, isValidCustomerDetails, getUserInfo } from '../utils/localStorage';
 import { isTokenValid } from '../utils/auth';
-import { logout } from '../utils/auth'; 
+import { logout } from '../utils/auth';
+import { baseUrl } from '../utils/api';
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -52,7 +53,7 @@ const Cart = () => {
             if (!token) return;
 
             try {
-                const response = await axios.get('http://localhost:5000/ennore-delivery/users', {
+                const response = await axios.get(`${baseUrl}/users`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 localStorage.setItem('userInfo', JSON.stringify(response.data));
@@ -102,7 +103,7 @@ const Cart = () => {
                     items: groupedItems[storeId]
                 };
 
-                const response = await axios.post('http://localhost:5000/ennore-delivery/orders', orderData);
+                const response = await axios.post(`${baseUrl}/orders`, orderData);
                 console.log('Order created:', response.data);
 
                 // Show success modal
@@ -124,7 +125,7 @@ const Cart = () => {
 
     const handleUpdateUserDetails = async () => {
         try {
-            const response = await axios.put('http://localhost:5000/ennore-delivery/update-user', userDetails, {
+            const response = await axios.put(`${baseUrl}/update-user`, userDetails, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log('User updated:', response.data);
@@ -178,93 +179,93 @@ const Cart = () => {
                 ) : (
                     Object.keys(groupedItems).map(storeId => (
                         <Grid item xs={12} sm={6} md={4} key={storeId}>
-            <Card variant="outlined">
-                <CardContent>
-                    <Typography variant="h5" sx={{ mb: 1 }}>
-                        Store Name: {groupedItems[storeId][0].storeName}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                        Store ID: {storeId}
-                    </Typography>
+                            <Card variant="outlined">
+                                <CardContent>
+                                    <Typography variant="h5" sx={{ mb: 1 }}>
+                                        Store Name: {groupedItems[storeId][0].storeName}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 2 }}>
+                                        Store ID: {storeId}
+                                    </Typography>
 
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                        {groupedItems[storeId].map(item => (
-                            <Box
-                                key={item.id}
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    mb: 1,
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <img
-                                        src={item.image}
-                                        alt={item.name}
-                                        style={{ width: '50px', height: '50px', marginRight: '10px' }}
-                                    />
-                                    <Typography variant="h6" sx={{ flexGrow: 1 }}>{item.name}</Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                    <IconButton
-                                        onClick={() => handleQuantityChange(storeId, item.id, Math.max(item.count - 1, 1))}
-                                        disabled={item.count <= 1}
-                                    >
-                                        <RemoveIcon />
-                                    </IconButton>
-                                    <Typography sx={{ mx: 1 }}>{item.count}</Typography>
-                                    <IconButton
-                                        onClick={() => handleQuantityChange(storeId, item.id, item.count + 1)}
-                                    >
-                                        <AddIcon />
-                                    </IconButton>
-                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>₹{item.count * +item.price}</Typography>
-                                </Box>
-                            </Box>
-                        ))}
+                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                        {groupedItems[storeId].map(item => (
+                                            <Box
+                                                key={item.id}
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    mb: 1,
+                                                }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        style={{ width: '50px', height: '50px', marginRight: '10px' }}
+                                                    />
+                                                    <Typography variant="h6" sx={{ flexGrow: 1 }}>{item.name}</Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                    <IconButton
+                                                        onClick={() => handleQuantityChange(storeId, item.id, Math.max(item.count - 1, 1))}
+                                                        disabled={item.count <= 1}
+                                                    >
+                                                        <RemoveIcon />
+                                                    </IconButton>
+                                                    <Typography sx={{ mx: 1 }}>{item.count}</Typography>
+                                                    <IconButton
+                                                        onClick={() => handleQuantityChange(storeId, item.id, item.count + 1)}
+                                                    >
+                                                        <AddIcon />
+                                                    </IconButton>
+                                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>₹{item.count * +item.price}</Typography>
+                                                </Box>
+                                            </Box>
+                                        ))}
 
-                        {/* Delivery Fee and Donation Selection */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                            <Typography variant="body1">Delivery Fee:</Typography>
-                            <Typography variant="h6">₹4.50</Typography>
-                        </Box>
-                        <Box sx={{ mt: 1 }}>
-                            <Typography variant="body1">Donation:</Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 1 }}>
-                                {[0, 1, 2, 5].map((amount) => (
-                                    <label key={amount}>
-                                        <input
-                                            type="radio"
-                                            value={amount}
-                                            checked={selectedDonation === amount}
-                                            onChange={() => setSelectedDonation(amount)}
-                                        />
-                                        ₹{amount}
-                                    </label>
-                                ))}
-                            </Box>
-                        </Box>
+                                        {/* Delivery Fee and Donation Selection */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                                            <Typography variant="body1">Delivery Fee:</Typography>
+                                            <Typography variant="h6">₹4.50</Typography>
+                                        </Box>
+                                        <Box sx={{ mt: 1 }}>
+                                            <Typography variant="body1">Donation:</Typography>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 1 }}>
+                                                {[0, 1, 2, 5].map((amount) => (
+                                                    <label key={amount}>
+                                                        <input
+                                                            type="radio"
+                                                            value={amount}
+                                                            checked={selectedDonation === amount}
+                                                            onChange={() => setSelectedDonation(amount)}
+                                                        />
+                                                        ₹{amount}
+                                                    </label>
+                                                ))}
+                                            </Box>
+                                        </Box>
 
-                        {/* Total Calculation */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                            <Typography variant="body1" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Total:</Typography>
-                            <Typography variant="h6">₹{calculateTotal(storeId).toFixed(2)}</Typography>
-                        </Box>
+                                        {/* Total Calculation */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                                            <Typography variant="body1" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Total:</Typography>
+                                            <Typography variant="h6">₹{calculateTotal(storeId).toFixed(2)}</Typography>
+                                        </Box>
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            onClick={() => handleBuyNow(storeId, groupedItems[storeId][0].storeName)}
-                            sx={{ mt: 2 }}
-                        >
-                            Buy Now
-                        </Button>
-                    </Box>
-                </CardContent>
-            </Card>
-        </Grid>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            fullWidth
+                                            onClick={() => handleBuyNow(storeId, groupedItems[storeId][0].storeName)}
+                                            sx={{ mt: 2 }}
+                                        >
+                                            Buy Now
+                                        </Button>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Grid>
                     ))
                 )}
             </Grid>
@@ -309,49 +310,49 @@ const Cart = () => {
 
             {/* Success Modal */}
             {/* Success Modal */}
-<Modal
-    open={openSuccessModal}
-    onClose={() => setOpenSuccessModal(false)}
-    aria-labelledby="success-modal-title"
-    aria-describedby="success-modal-description"
->
-    <Box
-        sx={{
-            p: 4,
-            bgcolor: 'white', // Set background color to green
-            borderRadius: 2,
-            maxWidth: 400,
-            margin: 'auto',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)', // Center the modal
-            boxShadow: 24,
-            color: 'white', // Change text color to white for better contrast
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center', // Center align items
-            justifyContent: 'center', // Center vertically
-        }}
-    >
-        <Typography id="success-modal-title" variant="h6" component="h2" sx={{ textAlign: 'center' ,color:'black'}}>
-            Order Successful!
-        </Typography>
-        <Typography id="success-modal-description" sx={{ mt: 2, textAlign: 'center',color:'black' }}>
-            Thank you for your order! It has been placed successfully.
-        </Typography>
-        <Button
-    variant="contained"
-color="primary"
-    onClick={() => {
-        setOpenSuccessModal(false);
-        navigate('/orders'); // Redirect to orders page
-    }}
->
-    See Order
-</Button>
-    </Box>
-</Modal>
+            <Modal
+                open={openSuccessModal}
+                onClose={() => setOpenSuccessModal(false)}
+                aria-labelledby="success-modal-title"
+                aria-describedby="success-modal-description"
+            >
+                <Box
+                    sx={{
+                        p: 4,
+                        bgcolor: 'white', // Set background color to green
+                        borderRadius: 2,
+                        maxWidth: 400,
+                        margin: 'auto',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)', // Center the modal
+                        boxShadow: 24,
+                        color: 'white', // Change text color to white for better contrast
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center', // Center align items
+                        justifyContent: 'center', // Center vertically
+                    }}
+                >
+                    <Typography id="success-modal-title" variant="h6" component="h2" sx={{ textAlign: 'center', color: 'black' }}>
+                        Order Successful!
+                    </Typography>
+                    <Typography id="success-modal-description" sx={{ mt: 2, textAlign: 'center', color: 'black' }}>
+                        Thank you for your order! It has been placed successfully.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {
+                            setOpenSuccessModal(false);
+                            navigate('/orders'); // Redirect to orders page
+                        }}
+                    >
+                        See Order
+                    </Button>
+                </Box>
+            </Modal>
 
             {/* Confirmation Dialog for Clearing Cart */}
             <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>

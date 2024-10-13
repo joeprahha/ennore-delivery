@@ -13,6 +13,8 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { setToken, redirectUser, getToken } from '../utils/auth';
+import { baseUrl } from '../utils/api';
+
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
@@ -30,7 +32,7 @@ const SignIn = () => {
     useEffect(() => {
         const token = getToken();
         if (token) {
-            redirectUser(navigate); 
+            redirectUser(navigate);
         }
     }, [navigate]);
 
@@ -59,10 +61,10 @@ const SignIn = () => {
             setSnackbarMessage('Enter a valid email address');
             setSnackbarOpen(true);
             return;
-        }            setShowOtpInput(true);
+        } setShowOtpInput(true);
 
         try {
-            await axios.post('http://localhost:5000/ennore-delivery/send-otp', { email });
+            await axios.post(`${baseUrl}/send-otp`, { email });
 
             setSnackbarMessage('OTP sent to your email');
             setIsResendEnabled(false);
@@ -76,7 +78,7 @@ const SignIn = () => {
 
     const handleVerifyOtp = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/ennore-delivery/verify-otp', { email, otp });
+            const response = await axios.post(`${baseUrl}/verify-otp`, { email, otp });
             const { token } = response.data;
             setToken(token);
             redirectUser(navigate);
@@ -120,12 +122,12 @@ const SignIn = () => {
             />
             {/* Send OTP or Resend OTP button */}
             <Box mt={2}>
-                <Button 
-                    variant="contained" 
-                    onClick={handleSendOtp} 
+                <Button
+                    variant="contained"
+                    onClick={handleSendOtp}
                     disabled={!isTermsAccepted || (showOtpInput && !isResendEnabled)}
                 >
-                    {showOtpInput && isResendEnabled 
+                    {showOtpInput && isResendEnabled
                         ? `Resend OTP`
                         : `Send OTP`}
                 </Button>
@@ -146,7 +148,7 @@ const SignIn = () => {
                         margin="normal"
                         sx={{ width: '50%' }}
                     />
-                    <br/><br/>
+                    <br /><br />
                     <Button variant="contained" onClick={handleVerifyOtp}>
                         Sign In
                     </Button>

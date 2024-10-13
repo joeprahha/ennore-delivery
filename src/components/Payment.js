@@ -14,13 +14,16 @@ import {
     Modal,
     TextField
 } from '@mui/material';
+import { baseUrl } from '../utils/api';
+
+
 const Payment = () => {
     const location = useLocation();
     const { amount, orderId } = location.state || {}; // Access amount and orderId from state
-    let hasFetched=false;
+    let hasFetched = false;
     const handlePayment = async () => {
         try {
-            const response = !hasFetched && await axios.post('http://localhost:5000/ennore-delivery/payment/initiate', {
+            const response = !hasFetched && await axios.post(`${baseUrl}/payment/initiate`, {
                 orderId,
                 amount,
             });
