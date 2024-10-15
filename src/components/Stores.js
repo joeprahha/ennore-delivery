@@ -11,7 +11,7 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { isTokenValid, logout } from '../utils/auth';
-import { baseUrl } from '../utils/api';
+import { baseUrl ,api} from '../utils/api';
 
 const Stores = () => {
     const [stores, setStores] = useState([]);
@@ -32,8 +32,8 @@ const Stores = () => {
 
         const fetchStores = async () => {
             try {
-                const response = await axios.get(`${baseUrl}/stores`);
-                console.log(response.data)
+                const response = await api.get(`stores`);
+              	console.log("re",response)
                 setStores(response.data);
             } catch (error) {
                 console.error('Error fetching stores:', error);
@@ -44,7 +44,7 @@ const Stores = () => {
     }, []);
 
     useEffect(() => {
-        const newFilteredStores = stores.filter((store) => {
+        const newFilteredStores = stores?.filter((store) => {
             const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase());
             if (searchQuery) {
                 return matchesSearch
@@ -68,7 +68,7 @@ const Stores = () => {
     };
 
     const handleStoreClick = (storeId) => {
-        navigate(`/ stores / ${storeId}`);
+        navigate(`/stores/${storeId}`);
     };
 
     return (
@@ -103,12 +103,12 @@ const Stores = () => {
             <Grid container spacing={2}>
                 {filteredStores.map((store) => {
                     // Check if the store is open based on open and close time
-                    const isOpen = store.open_time <= currentTimeString && store.close_time >= currentTimeString;
+                    const isOpen = store.open_time <= currentTimeString && store.close_time >= currentTimeString && store.status==='open';
 
                     return (
                         <Grid item xs={12} sm={6} md={4} key={store.id}>
                             <Paper
-                                onClick={isOpen ? () => handleStoreClick(store.id) : null} // Make it clickable only if open
+                                onClick={isOpen ? () => handleStoreClick(store._id) : null} // Make it clickable only if open
                                 sx={{
                                     p: 2,
                                     cursor: isOpen ? 'pointer' : 'default',

@@ -18,23 +18,32 @@ import {
     AccordionSummary,
     AccordionDetails,
     Modal,
+    FormControl,
+    Switch,
+    InputLabel
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+import AddIcon from '@mui/icons-material/Add';
+import JSONInput from 'react-json-editor-ajrm';
+import locale from 'react-json-editor-ajrm/locale/en';
+
+   
 import { Avatar } from '@mui/material';
 import { Select, MenuItem } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import axios from 'axios';
 import { decodeToken, getToken } from '../utils/auth';
 import { useNavigate, useParams } from 'react-router-dom';
-import { baseUrl } from '../utils/api';
+import { baseUrl,api } from '../utils/api';
+import OrderControls from './orderControlls'
 
 const MyStore = () => {
+const userId =decodeToken()?.id
     const [value, setValue] = useState(0);
     const [orders, setOrders] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [loadingMenu, setLoadingMenu] = useState(true);
-    const [newCategory, setNewCategory] = useState('');
-    const [newItem, setNewItem] = useState({ category: '', name: '', price: '' });
     const [storeCategory, setStoreCategory] = useState('');
     const [storeOpenTime, setStoreOpenTime] = useState('');
     const [storeCloseTime, setStoreCloseTime] = useState('');
@@ -43,9 +52,54 @@ const MyStore = () => {
     const [storeName, setStoreName] = useState('');
     const [storeAddress1, setStoreAddress1] = useState('');
     const [storeLocalArea, setStoreLocalArea] = useState('');
+    
+     const [menu, setMenu] = useState([]);
+    const [newCategory, setNewCategory] = useState('');
+    const [newItem, setNewItem] = useState({  name: '', price: '' });
+
+    const [addingCategory, setAddingCategory] = useState(false); // Toggle for category input
+
+const [alertEnabled, setAlertEnabled] = useState(true);
+
+const [editIndex, setEditIndex] = useState(null);
+    const [editedItem, setEditedItem] = useState({ name: '', price: '' });
+    const [selectedCategory, setSelectedCategory] = useState(Object.keys(menu)[0]); // Default to the first category
+
+
+
+    const handleToggle = async () => {
+                const newStatus = stores[0]?.status==='open'?"close":'open'
+        try {
+
+
+
+            // Make API call to update the status
+            await api.put(`mystore/${stores[0]._id}/status?status=${newStatus}`, { status: newStatus  });
+		fetchStores(false)
+            // Optionally: You can show a success message or handle errors
+        } catch (error) {
+            console.error('Error updating store status:', error);
+
+        }
+    };
+
+  const handleUpdateItem = (index,category) => {
+        const updatedMenu = { ...menu };
+        updatedMenu[category][index] = editedItem; // Update the item
+        setMenu(updatedMenu); // Update the state
+        setEditedItem({ name: '', price: '' }); // Clear the input
+        setEditIndex(null); // Reset the edit index
+    };
+
+    const handleDeleteItem = (index,category) => {
+        const updatedMenu = { ...menu };
+        updatedMenu[category].splice(index, 1); // Remove the item
+        setMenu(updatedMenu); // Update the state
+    };
+
+
 
     const navigate = useNavigate();
-    const baseUrl = `${baseUrl}`;
     const { storeId } = useParams();
 
     const handleClose = () => {
@@ -53,9 +107,12 @@ const MyStore = () => {
     };
 
     // Fetch orders for the store
-    const fetchOrders = async () => {
+    const fetchOrders = async (storeId) => {
+
+    let id =storeId || stores[0]._id
+
         try {
-            const response = await axios.get(`${ baseUrl }/mystore/${ storeId }/orders`, {
+            const response = await api.get(`mystore/${id}/orders`, {
     headers: {
         Authorization: `Bearer ${getToken()}`,
                 },
@@ -67,19 +124,49 @@ setOrders(response.data);
     setLoadingOrders(false);
 }
     };
+ useEffect(()=>{
+ const interval = setInterval(() => {
+        fetchOrders();
+    }, 300000); // 300000 milliseconds = 5 minutes
 
-// Fetch menu items for the store
-const fetchMenu = async () => {
-    try {
-        const response = await axios.get(`${baseUrl}/menu`);
-        setMenuItems(response.data);
-    } catch (error) {
-        console.error('Error fetching menu:', error);
-    } finally {
-        setLoadingMenu(false);
-    }
+   
+    // Cleanup the interval on unmount
+    return () => clearInterval(interval);
+},[])
+
+const convertToIST = (utcString) => {
+    // Create a Date object from the UTC string
+    const utcDate = new Date(utcString);
+
+    // Convert to IST (UTC+5:30)
+    const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
+
+    // Format the time to a readable format without seconds
+    const options = { 
+        hour: 'numeric', 
+        minute: 'numeric', 
+        hour12: true, // Use 12-hour format
+        timeZone: 'Asia/Kolkata' 
+    };
+    
+    const formattedTime = istDate.toLocaleString('en-IN', options);
+
+    // Return the formatted time
+    return formattedTime;
 };
 
+// Fetch menu items for the store
+ const fetchMenu = async () => {
+console.log("st",stores[0])
+            try {
+                const response = await api.get(`menus/${stores[0]?._id}`);
+                setMenu(response.data);
+                setLoadingMenu(false);
+            } catch (error) {
+                console.error('Error fetching menu:', error);
+                setLoadingMenu(false);
+            }
+        };
 const checkAuth = (accessible) => {
     if (!getToken()) {
         navigate('/signin');
@@ -91,15 +178,14 @@ const checkAuth = (accessible) => {
     }
 };
 
-const fetchStores = async () => {
+const fetchStores = async (orders=true) => {
     const { id: ownerId } = decodeToken(); // Get ownerId from the JWT token
     try {
-        const response = await axios.get(`${baseUrl}/mystore`, {
-            headers: {
-                Authorization: `Bearer ${getToken()}`, // Include JWT token in the header
-            },
-        });
-        setStores(response.data);
+       const response =await api.get('mystore');
+       console.log(response)
+       setStores(response.data);
+     orders && fetchOrders(response.data[0]._id);
+
     } catch (error) {
         console.error('Error fetching stores:', error);
     }
@@ -114,25 +200,22 @@ useEffect(() => {
         window.location.href = `${window.location.pathname}/${decodeToken().id}`;
     }
     fetchStores();
-    fetchOrders();
+
+
 }, []);
 
 const handleCreateStore = async () => {
     try {
         const { id } = decodeToken();
-        await axios.post(`${baseUrl}/create-store`, {
-            name: storeName,
-            category: storeCategory,
-            open_time: storeOpenTime,
-            close_time: storeCloseTime,
-            address1: storeAddress1,
-            local: storeLocalArea,
-            ownerId: id,
-        }, {
-            headers: {
-                Authorization: `Bearer ${getToken()}`,
-            },
-        });
+        const response = await api.post('/create-store', {
+    name: storeName,
+    category: storeCategory,
+    open_time: storeOpenTime,
+    close_time: storeCloseTime,
+    address1: storeAddress1,
+    local: storeLocalArea,
+    ownerId: id,
+});
         setStoreModalOpen(false); // Close the modal after creating the store
         fetchOrders(); // Fetch updated orders
     } catch (error) {
@@ -142,51 +225,79 @@ const handleCreateStore = async () => {
 
 const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-        await axios.put(`${baseUrl}/orders/${orderId}`, { status: newStatus });
-        fetchOrders(); // Refresh orders after updating
+        await api.put(`orders/${orderId}/status`, { status: newStatus });
+        fetchOrders(); 
         if (newStatus === 'ready') {
-            await axios.post('/api/notify-drivers', { orderId });
+            await api.post('/api/notify-drivers', { orderId });
         }
     } catch (error) {
         console.error('Error updating order status:', error);
     }
 };
 
-const handleAddCategory = async () => {
-    if (!newCategory) return;
-    try {
-        await axios.post(`${baseUrl}/menu`, { categoryName: newCategory });
-        setNewCategory('');
-        fetchMenu(); // Refresh menu after adding a category
-    } catch (error) {
-        console.error('Error adding category:', error);
-    }
-};
 
-const handleAddItem = async () => {
-    if (!newItem.category || !newItem.name || !newItem.price) return;
-    try {
-        await axios.post(`${baseUrl}/menu/item`, { ...newItem });
-        setNewItem({ category: '', name: '', price: '' });
-        fetchMenu(); // Refresh menu after adding an item
-    } catch (error) {
-        console.error('Error adding item:', error);
-    }
-};
+    
+    // Add a new category
+    const handleAddCategory = () => {
+        if (newCategory) {
+            setMenu((prevMenu) => ({ ...prevMenu, [newCategory]: [] }));
+            setNewCategory('');
+            setAddingCategory(false);
+        }
+    };
+
+    // Add a new item to a category
+   const handleAddItem = (category) => {
+        const updatedMenu = { ...menu };
+        updatedMenu[category].push(newItem); // Add the new item
+        setMenu(updatedMenu); // Update the state
+        setNewItem({ name: '', price: '' }); // Clear the input
+    };
+
+    const handleSaveMenu = async () => {
+        const formattedMenu = Object.entries(menu).map(([categoryName, items]) => ({
+            categoryName,
+            items,
+        }));
+
+        try {
+            await api.put(`menus/${userId}`, { menu: formattedMenu });
+            alert('Menu saved successfully');
+        } catch (error) {
+            console.error('Error saving menu:', error);
+            alert('Error saving menu');
+        }
+    };
+ 
 
 return (
     <Box>
         {stores.length ? (
-            <Box mb={4} display="flex" alignItems="center" style={{ margin: 10 }}>
-                <Avatar
-                    alt={stores[0].name}
-                    src={stores[0].logoUrl}
-                    sx={{ width: 30, height: 30, mr: 1 }}
-                />
-                <Typography variant="h6" gutterBottom style={{ lineHeight: '30px' }}>
-                    {stores[0].name}
-                </Typography>
-            </Box>
+		    <Box mb={4} display="flex" alignItems="center" justifyContent="space-between" style={{ margin: 10 }}>
+	    <Box display="flex" alignItems="center">
+		<Avatar
+		    alt={stores[0].name}
+		    src={stores[0].logoUrl}
+		    sx={{ width: 30, height: 30, mr: 1 }}
+		/>
+		<Typography variant="h6" gutterBottom style={{ lineHeight: '30px' }}>
+		    {stores[0].name}
+		</Typography>
+	    </Box>
+	    
+	    <Box display="flex" alignItems="center">
+		<Switch
+		    checked={stores[0]?.status==='open'}
+		    onChange={handleToggle}
+		    color="primary"
+		    sx={{ ml: 2 }} // Add some margin to the left
+		/>
+		<Typography variant="body2" style={{ marginLeft: 5,marginRight:10 }}>
+		    {stores[0]?.status==='open' ? 'Open' : 'Closed'}
+		</Typography>
+	    </Box>
+	</Box>
+
         ) : (
             <Button
                 variant="contained"
@@ -292,7 +403,7 @@ return (
 
         <Tabs
             value={value}
-            onChange={(e, newValue) => setValue(newValue)}
+            onChange={(e, newValue) => {setValue(newValue); menu.length===0 && fetchMenu()}}
             variant="scrollable"
             scrollButtons="auto"
             sx={{ borderBottom: '1px solid #ccc' }}
@@ -308,16 +419,16 @@ return (
                     {loadingOrders ? (
                         <CircularProgress />
                     ) : (
-                        <TableContainer sx={{ maxHeight: 400 }} stickyHeader>
+                    <>
+			<OrderControls    onRefresh={()=>fetchOrders()}  />
+                        <TableContainer  stickyHeader>
                             <Table>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
                                             Order ID
                                         </TableCell>
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
-                                            Customer
-                                        </TableCell>
+                                        
                                         <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
                                             Total
                                         </TableCell>
@@ -325,113 +436,206 @@ return (
                                             Status
                                         </TableCell>
                                         <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
-                                            Actions
+                                            Placed time
+                                        </TableCell>
+                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
+                                           actions
                                         </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {orders.map((order) => (
                                         <TableRow key={order.id}>
-                                            <TableCell>{order.id}</TableCell>
-                                            <TableCell>{order.createduser}</TableCell>
+                                            <TableCell>{order._id.slice(-4)}</TableCell>
                                             <TableCell>{order.total - +order.donation - +order.delivery_fee}</TableCell>
-                                            <TableCell>
-                                                <Select
-                                                    value={order.status}
-                                                    onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                                                >
-                                                    <MenuItem value="pending">Pending</MenuItem>
-                                                    <MenuItem value="accepted">Accepted</MenuItem>
-                                                    <MenuItem value="ready">Ready</MenuItem>
-                                                </Select>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button onClick={() => handleUpdateStatus(order.id, 'ready')}>
-                                                    Mark as Ready
-                                                </Button>
-                                            </TableCell>
+                                            
+                                   <TableCell>{order.status}</TableCell>
+                                   <TableCell>{convertToIST(order.created_at)}</TableCell>
+                                   <TableCell>
+				    <FormControl fullWidth>
+					<Select
+					    fullWidth
+					    onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
+					    value={order.status}
+					    sx={{
+						border: order.status === "new" ? '2px solid red' : 'none', // Conditional red border
+						'&:focus': {
+						    border: order.status === "new" ? '2px solid red' : 'none', // Maintain the border on focus
+						    boxShadow: 'none', // Remove default focus shadow
+						},
+					    }}
+					>
+					    <MenuItem value="" disabled>
+						Select Status
+					    </MenuItem>
+					    <MenuItem value="new">New</MenuItem>
+					    <MenuItem value="accepted">Accepted</MenuItem>
+					    <MenuItem value="ready">Ready</MenuItem>
+					    <MenuItem value="delivered">Delivered</MenuItem>
+					</Select>
+				    </FormControl>
+				</TableCell>
+
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </TableContainer>
+</>
                     )}
                 </Box>
 
             )}
-            {value === 1 && (
+           {value === 1 && (
                 <Box p={3}>
+                    <Box display="flex" mb={2} sx={{ alignItems: 'center' }}>
+		    <TextField
+			label="Add New Category"
+			value={newCategory}
+			onChange={(e) => setNewCategory(e.target.value)}
+			fullWidth
+			margin="normal"
+			sx={{ height: '40px' ,mb:2,mt:0}} // Set height and ensure input fits
+		    />
+		  { newCategory && <Button
+			variant="contained"
+			color="primary"
+			size="small"
+			onClick={handleAddCategory}
+			sx={{ ml: 2, height: '40px', alignSelf: 'stretch' }} // Set height and align
+		    >
+			Add
+		    </Button> }
+		</Box>
                     {loadingMenu ? (
                         <CircularProgress />
                     ) : (
-                        <>
-                            <Accordion>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Typography>Add Category</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <TextField
-                                        label="New Category"
-                                        value={newCategory}
-                                        onChange={(e) => setNewCategory(e.target.value)}
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                    <Button onClick={handleAddCategory} variant="contained" color="primary">
-                                        Add Category
-                                    </Button>
-                                </AccordionDetails>
-                            </Accordion>
+                       <Box sx={{ mt: 2 }}>
 
-                            <Accordion>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Typography>Add Item</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Select
-                                        label="Category"
-                                        value={newItem.category}
-                                        onChange={(e) =>
-                                            setNewItem({ ...newItem, category: e.target.value })
-                                        }
-                                        fullWidth
-                                        margin="normal"
-                                    >
-                                        <MenuItem value="">
-                                            <em>Select Category</em>
-                                        </MenuItem>
-                                        {menuItems.map((item) => (
-                                            <MenuItem key={item.category} value={item.category}>
-                                                {item.category}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
+                
+                <Tabs
+                
+                    value={selectedCategory}
+                    onChange={(event, newValue) => setSelectedCategory(newValue)}
+                >
+                    {Object.keys(menu).map((category) => (
+                        <Tab key={category} label={category} value={category} />
+                    ))}
+                </Tabs>
+               
+           
+         
+
+            <Box sx={{ mt: 2 }}>
+                
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Item Name</TableCell>
+                                <TableCell align="right">Price</TableCell>
+                                <TableCell align="right">Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {menu[selectedCategory]?.map((item, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>
+                                        <TextField
+                                            value={editIndex === index ? editedItem.name : item.name}
+                                            onChange={(e) => {
+                                                const newName = e.target.value;
+                                                if (editIndex === index) {
+                                                    setEditedItem({ ...editedItem, name: newName });
+                                                }
+                                            }}
+                                            disabled={editIndex !== index} // Disable when not editing
+                                        />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <TextField
+                                            value={editIndex === index ? editedItem.price : item.price}
+                                            type="number"
+                                            onChange={(e) => {
+                                                const newPrice = parseFloat(e.target.value);
+                                                if (editIndex === index && !isNaN(newPrice)) {
+                                                    setEditedItem({ ...editedItem, price: newPrice });
+                                                }
+                                            }}
+                                            disabled={editIndex !== index} // Disable when not editing
+                                        />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        {editIndex === index ? (
+                                            <>
+                                                <Button onClick={() => handleUpdateItem(index, selectedCategory)} color="primary">
+                                                    Save
+                                                </Button>
+                                                <Button onClick={() => setEditIndex(null)} color="secondary">
+                                                    Cancel
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button onClick={() => {
+                                                    setEditedItem(item);
+                                                    setEditIndex(index);
+                                                }} color="primary">
+                                                    Edit
+                                                </Button>
+                                                <Button onClick={() => handleDeleteItem(index, selectedCategory)} color="secondary">
+                                                    <DeleteIcon />
+                                                </Button>
+                                            </>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            <TableRow>
+                                <TableCell>
                                     <TextField
-                                        label="Item Name"
+                                        label="Name"
                                         value={newItem.name}
-                                        onChange={(e) =>
-                                            setNewItem({ ...newItem, name: e.target.value })
-                                        }
-                                        fullWidth
-                                        margin="normal"
+                                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                                        InputProps={{
+                                            style: { height: '30px' }, // Set height and padding to match other rows
+                                        }}
                                     />
+                                </TableCell>
+                                <TableCell>
                                     <TextField
                                         label="Price"
                                         value={newItem.price}
-                                        onChange={(e) =>
-                                            setNewItem({ ...newItem, price: e.target.value })
-                                        }
-                                        fullWidth
-                                        margin="normal"
+                                        type="number"
+                                        onChange={(e) => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
+                                        InputProps={{
+                                            style: { height: '30px' }, // Set height and padding to match other rows
+                                        }}
                                     />
-                                    <Button onClick={handleAddItem} variant="contained" color="primary">
-                                        Add Item
+                                </TableCell>
+                                <TableCell>
+                                    <Button
+                                        size="small"
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => handleAddItem(selectedCategory)}
+                                    >
+                                        Add
                                     </Button>
-                                </AccordionDetails>
-                            </Accordion>
-                        </>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Box>
+
+            <Button variant="contained" color="secondary" onClick={handleSaveMenu} sx={{ mt: 2 }}>
+                Save Menu
+            </Button>
+        </Box>
                     )}
                 </Box>
+           
             )}
         </Box>
     </Box>

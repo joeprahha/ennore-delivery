@@ -48,7 +48,6 @@ export const redirectUser = (navigate) => {
     
     const decoded = jwtDecode(token);
     const scope = decoded.scope;
-    console.log("scope",decoded)
     switch (scope) {
         case 'customer':
             navigate('/stores');

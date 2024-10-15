@@ -20,10 +20,10 @@ const OrderHistory = ({ userId }) => {
         // Fetch order history data from API
         const fetchOrders = async () => {
             try {
-                const response = await api(`orderhistory/${decodeToken().id}`);
-                const data = await response.json();
-                setOrders(data);
-                filterRecentOrders(data); // Filter orders within the last 10 days
+                const response = await api.get(`orders/${decodeToken().id}`);
+
+                setOrders(response.data);
+                filterRecentOrders(response.data); // Filter orders within the last 10 days
             } catch (error) {
                 console.error('Failed to fetch order history:', error);
             }
@@ -109,29 +109,23 @@ const OrderHistory = ({ userId }) => {
                                 >
                                     <Box sx={{ width: '100%' }}>
                                         <Typography variant="subtitle1">
-                                            Order ID: {order.id} - {order.storename}
+                                            Order ID: {order._id.slice(-4)} from {order.storename}
                                         </Typography>
-                                        <Typography variant="body2" color="textSecondary">
-                                            Total: ${order.total.toFixed(2)}
+                                        <Typography variant="body2" color="textSecondary" style={{paddingBottom:'5px'}}>
+                                            Total: ${order.total}
                                         </Typography>
                                         {/* Status Stepper */}
-                                        <Stepper activeStep={getStatusIndex(order.status)} alternativeLabel>
-                                            {steps.map((label) => (
-                                                <Step key={label}>
-                                                    <StepLabel>{label}</StepLabel>
-                                                </Step>
-                                            ))}
-                                        </Stepper>
+                                       
                                     </Box>
                                 </AccordionSummary>
 
                                 <AccordionDetails>
                                     {/* Display order items */}
-                                    {order.items.map((item, index) => (
+                                    {JSON.parse(order.items).map((item, index) => (
                                         <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                             <Typography variant="body2">{item.name}</Typography>
                                             <Typography variant="body2">
-                                                {item.count} x ${item.price.toFixed(2)}
+                                                {item.count} x ${item.price}
                                             </Typography>
                                         </Box>
                                     ))}
@@ -139,19 +133,22 @@ const OrderHistory = ({ userId }) => {
                                     {/* Display delivery fee and donation */}
                                     <Box sx={{ mt: 2 }}>
                                         <Typography variant="body2">
-                                            Delivery Fee: ${order.delivery_fee.toFixed(2)}
+                                            Delivery Fee: ${order.delivery_fee}
                                         </Typography>
                                         <Typography variant="body2">
-                                            Donation: ${order.donation.toFixed(2)}
+                                            Donation: ${order.donation}
                                         </Typography>
                                     </Box>
                                 </AccordionDetails>
 
-                                <AccordionActions>
-                                    <Button variant="contained" size="small" color="primary" onClick={() => handleReorder(order.id)}>
-                                        Reorder
-                                    </Button>
-                                </AccordionActions>
+                                <Stepper activeStep={getStatusIndex(order.status)} alternativeLabel>
+                                            {steps.map((label) => (
+                                                <Step key={label}>
+                                                    <StepLabel>{label}</StepLabel>
+                                                </Step>
+                                            ))}
+                                        </Stepper>
+                                        <br/>
                             </Accordion>
                         </Grid>
                     ))}

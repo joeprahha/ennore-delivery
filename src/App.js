@@ -13,7 +13,10 @@ import Stores from './components/Stores';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/Cart';
 import Payment from './components/Payment';
+import OrderHistory from './components/OrderHistory';
+import Reports from './components/Report';
 import { getCartFromLocalStorage } from './utils/localStorage';
+
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -40,13 +43,16 @@ const App = () => {
                         {/* Public Routes */}
                         <Route path="/signin" element={<SignIn />} />
                         <Route path="/stores" element={<Stores />} />
+                       <Route path="/" element={<Stores />} />
                         <Route path="/stores/:storeId" element={<StoreDetail setCount={setCount}/>} />
  			<Route path="/cart" element={<Cart />} />
+ 			<Route path="/orders" element={<OrderHistory />} />
                         {/* Protected Routes based on scope */}
                       <Route path="/stores/:storeId" element={<StoreDetail cart={cart} handleCartCount={handleCartCount} />} />
 
                         <Route path="/mystore" element={<MyStore /> }/>
                         <Route path="/mystore/:storeId" element={<MyStore /> }/>
+                        <Route path="/reports/" element={<Reports />} />
                         <Route
                             path="/deliveries"
                             element={

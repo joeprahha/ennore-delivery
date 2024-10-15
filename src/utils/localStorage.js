@@ -23,7 +23,7 @@ let user =localStorage.getItem('userInfo')
 export const isValidCustomerDetails=()=>{
 
 let user =localStorage.getItem('userInfo')
-let {address1,local_area,phone}=user ? JSON.parse(user):{}
- if(address1 && local_area && phone){ return true}
+let {address1,area,phone}=user ? JSON.parse(user):{}
+ if(address1 && area && phone){ return true}
 return false
 }

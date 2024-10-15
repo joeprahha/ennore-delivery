@@ -13,7 +13,7 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { setToken, redirectUser, getToken } from '../utils/auth';
-import { baseUrl } from '../utils/api';
+import { baseUrl,api } from '../utils/api';
 
 
 const SignIn = () => {
@@ -64,7 +64,7 @@ const SignIn = () => {
         } setShowOtpInput(true);
 
         try {
-            await axios.post(`${baseUrl}/send-otp`, { email });
+            await api.post(`send-otp`, { email });
 
             setSnackbarMessage('OTP sent to your email');
             setIsResendEnabled(false);
@@ -78,7 +78,7 @@ const SignIn = () => {
 
     const handleVerifyOtp = async () => {
         try {
-            const response = await axios.post(`${baseUrl}/verify-otp`, { email, otp });
+            const response = await api.post(`verify-otp`, { email, otp });
             const { token } = response.data;
             setToken(token);
             redirectUser(navigate);

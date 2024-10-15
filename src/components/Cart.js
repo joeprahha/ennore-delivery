@@ -16,6 +16,13 @@ import {
     DialogTitle
 } from '@mui/material';
 import {
+    Table,
+    TableBody,
+    TableRow,
+    TableCell,
+   
+} from '@mui/material';
+import {
     Delete as DeleteIcon,
     ArrowBack as ArrowBackIcon,
     Remove as RemoveIcon,
@@ -26,14 +33,15 @@ import axios from 'axios';
 import { getCartFromLocalStorage, isValidCustomerDetails, getUserInfo } from '../utils/localStorage';
 import { isTokenValid } from '../utils/auth';
 import { logout } from '../utils/auth';
-import { baseUrl } from '../utils/api';
+import { baseUrl,api } from '../utils/api';
+
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [donation, setDonation] = useState(1);
     const [deliveryFee] = useState(4.5);
     const [openModal, setOpenModal] = useState(false);
-    const [userDetails, setUserDetails] = useState({ address1: '', local_area: '', phone: '' });
+    const [userDetails, setUserDetails] = useState({ address1: '', area: '', phone: '' });
     const [openSuccessModal, setOpenSuccessModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -53,9 +61,7 @@ const Cart = () => {
             if (!token) return;
 
             try {
-                const response = await axios.get(`${baseUrl}/users`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+               const response = await api.get('users')
                 localStorage.setItem('userInfo', JSON.stringify(response.data));
             } catch (error) {
                 console.error('Error fetching user data:', error.response ? error.response.data : error.message);
@@ -71,10 +77,11 @@ const Cart = () => {
         return acc;
     }, {});
 
-    const handleQuantityChange = (storeId, itemId, newCount) => {
+    const handleQuantityChange = (storeId, itemName, newCount) => {
+    console.log("item",itemName)
         setCartItems(prevItems =>
             prevItems.map(item =>
-                item.storeId === storeId && item.id === itemId
+                item.storeId === storeId && item.name === itemName
                     ? { ...item, count: newCount }
                     : item
             )
@@ -103,7 +110,8 @@ const Cart = () => {
                     items: groupedItems[storeId]
                 };
 
-                const response = await axios.post(`${baseUrl}/orders`, orderData);
+               const response = await api.post('orders', orderData);
+
                 console.log('Order created:', response.data);
 
                 // Show success modal
@@ -125,11 +133,11 @@ const Cart = () => {
 
     const handleUpdateUserDetails = async () => {
         try {
-            const response = await axios.put(`${baseUrl}/update-user`, userDetails, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.put('update-user', userDetails);
+
             console.log('User updated:', response.data);
-            localStorage.setItem('userInfo', JSON.stringify(userDetails));
+
+            localStorage.setItem('userInfo', JSON.stringify({...getUserInfo(),...userDetails}));
             setOpenModal(false);
         } catch (error) {
             console.error('Error updating user details:', error);
@@ -179,92 +187,109 @@ const Cart = () => {
                 ) : (
                     Object.keys(groupedItems).map(storeId => (
                         <Grid item xs={12} sm={6} md={4} key={storeId}>
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Typography variant="h5" sx={{ mb: 1 }}>
-                                        Store Name: {groupedItems[storeId][0].storeName}
-                                    </Typography>
-                                    <Typography variant="body1" sx={{ mb: 2 }}>
-                                        Store ID: {storeId}
-                                    </Typography>
+                           <Card variant="outlined">
+    <CardContent>
+        <Typography variant="h5" sx={{ mb: 1 }}>
+            Store Name: {groupedItems[storeId][0].storeName}
+        </Typography>
+        
+      <Table sx={{ width: '100%' }} stickyHeader>
+    <TableBody>
+        {groupedItems[storeId].map(item => (
+          <TableRow key={item.id} sx={{ display: 'flex', alignItems: 'center' }}>
+    {/* Image Cell */}
+    <TableCell sx={{ width: '15%', display: 'flex', justifyContent: 'center', padding: '8px' }}>
+        <img
+            src={item.image}
+            alt={item.name}
+            style={{ width: '50px', height: '50px' }}
+        />
+    </TableCell>
+    
+    {/* Name Cell */}
+    <TableCell sx={{ width: '50%', padding: '8px' }}>
+        <Typography variant="h6" noWrap>{item.name}</Typography>
+    </TableCell>
+    
+    {/* Quantity Controls Cell */}
+    <TableCell sx={{ width: '20%', padding: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <IconButton
+            onClick={() => handleQuantityChange(storeId, item.name, Math.max(item.count - 1, 1))}
+            disabled={item.count <= 1}
+        >
+            <RemoveIcon />
+        </IconButton>
+        <Typography style={{ margin: '0 10px' }}>{item.count}</Typography>
+        <IconButton
+            onClick={() => handleQuantityChange(storeId, item.name, item.count + 1)}
+        >
+            <AddIcon />
+        </IconButton>
+    </TableCell>
+    
+    {/* Price Cell */}
+    <TableCell sx={{ width: '15%', padding: '8px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+            ₹{item.count * +item.price}
+        </Typography>
+    </TableCell>
+</TableRow>
 
-                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                        {groupedItems[storeId].map(item => (
-                                            <Box
-                                                key={item.id}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    mb: 1,
-                                                }}
-                                            >
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        style={{ width: '50px', height: '50px', marginRight: '10px' }}
-                                                    />
-                                                    <Typography variant="h6" sx={{ flexGrow: 1 }}>{item.name}</Typography>
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                    <IconButton
-                                                        onClick={() => handleQuantityChange(storeId, item.id, Math.max(item.count - 1, 1))}
-                                                        disabled={item.count <= 1}
-                                                    >
-                                                        <RemoveIcon />
-                                                    </IconButton>
-                                                    <Typography sx={{ mx: 1 }}>{item.count}</Typography>
-                                                    <IconButton
-                                                        onClick={() => handleQuantityChange(storeId, item.id, item.count + 1)}
-                                                    >
-                                                        <AddIcon />
-                                                    </IconButton>
-                                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>₹{item.count * +item.price}</Typography>
-                                                </Box>
-                                            </Box>
-                                        ))}
+        ))}
+{/* Delivery Fee and Donation Selection */}
+<TableRow>
+    <TableCell sx={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="body1">Delivery Fee:</Typography>
+        <Typography variant="h6">₹4.50</Typography>
+    </TableCell>
+</TableRow>
 
-                                        {/* Delivery Fee and Donation Selection */}
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                                            <Typography variant="body1">Delivery Fee:</Typography>
-                                            <Typography variant="h6">₹4.50</Typography>
-                                        </Box>
-                                        <Box sx={{ mt: 1 }}>
-                                            <Typography variant="body1">Donation:</Typography>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 1 }}>
-                                                {[0, 1, 2, 5].map((amount) => (
-                                                    <label key={amount}>
-                                                        <input
-                                                            type="radio"
-                                                            value={amount}
-                                                            checked={selectedDonation === amount}
-                                                            onChange={() => setSelectedDonation(amount)}
-                                                        />
-                                                        ₹{amount}
-                                                    </label>
-                                                ))}
-                                            </Box>
-                                        </Box>
+<TableRow>
+    <TableCell sx={{ borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Label for Donation */}
+        <Typography variant="body1">Donation:</Typography>
 
-                                        {/* Total Calculation */}
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                                            <Typography variant="body1" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Total:</Typography>
-                                            <Typography variant="h6">₹{calculateTotal(storeId).toFixed(2)}</Typography>
-                                        </Box>
+        {/* Radio Buttons aligned to the right */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {[0, 1, 2, 5].map((amount) => (
+                <label key={amount} style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
+                    <input
+                        type="radio"
+                        value={amount}
+                        checked={selectedDonation === amount}
+                        onChange={() => setSelectedDonation(amount)}
+                    />
+                    <span style={{ marginLeft: '5px' }}>₹{amount}</span>
+                </label>
+            ))}
+        </Box>
+    </TableCell>
+</TableRow>
 
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            fullWidth
-                                            onClick={() => handleBuyNow(storeId, groupedItems[storeId][0].storeName)}
-                                            sx={{ mt: 2 }}
-                                        >
-                                            Buy Now
-                                        </Button>
-                                    </Box>
-                                </CardContent>
-                            </Card>
+
+{/* Total Calculation */}
+<TableRow>
+    <TableCell sx={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Total:</Typography>
+        <Typography variant="h6">₹{calculateTotal(storeId).toFixed(2)}</Typography>
+    </TableCell>
+</TableRow>
+
+    </TableBody>
+</Table>
+
+        <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => handleBuyNow(storeId, groupedItems[storeId][0].storeName)}
+            sx={{ mt: 2 }}
+        >
+            Buy Now
+        </Button>
+    </CardContent>
+</Card>
+
                         </Grid>
                     ))
                 )}
@@ -291,8 +316,8 @@ const Cart = () => {
                     <TextField
                         fullWidth
                         label="Local Area"
-                        value={userDetails.local_area}
-                        onChange={(e) => handleUserDetailsChange('local_area', e.target.value)}
+                        value={userDetails.area}
+                        onChange={(e) => handleUserDetailsChange('area', e.target.value)}
                         margin="normal"
                     />
                     <TextField

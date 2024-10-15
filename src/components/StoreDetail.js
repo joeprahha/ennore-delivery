@@ -17,7 +17,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getCartFromLocalStorage, setCartToLocalStorage } from '../utils/localStorage';
 import { isTokenValid, logout } from '../utils/auth';
-import { baseUrl } from '../utils/api';
+import { baseUrl,api } from '../utils/api';
 
 
 const StoreDetail = () => {
@@ -29,14 +29,14 @@ const StoreDetail = () => {
     const [activeTab, setActiveTab] = useState(0);
     const [cart, setCart] = useState(getCartFromLocalStorage());
     const navigate = useNavigate();
-    const baseUrl = `${baseUrl}`;
 
     // Fetch store details and menu
     const fetchMenu = async () => {
         try {
-            const response = await axios.get(`${baseUrl}/menus/${storeId}`);
+            const response = await api.get(`menus/${storeId}`);
             setMenuItems(response.data);
-            const storeResponse = await axios.get(`${baseUrl} /stores/${storeId}`);
+            const storeResponse = await api.get(`stores/${storeId}`);
+
             setStoreInfo(storeResponse.data);
         } catch (error) {
             console.error('Error fetching menu items:', error);
@@ -50,7 +50,7 @@ const StoreDetail = () => {
             logout(navigate);
         }
         fetchMenu();
-    }, [storeId]);
+    }, []);
 
     useEffect(() => {
         if (cart.length) {
@@ -62,7 +62,7 @@ const StoreDetail = () => {
     const filteredItems = searchTerm
         ? Object.keys(menuItems).reduce((acc, category) => {
             menuItems[category].forEach(item => {
-                if (item.item_name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                if (item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
                     acc.push(item);
                 }
             });
@@ -70,36 +70,41 @@ const StoreDetail = () => {
         }, [])
         : (menuItems[Object.keys(menuItems)[activeTab]] || []);
 
-    // Add item to the cart
-    const handleAddToCart = (item) => {
-        setCart(prev => {
-            const existingItemIndex = prev.findIndex(cartItem => cartItem.id === item.id);
-            if (existingItemIndex >= 0) {
-                const updatedCart = [...prev];
-                updatedCart[existingItemIndex].count += 1;
-                return updatedCart;
-            } else {
-                return [...prev, { id: item.id, name: item.item_name, storeId: storeId, storeName: storeInfo?.name, price: item.price, count: 1 }];
-            }
-        });
-    };
+  // Function to add an item to the cart
+  const handleAddToCart = (item) => {
+    const existingItem = cart.find(cartItem => cartItem.name === item.name);
 
-    // Remove item from the cart
-    const handleRemoveFromCart = (item) => {
-        setCart(prev => {
-            const existingItemIndex = prev.findIndex(cartItem => cartItem.id === item.id);
-            if (existingItemIndex >= 0) {
-                const updatedCart = [...prev];
-                updatedCart[existingItemIndex].count -= 1;
-                if (updatedCart[existingItemIndex].count <= 0) {
-                    updatedCart.splice(existingItemIndex, 1);
-                }
-                return updatedCart;
-            }
-            return prev;
-        });
-    };
+    if (existingItem) {
+      // If the item is already in the cart, increment the count
+      setCart(cart.map(cartItem =>
+        cartItem.name === item.name
+          ? { ...cartItem, count: cartItem.count + 1 }
+          : cartItem
+      ));
+    } else {
+      // If the item is not in the cart, add it with a count of 1
+      setCart([...cart, { ...item,storeId,storeName:storeInfo.name ,count: 1 }]);
+    }
+  };
 
+  // Function to remove an item from the cart
+  const handleRemoveFromCart = (item) => {
+    const existingItem = cart.find(cartItem => cartItem.name === item.name);
+
+    if (existingItem) {
+      if (existingItem.count === 1) {
+        // If the count is 1, remove the item from the cart
+        setCart(cart.filter(cartItem => cartItem.name !== item.name));
+      } else {
+        // If more than 1, decrement the count
+        setCart(cart.map(cartItem =>
+          cartItem.name === item.name
+            ? { ...cartItem, count: cartItem.count - 1 }
+            : cartItem
+        ));
+      }
+    }
+  };
     // Add to cart button
     const handleAddToCartMain = () => {
         console.log('Cart:', cart);
@@ -112,29 +117,25 @@ const StoreDetail = () => {
         <Box sx={{ p: 2 }}>
             {/* Store Header */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent:'center',mb: 1, width: '100%' }}>
                     <IconButton onClick={() => navigate('/stores')} color="primary" aria-label="go back">
                         <ArrowBackIcon />
                     </IconButton>
-                </Box>
-                {storeInfo && (
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ mr: 2 }}>
-                            {storeInfo.name}
-                        </Typography>
-                    </Box>
-                )}
-            </Box>
-
-            {/* Sticky Search Bar and Tabs */}
-            <Box sx={{ position: 'sticky', top: '64px', zIndex: 10, backgroundColor: 'white', pb: 2 }}>
-                <TextField
-                    label="Search items"
+                     <TextField
+                    label={`Search items in "${storeInfo?.name}"`}
                     variant="outlined"
                     fullWidth
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2}}
+                    
                 />
+                </Box>
+              
+            </Box>
+
+            {/* Sticky Search Bar and Tabs */}
+            <Box sx={{ position: 'sticky', top: '64px', zIndex: 10, backgroundColor: 'white', pb: 2 ,width:'100%'}}>
+               
                 {!searchTerm && (
                     <Tabs
                         value={activeTab}
@@ -165,25 +166,25 @@ const StoreDetail = () => {
                                     padding: 1,
                                     border: '1px solid #ccc',
                                     borderRadius: 1,
-                                    width: '92%',
+                                    width: '95%',
                                     justifyContent: 'space-between',
                                 }}
                             >
                                 <img
-                                    src={`path / to / item / images / ${item.item_name}.jpg`}
-                                    alt={item.item_name}
+                                    src={`path / to / item / images / ${item.name}.jpg`}
+                                    alt={item.name}
                                     style={{ width: 50, height: 50, borderRadius: '4px', marginRight: '10px' }}
                                 />
                                 <Box sx={{ flexGrow: 1, mx: 2 }}>
-                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.item_name}</Typography>
-                                    <Typography variant="body2">${item.price}</Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.name}</Typography>
+                                    <Typography variant="body2">₹{item.price}</Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         <IconButton onClick={() => handleRemoveFromCart(item)} disabled={!cart.find(cartItem => cartItem.id === item.id)?.count}>
                                             <RemoveIcon />
                                         </IconButton>
-                                        <Typography sx={{ mx: 1 }}>{cart.find(cartItem => cartItem.id === item.id)?.count || 0}</Typography>
+                                        <Typography sx={{ mx: 1 }}>{cart.find(cartItem => cartItem.name === item.name)?.count || 0}</Typography>
                                         <IconButton onClick={() => handleAddToCart(item)}>
                                             <AddIcon />
                                         </IconButton>
@@ -193,7 +194,7 @@ const StoreDetail = () => {
                                         color="primary"
                                         onClick={handleAddToCartMain}
                                         sx={{ mt: 1, padding: '4px 8px', fontSize: '0.75rem' }} // Smaller button
-                                        disabled={!cart.find(cartItem => cartItem.id === item.id)}
+                                        disabled={!cart.find(cartItem => cartItem.name === item.name)}
                                     >
                                         Add to Cart
                                     </Button>
