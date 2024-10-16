@@ -17,7 +17,10 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { getToken, getUserFromToken, logout, decodeToken } from '../utils/auth';
 
-const Sidebar = ({ open, onClose }) => {
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+
+const Sidebar = ({ open, onClose,toggleTheme,isDarkMode }) => {
     const navigate = useNavigate();
     const user = getUserFromToken(getToken());
     const { scope } = decodeToken();
@@ -34,25 +37,34 @@ const Sidebar = ({ open, onClose }) => {
             sx={{
                 '& .MuiDrawer-paper': {
                     width: '250px',
-                    backgroundColor: '#E8F5E9', // Soft pastel green background
+
                     padding: '16px',
-                    color: '#2D3748', // Dark text color for contrast
-                    borderRight: '1px solid #B2DFDB', // Light border for separation
-                },
+		             borderRight: '1px solid #B2DFDB', // Light border for separation
+		        },
             }}
         >
             {/* Close button section */}
             <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#2D3748' }}>Menu</Typography>
-                <IconButton onClick={onClose} sx={{ color: '#F44336' }}> {/* Soft red close button */}
+             <IconButton onClick={onClose} > {/* Soft red close button */}
                     <CloseIcon />
+                </IconButton>
+                <Box style={{ flexGrow: 1 }}>
+		    <img
+		            src="/img2.png" // Replace with the correct path to your logo image
+		            alt="Logo"
+		            style={{ height: '38px', marginLeft: '8px',filter:!isDarkMode && 'invert(1)'}} // Adjust height and margin as needed
+		        />
+            </Box>
+
+               <IconButton onClick={toggleTheme} > 
+                    {isDarkMode ? <LightModeIcon/> : <DarkModeIcon/> }
                 </IconButton>
             </Box>
 
             {/* User info section */}
             <Box display="flex" alignItems="center" mt={2} mb={2}>
                 <PersonIcon sx={{ fontSize: 40, marginRight: 1, color: '#42A5F5' }} /> {/* Light blue icon */}
-                <Typography variant="body1" sx={{ color: '#2D3748', fontWeight: '500' }}>
+                <Typography variant="body1" sx={{ fontWeight: '500' }}>
                     {user?.name}
                 </Typography>
             </Box>

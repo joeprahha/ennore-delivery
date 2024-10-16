@@ -6,12 +6,14 @@ import {
     Tab,
     Grid,
     Typography,
-    Paper,
+    Paper,Button
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { isTokenValid, logout } from '../utils/auth';
 import { baseUrl ,api} from '../utils/api';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
 
 const Stores = () => {
     const [stores, setStores] = useState([]);
@@ -79,18 +81,24 @@ const Stores = () => {
                     position: 'sticky',
                     top: 64,  // Adjust this to match your app bar's height
                     zIndex: 1000,
-                    backgroundColor: '#fff',  // Keep background to avoid overlapping content
                     pb: 2,
                 }}
             >
                 <TextField
-                    label="Search stores"
-                    variant="outlined"
-                    fullWidth
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{ mb: 2 }}
-                />
-
+		    variant="outlined"
+		    fullWidth
+		    onChange={(e) => setSearchQuery(e.target.value)}
+		    sx={{ mb: 2 }}
+		    InputProps={{
+			startAdornment: (
+			    <InputAdornment position="start">
+				<SearchIcon />
+			    </InputAdornment>
+			),
+		    }}
+		    placeholder="Search stores"
+		/>
+		
                 {!searchQuery && (
                     <Tabs value={activeTab} onChange={handleTabChange} aria-label="store tabs" sx={{ mb: 2 }}>
                         <Tab label="Groceries" />
@@ -107,34 +115,53 @@ const Stores = () => {
 
                     return (
                         <Grid item xs={12} sm={6} md={4} key={store.id}>
-                            <Paper
-                                onClick={isOpen ? () => handleStoreClick(store._id) : null} // Make it clickable only if open
-                                sx={{
-                                    p: 2,
-                                    cursor: isOpen ? 'pointer' : 'default',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    backgroundColor: isOpen ? 'white' : 'rgba(0, 0, 0, 0.2)', // Light black for closed stores
-                                }}
-                            >
-                                <Box sx={{ mr: 2 }}>
-                                    <img
-                                        src={`path / to / store / images / ${store.id}.jpg`}
-                                        alt={store.name}
-                                        style={{ width: 60, height: 60, borderRadius: '50%' }}
-                                    />
-                                </Box>
-                                <Box>
-                                    <Typography variant="h6">{store.name}</Typography>
-                                    {isOpen ? (
-                                        <Typography variant="body2" color="green">Open</Typography>
-                                    ) : (
-                                        <Typography variant="body2" color="red">
-                                            Closed. Opens at {store.open_time}
-                                        </Typography>
-                                    )}
-                                </Box>
-                            </Paper>
+                           <Paper
+			 onClick={store.status==='open' ? () => handleStoreClick(store._id) : null}
+			    sx={{ cursor: isOpen ? 'pointer' : 'default' }}
+			>
+    <Box
+        sx={{
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+        }}
+    >
+        {/* Image Cell */}
+        <Box sx={{ mr: 2 }}>
+            <img
+                src={`path/to/store/images/${store.id}.jpg`}
+                alt={'image'}
+                style={{ width: 60, height: 60, borderRadius: '50%' }}
+            />
+        </Box>
+        
+        {/* Store Info Cell */}
+        <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h5">{store.name}</Typography>
+            {/* Star Rating below Store Name */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                {/* Example: Star rating (5 stars) */}
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} style={{ color: star <= store.rating ? '#FFD700' : '#ccc' }}>
+                        ★
+                    </span>
+                ))}
+            </Box>
+        </Box>
+        
+        {/* Shop Now Button */}
+        <Button
+            variant="contained"
+            color="primary"
+            onClick={store.status==='open' ? () => handleStoreClick(store._id) : null}
+            sx={{ padding: '4px 8px', fontSize: '0.75rem' , width:'25%'}} // Smaller button
+            disabled={store.status==='close'}
+        >
+            {store.status==='open' ? 'Shop Now' : 'Closed'}
+        </Button>
+    </Box>
+</Paper>
+
                         </Grid>
                     );
                 })}

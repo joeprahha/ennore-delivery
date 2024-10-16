@@ -25,8 +25,6 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import AddIcon from '@mui/icons-material/Add';
-import JSONInput from 'react-json-editor-ajrm';
-import locale from 'react-json-editor-ajrm/locale/en';
 
    
 import { Avatar } from '@mui/material';

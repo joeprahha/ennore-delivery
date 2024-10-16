@@ -6,28 +6,43 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { baseUrl ,api} from '../utils/api';
 import {decodeToken} from '../utils/auth'
+import { useNavigate } from 'react-router-dom';
+import { CircularProgress, IconButton } from '@mui/material';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
+
 
 // Status steps for order progress
-const steps = ['Placed', 'Accepted', 'Driver Picked', 'Delivered'];
+const steps = ['Placed', 'Accepted','Ready','Driver Picked', 'Delivered'];
+const collectionSteps= ['Placed', 'Accepted','Ready'];
 
 const OrderHistory = ({ userId }) => {
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentTime] = useState(new Date());
+    const [loading,setLoading]=useState(true)
+    const navigate= useNavigate()
+    
+     const [expandedAccordion, setExpandedAccordion] = useState(0); // Track the currently expanded accordion
 
-    useEffect(() => {
-        // Fetch order history data from API
-        const fetchOrders = async () => {
+    const handleAccordionChange = (index) => {
+        setExpandedAccordion(prev => (prev === index ? -1 : index)); // Toggle accordion state between open/closed
+    };
+
+   const fetchOrders = async () => {
             try {
                 const response = await api.get(`orders/${decodeToken().id}`);
-
+		
                 setOrders(response.data);
                 filterRecentOrders(response.data); // Filter orders within the last 10 days
+                setLoading(false)
             } catch (error) {
                 console.error('Failed to fetch order history:', error);
             }
         };
+    useEffect(() => {
+        // Fetch order history data from API
+     
 
         fetchOrders();
     }, [userId]);
@@ -84,45 +99,67 @@ const OrderHistory = ({ userId }) => {
                 </Typography>
             </Box>
 
-            {/* Search bar */}
-            <TextField
-                label="Search orders"
-                variant="outlined"
-                fullWidth
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ mb: 2 }}
-            />
-
+           
             {/* Order list */}
-            <Grid container spacing={2}>
-                {filteredOrders
+         
+         <Grid container spacing={2}>
+            {loading ? (
+                // Show loader when in loading state
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                    <CircularProgress />
+                </Grid>
+            ) : filteredOrders.length === 0 ? (
+                // Show "No orders" and "Click here to order" button when there are no orders
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                    <Box textAlign="center">
+                        <Typography variant="h6" gutterBottom>No orders</Typography>
+                        <Button variant="contained" color="primary" onClick={() => navigate('/stores')}>
+                            Click here to order
+                        </Button>
+                    </Box>
+                </Grid>
+            ) : (
+                // Show orders when they exist
+                filteredOrders
                     .filter(order =>
                         order.storename.toLowerCase().includes(searchQuery.toLowerCase())
                     )
-                    .map((order) => (
+                    .map((order, index) => (
                         <Grid item xs={12} key={order.id}>
-                            <Accordion>
+                            <Accordion expanded={expandedAccordion === index} onChange={() => handleAccordionChange(index)}>
                                 <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
                                     aria-controls={`order-content-${order.id}`}
                                     id={`order-header-${order.id}`}
                                 >
-                                    <Box sx={{ width: '100%' }}>
+                                    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
                                         <Typography variant="subtitle1">
-                                            Order ID: {order._id.slice(-4)} from {order.storename}
+                                            Order #{order._id.slice(-4)}
                                         </Typography>
-                                        <Typography variant="body2" color="textSecondary" style={{paddingBottom:'5px'}}>
-                                            Total: ${order.total}
+                                        <Typography variant="body2" color="textSecondary" style={{ paddingBottom: '5px', marginLeft: 'auto' }}>
+                                            Rs. {order.total}
                                         </Typography>
-                                        {/* Status Stepper */}
-                                       
+
+                                        {/* Conditionally show the "Where is my order?" button or the expand arrow */}
+                                        {expandedAccordion === index ? <></> :(
+                                            <Button 
+                                                variant="outlined" 
+                                                size="small" 
+                                                sx={{ marginLeft: 'auto' }} 
+                                                onClick={() => {order.status!=='delivered' && fetchOrders()} }
+                                            >
+                                                more
+                                            </Button>
+                                        )}
                                     </Box>
                                 </AccordionSummary>
 
                                 <AccordionDetails>
                                     {/* Display order items */}
-                                    {JSON.parse(order.items).map((item, index) => (
-                                        <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                    <Typography variant="subtitle1" sx={{mb:2}}>
+                                           Store : {order.storename}
+                                        </Typography>
+                                    {JSON.parse(order.items).map((item, itemIndex) => (
+                                        <Box key={itemIndex} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                             <Typography variant="body2">{item.name}</Typography>
                                             <Typography variant="body2">
                                                 {item.count} x ${item.price}
@@ -140,19 +177,23 @@ const OrderHistory = ({ userId }) => {
                                         </Typography>
                                     </Box>
                                 </AccordionDetails>
-
-                                <Stepper activeStep={getStatusIndex(order.status)} alternativeLabel>
-                                            {steps.map((label) => (
-                                                <Step key={label}>
-                                                    <StepLabel>{label}</StepLabel>
-                                                </Step>
-                                            ))}
-                                        </Stepper>
-                                        <br/>
+				<Typography variant="body2" sx={{m:2}}>
+				{order.orderType==='collection' ?'if status is ready , please collect from store':''}
+				 </Typography>
+                                {/* Order status stepper */}
+                                <Stepper activeStep={getStatusIndex(order.status)} sx={{mb:3}} alternativeLabel>
+                                    {(order.orderType === 'collection' ? collectionSteps:steps).map((label) => (
+                                        <Step key={label}>
+                                            <StepLabel>{label}</StepLabel>
+                                        </Step>
+                                    ))}
+                                </Stepper>
                             </Accordion>
                         </Grid>
-                    ))}
-            </Grid>
+                    ))
+            )}
+        </Grid>
+
         </Box>
     );
 };

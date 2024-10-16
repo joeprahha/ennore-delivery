@@ -13,8 +13,11 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle
+    DialogTitle,TableHead,Zoom,CircularProgress
 } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
 import {
     Table,
     TableBody,
@@ -22,6 +25,7 @@ import {
     TableCell,
    
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import {
     Delete as DeleteIcon,
     ArrowBack as ArrowBackIcon,
@@ -41,7 +45,7 @@ const Cart = () => {
     const [donation, setDonation] = useState(1);
     const [deliveryFee] = useState(4.5);
     const [openModal, setOpenModal] = useState(false);
-    const [userDetails, setUserDetails] = useState({ address1: '', area: '', phone: '' });
+    const [userDetails, setUserDetails] = useState(getUserInfo() ||{ address1: '', area: '', phone: '' });
     const [openSuccessModal, setOpenSuccessModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -49,6 +53,7 @@ const Cart = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('authToken');
     const [selectedDonation, setSelectedDonation] = useState(1); // Default donation amount
+const[buyingStoreId,setBuyingStoreId]=useState(null)
 
     useEffect(() => {
         if (!isTokenValid()) {
@@ -93,8 +98,10 @@ const Cart = () => {
         return items.reduce((total, item) => total + +item.price * item.count, 0) + selectedDonation + deliveryFee;
     };
 
-    const handleBuyNow = async (storeId, storename) => {
+    const handleBuyNow = async (storeId, storename,type) => {
+		
         if (isValidCustomerDetails()) {
+
             setLoading(true);
             setErrorMessage('');
             try {
@@ -105,6 +112,7 @@ const Cart = () => {
                     total: calculateTotal(storeId),
                     delivery_fee: deliveryFee,
                     donation,
+                    orderType:type,
                     status: 'new',
                     customer_details: getUserInfo(),
                     items: groupedItems[storeId]
@@ -116,7 +124,7 @@ const Cart = () => {
 
                 // Show success modal
                 setOpenSuccessModal(true);
-
+		        setOpenModal(false)
                 // Clear the cart
                 localStorage.removeItem('cart');
                 setCartItems([]);
@@ -155,7 +163,7 @@ const Cart = () => {
     };
 
     const handleGoBack = () => {
-        navigate('/stores');
+        navigate(-1);
     };
 
     const handleDonationChange = (amount) => {
@@ -173,17 +181,24 @@ const Cart = () => {
                     <ArrowBackIcon />
                 </IconButton>
                 <Typography variant="h4" sx={{ fontSize: '1.5rem' }}>Your Cart</Typography>
-                <IconButton onClick={handleClearCart} color="secondary" aria-label="clear cart">
+                <IconButton onClick={handleClearCart} color="secondary" disabled={Object.keys(groupedItems).length} aria-label="clear cart">
                     <DeleteIcon />
-                </IconButton>
+                </IconButton> 
             </Box>
 
-            {loading && <Typography variant="body1">Processing your order...</Typography>}
+
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
             <Grid container spacing={2}>
                 {Object.keys(groupedItems).length === 0 ? (
-                    <Typography>No items in cart.</Typography>
+                    <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                    <Box textAlign="center">
+                        <Typography variant="h6" gutterBottom>Your cart is Empty</Typography>
+                        <Button variant="contained" color="primary" onClick={() => navigate('/stores')}>
+                            Click here to order
+                        </Button>
+                    </Box>
+                </Grid>
                 ) : (
                     Object.keys(groupedItems).map(storeId => (
                         <Grid item xs={12} sm={6} md={4} key={storeId}>
@@ -194,11 +209,35 @@ const Cart = () => {
         </Typography>
         
       <Table sx={{ width: '100%' }} stickyHeader>
+      <TableHead>
+    <TableRow sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* Image Header */}
+        <TableCell sx={{ flex: '1', display: 'flex', justifyContent: 'center', borderBottom: 'none' }}>
+            <Typography variant="subtitle1" fontWeight="bold">Image</Typography>
+        </TableCell>
+
+        {/* Name Header */}
+        <TableCell sx={{ flex: '3', display: 'flex', alignItems: 'center', borderBottom: 'none' }}>
+            <Typography variant="subtitle1" fontWeight="bold">Name</Typography>
+        </TableCell>
+
+        {/* Quantity Header */}
+        <TableCell sx={{ flex: '2', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 'none' }}>
+            <Typography variant="subtitle1" fontWeight="bold">Quantity</Typography>
+        </TableCell>
+
+        {/* Price Header */}
+        <TableCell sx={{ flex: '1', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderBottom: 'none' }}>
+            <Typography variant="subtitle1" fontWeight="bold">Price</Typography>
+        </TableCell>
+    </TableRow>
+</TableHead>
+
     <TableBody>
         {groupedItems[storeId].map(item => (
           <TableRow key={item.id} sx={{ display: 'flex', alignItems: 'center' }}>
     {/* Image Cell */}
-    <TableCell sx={{ width: '15%', display: 'flex', justifyContent: 'center', padding: '8px' }}>
+    <TableCell sx={{  borderBottom: 'none',width: '15%', display: 'flex', justifyContent: 'center', padding: '8px' }}>
         <img
             src={item.image}
             alt={item.name}
@@ -207,12 +246,12 @@ const Cart = () => {
     </TableCell>
     
     {/* Name Cell */}
-    <TableCell sx={{ width: '50%', padding: '8px' }}>
+    <TableCell sx={{ borderBottom: 'none', width: '50%', padding: '8px' }}>
         <Typography variant="h6" noWrap>{item.name}</Typography>
     </TableCell>
     
     {/* Quantity Controls Cell */}
-    <TableCell sx={{ width: '20%', padding: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <TableCell sx={{  borderBottom: 'none',width: '20%', padding: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <IconButton
             onClick={() => handleQuantityChange(storeId, item.name, Math.max(item.count - 1, 1))}
             disabled={item.count <= 1}
@@ -228,7 +267,7 @@ const Cart = () => {
     </TableCell>
     
     {/* Price Cell */}
-    <TableCell sx={{ width: '15%', padding: '8px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+    <TableCell sx={{ borderBottom: 'none', width: '15%', padding: '8px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <Typography variant="body1" style={{ fontWeight: 'bold' }}>
             ₹{item.count * +item.price}
         </Typography>
@@ -282,7 +321,7 @@ const Cart = () => {
             variant="contained"
             color="primary"
             fullWidth
-            onClick={() => handleBuyNow(storeId, groupedItems[storeId][0].storeName)}
+            onClick={() => {setOpenModal(true);setBuyingStoreId(storeId)}}
             sx={{ mt: 2 }}
         >
             Buy Now
@@ -296,88 +335,187 @@ const Cart = () => {
             </Grid>
 
             {/* Modal for User Details */}
-            <Modal
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                aria-labelledby="user-details-modal-title"
-                aria-describedby="user-details-modal-description"
-            >
-                <Box sx={{ p: 4, bgcolor: 'background.paper', borderRadius: 2, maxWidth: 400, margin: 'auto' }}>
-                    <Typography id="user-details-modal-title" variant="h6" component="h2">
-                        User Details
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        label="Address"
-                        value={userDetails.address1}
-                        onChange={(e) => handleUserDetailsChange('address1', e.target.value)}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Local Area"
-                        value={userDetails.area}
-                        onChange={(e) => handleUserDetailsChange('area', e.target.value)}
-                        margin="normal"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Phone"
-                        value={userDetails.phone}
-                        onChange={(e) => handleUserDetailsChange('phone', e.target.value)}
-                        margin="normal"
-                    />
-                    <Button variant="contained" color="primary" onClick={handleUpdateUserDetails}>
-                        Save
-                    </Button>
-                </Box>
-            </Modal>
 
-            {/* Success Modal */}
-            {/* Success Modal */}
-            <Modal
-                open={openSuccessModal}
-                onClose={() => setOpenSuccessModal(false)}
-                aria-labelledby="success-modal-title"
-                aria-describedby="success-modal-description"
+<Modal
+    open={openModal}
+    onClose={() => setOpenModal(false)} // Closes on clicking outside
+    aria-labelledby="user-details-modal-title"
+    aria-describedby="user-details-modal-description"
+>
+    <Box 
+        sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: '100vh',
+            position: 'relative',
+        }}
+    >
+        <Box 
+            sx={{ 
+                p: 4, 
+                bgcolor: 'background.paper', 
+                borderRadius: 2, 
+                maxWidth: 400, 
+                width: '100%', 
+                boxShadow: 24,
+                position: 'relative' // To position the close button inside
+            }}
+        >
+            {/* Close Icon */}
+            <IconButton
+                sx={{ position: 'absolute', top: 8, right: 8 }}
+                onClick={() => setOpenModal(false)}
             >
-                <Box
-                    sx={{
-                        p: 4,
-                        bgcolor: 'white', // Set background color to green
-                        borderRadius: 2,
-                        maxWidth: 400,
-                        margin: 'auto',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)', // Center the modal
-                        boxShadow: 24,
-                        color: 'white', // Change text color to white for better contrast
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center', // Center align items
-                        justifyContent: 'center', // Center vertically
+                <CloseIcon />
+            </IconButton>
+
+            <Typography id="user-details-modal-title" variant="h6" component="h2" gutterBottom>
+                Delivery Details
+            </Typography>
+
+            <TextField
+                fullWidth
+                label="Name"
+                value={userDetails.name}
+                onChange={(e) => handleUserDetailsChange('name', e.target.value)}
+                margin="normal"
+                required
+            />
+            <TextField
+                fullWidth
+                label="Address"
+                value={userDetails.address1}
+                onChange={(e) => handleUserDetailsChange('address1', e.target.value)}
+                margin="normal"
+                required
+            />
+           <FormControl fullWidth margin="normal" required>
+	    <InputLabel id="local-area-label">Local Area</InputLabel>
+	    <Select
+		labelId="local-area-label"
+		id="local-area-select"
+		value={userDetails.area}
+		onChange={(e) => handleUserDetailsChange('area', e.target.value)}
+		label="Local Area"
+	    >
+		<MenuItem value="Chennai">Chennai</MenuItem>
+		<MenuItem value="Bangalore">Bangalore</MenuItem>
+		<MenuItem value="Pune">Pune</MenuItem>
+		<MenuItem value="Delhi">Delhi</MenuItem>
+		<MenuItem value="Hyderabad">Hyderabad</MenuItem>
+	    </Select>
+	</FormControl>
+            <TextField
+                fullWidth
+                label="Phone"
+                value={userDetails.phone}
+                onChange={(e) => handleUserDetailsChange('phone', e.target.value)}
+                margin="normal"
+                required
+            />
+
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                    setOpenModal(false);
+                    handleUpdateUserDetails();
+                    handleBuyNow(buyingStoreId, groupedItems[buyingStoreId][0].storeName,"delivery");
+                     
+                }}
+                sx={{ mt: 2 }} 
+                fullWidth
+                disabled={!(userDetails.name && userDetails.phone && userDetails.area && userDetails.address1)}
+            >
+               {!(userDetails.name && userDetails.phone && userDetails.area && userDetails.address1) ? "fill all to Delivery":"Delivery" }
+            </Button>
+
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                    handleUpdateUserDetails();
+                    handleBuyNow(buyingStoreId, groupedItems[buyingStoreId][0].storeName,"collection");
+                   
+                }}
+                sx={{ mt: 2 }} 
+                fullWidth
+            >
+                Collect from store
+            </Button>
+                        {loading && <Typography variant="body1">Processing your order...</Typography>}
+        </Box>
+    </Box>
+</Modal>
+
+
+           <Modal
+    open={openSuccessModal}
+    onClose={() => setOpenSuccessModal(false)}
+    aria-labelledby="success-modal-title"
+    aria-describedby="success-modal-description"
+    closeAfterTransition
+>
+    <Zoom in={openSuccessModal}>
+        <Box
+            sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1300, // Ensure the modal appears on top
+            }}
+        >
+            <Box
+                sx={{
+                    p: 4,
+                    bgcolor: 'green', // Set background color to green for success
+                    borderRadius: 2,
+                    maxWidth: 300,
+                    width: '100%',
+                    boxShadow: 24,
+                    color: 'white', // Change text color to white for better contrast
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center', // Center align items
+                    justifyContent: 'center', // Center vertically
+                    textAlign: 'center',
+                }}
+            >
+                {/* Success Icon */}
+                <CheckCircleOutlineIcon 
+                    sx={{ fontSize: 80, color: 'white', mb: 3 }} // Large success icon
+                />
+                <Typography
+                    id="success-modal-title"
+                    variant="h6"
+                    component="h2"
+                    sx={{ mb: 2 }}
+                >
+                    Order Successful!
+                </Typography>
+                
+                {/* Button to Navigate */}
+                <Button
+                    variant="contained"
+                    sx={{ bgcolor: 'white', color: 'green', mt: 3 }} // Inverted button colors
+                    onClick={() => {
+                        setOpenSuccessModal(false);
+                        navigate('/orders'); // Redirect to orders page
                     }}
                 >
-                    <Typography id="success-modal-title" variant="h6" component="h2" sx={{ textAlign: 'center', color: 'black' }}>
-                        Order Successful!
-                    </Typography>
-                    <Typography id="success-modal-description" sx={{ mt: 2, textAlign: 'center', color: 'black' }}>
-                        Thank you for your order! It has been placed successfully.
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                            setOpenSuccessModal(false);
-                            navigate('/orders'); // Redirect to orders page
-                        }}
-                    >
-                        See Order
-                    </Button>
-                </Box>
-            </Modal>
+                    Go to Orders
+                </Button>
+            </Box>
+        </Box>
+    </Zoom>
+</Modal>
+
 
             {/* Confirmation Dialog for Clearing Cart */}
             <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>

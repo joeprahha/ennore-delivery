@@ -11,3 +11,21 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+.bike-loader {
+    animation: moveRight 2s linear infinite; /* Move for 2 seconds and repeat infinitely */
+    position: relative;
+    width: 100%; /* Ensure it takes full width */
+    overflow: hidden; /* Hide overflow for smooth animation */
+}
+
+@keyframes moveRight {
+    0% {
+        transform: translateX(-100%); /* Start off the screen */
+    }
+    100% {
+        transform: translateX(100%); /* Move to the right, off the screen */
+    }
+}
+
