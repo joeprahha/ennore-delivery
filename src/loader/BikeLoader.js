@@ -26,7 +26,7 @@ const BikeLoader = () => {
                 <img
                     src="/img2.png" // Replace with your bike logo path
                     alt="Bike Logo"
-                    style={{ height: '180px' }} // Adjust height as needed
+                    style={{ height: '65px' }} // Adjust height as needed
                 />
             </Box>
         </Box>

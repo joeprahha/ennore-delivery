@@ -68,11 +68,15 @@ const Header = ({ onMenuClick,isDarkMode }) => {
             </Tooltip>
         </>
 
-            ):<img
-                    src="/img1.jpg" // Replace with the correct path to your logo image
+            ): <Box style={{ flexGrow: 1 }}>
+            <img
+           	   
+                    src="/img2.png" // Replace with the correct path to your logo image
                     alt="Logo"
-                    style={{ height: '40px', marginRight: '16px' }} // Adjust height and margin as needed
-                />}
+                    style={{ height: '38px', marginLeft: '8px',filter: !isDarkMode && 'invert(1)' }} // Adjust height and margin as needed
+                />
+            </Box>
+           }
         </Toolbar>
     </AppBar>
 

@@ -7,8 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { baseUrl ,api} from '../utils/api';
 import {decodeToken} from '../utils/auth'
 import { useNavigate } from 'react-router-dom';
-import { CircularProgress, IconButton } from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import BikeLoader from '../loader/BikeLoader';
 
 
 // Status steps for order progress
@@ -104,10 +103,7 @@ const OrderHistory = ({ userId }) => {
          
          <Grid container spacing={2}>
             {loading ? (
-                // Show loader when in loading state
-                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-                    <CircularProgress />
-                </Grid>
+                <BikeLoader/>
             ) : filteredOrders.length === 0 ? (
                 // Show "No orders" and "Click here to order" button when there are no orders
                 <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>

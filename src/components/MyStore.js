@@ -14,16 +14,13 @@ import {
     Button,
     TextField,
     CircularProgress,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
     Modal,
     FormControl,
     Switch,
     InputLabel
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import ItemModal from './itemModal'; 
 import AddIcon from '@mui/icons-material/Add';
 
    
@@ -62,14 +59,19 @@ const [alertEnabled, setAlertEnabled] = useState(true);
 const [editIndex, setEditIndex] = useState(null);
     const [editedItem, setEditedItem] = useState({ name: '', price: '' });
     const [selectedCategory, setSelectedCategory] = useState(Object.keys(menu)[0]); // Default to the first category
+const [itemModal, setItemModal] = useState(false);
+const [selectedOrder,setSelectedOrder]= useState({});
+const showItems=(e,order)=>{
 
+ setSelectedOrder(order)
+  setItemModal(true)
+}
 
 
     const handleToggle = async () => {
                 const newStatus = stores[0]?.status==='open'?"close":'open'
+                setStores([{...stores[0],status:newStatus}])
         try {
-
-
 
             // Make API call to update the status
             await api.put(`mystore/${stores[0]._id}/status?status=${newStatus}`, { status: newStatus  });
@@ -102,6 +104,7 @@ const [editIndex, setEditIndex] = useState(null);
 
     const handleClose = () => {
         setStoreModalOpen(false);
+        setItemModal(false)
     };
 
     // Fetch orders for the store
@@ -132,26 +135,7 @@ setOrders(response.data);
     return () => clearInterval(interval);
 },[])
 
-const convertToIST = (utcString) => {
-    // Create a Date object from the UTC string
-    const utcDate = new Date(utcString);
 
-    // Convert to IST (UTC+5:30)
-    const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
-
-    // Format the time to a readable format without seconds
-    const options = { 
-        hour: 'numeric', 
-        minute: 'numeric', 
-        hour12: true, // Use 12-hour format
-        timeZone: 'Asia/Kolkata' 
-    };
-    
-    const formattedTime = istDate.toLocaleString('en-IN', options);
-
-    // Return the formatted time
-    return formattedTime;
-};
 
 // Fetch menu items for the store
  const fetchMenu = async () => {
@@ -222,6 +206,17 @@ const handleCreateStore = async () => {
 };
 
 const handleUpdateStatus = async (orderId, newStatus) => {
+	
+	const updatedOrders = orders.map((o) => {
+  if (o._id === orderId) {
+    console.log(o._id);
+    return { ...o, status: newStatus }; // Return a new object with the updated status
+  }
+  return o; // Return the unchanged orders
+});
+
+setOrders(updatedOrders); // Set the new updated array to the state
+
     try {
         await api.put(`orders/${orderId}/status`, { status: newStatus });
         fetchOrders(); 
@@ -419,24 +414,27 @@ return (
                     ) : (
                     <>
 			<OrderControls    onRefresh={()=>fetchOrders()}  />
-                        <TableContainer  stickyHeader>
-                            <Table>
+						<ItemModal
+						open={itemModal}
+						handleClose={handleClose}
+						order={selectedOrder}
+					      />
+                        <TableContainer stickyHeader sx={{width:'100%'}}>
+                            <Table >
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
+                                        <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
                                             Order ID
                                         </TableCell>
                                         
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
-                                            Total
+                                        
+                                        <TableCell sx={{ position: 'sticky', top: 0,  zIndex: 1 }}>
+                                            Customer
                                         </TableCell>
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
-                                            Status
+                                        <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
+                                            Action
                                         </TableCell>
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
-                                            Placed time
-                                        </TableCell>
-                                        <TableCell sx={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
+                                        <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
                                            actions
                                         </TableCell>
                                     </TableRow>
@@ -445,10 +443,15 @@ return (
                                     {orders.map((order) => (
                                         <TableRow key={order.id}>
                                             <TableCell>{order._id.slice(-4)}</TableCell>
-                                            <TableCell>{order.total - +order.donation - +order.delivery_fee}</TableCell>
                                             
-                                   <TableCell>{order.status}</TableCell>
-                                   <TableCell>{convertToIST(order.created_at)}</TableCell>
+                                   <TableCell>{order.createduser}</TableCell>
+                                  
+                                   <TableCell>
+                                   <Button onClick={(e)=>showItems(e,order)}>
+                                   		items
+                                   		</Button>
+		                            
+				      </TableCell>
                                    <TableCell>
 				    <FormControl fullWidth>
 					<Select
