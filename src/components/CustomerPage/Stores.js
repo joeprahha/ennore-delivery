@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
     Box,
     TextField,
-    Tabs,
-    Tab,
-    Grid,
     Typography,
     Paper,
     Button,
@@ -13,14 +10,16 @@ import {
     MenuItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { isTokenValid, logout } from '../utils/auth';
-import { api } from '../utils/api';
+import { isTokenValid, logout } from '../../utils/auth';
+import { api } from '../../utils/api';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
+import StoreList from './StoreList'; // Import the StoreList component
+import { getCartFromLocalStorage, setCartToLocalStorage } from '../../utils/localStorage';
+import {GoToOrdersButton} from './GoToOrdersButton'
 
 const Stores = () => {
     const [stores, setStores] = useState([]);
@@ -30,7 +29,13 @@ const Stores = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [deliveryType, setDeliveryType] = useState('Delivery');
     const navigate = useNavigate();
-
+    
+        const [ordersModalOpen, setOrdersModalOpen] = useState(false);
+    
+        const [cart, setCart] = useState(getCartFromLocalStorage() || { items: [] });
+	
+	const[goToCartButton,setGoToCartButton]=useState(cart?.storeId||false)
+	
     const currentTime = new Date();
     const currentTimeString = currentTime.toTimeString().split(' ')[0].slice(0, 5); // HH:mm format
 
@@ -49,6 +54,8 @@ const Stores = () => {
         };
 
         fetchStores();
+        
+        
     }, [navigate]);
 
     useEffect(() => {
@@ -57,7 +64,7 @@ const Stores = () => {
             const isGroceries = activeTab === 0 && store.category === 'groceries';
             const isRestaurants = activeTab === 1 && store.category === 'restaurant';
 
-            return (isGroceries || isRestaurants || searchQuery) && matchesSearch;
+            return (isGroceries || isRestaurants) && matchesSearch;
         });
         setFilteredStores(newFilteredStores);
     }, [stores, activeTab, searchQuery]);
@@ -81,6 +88,11 @@ const Stores = () => {
 
     return (
         <Box sx={{ p: 1 }}>
+        
+        
+        	{
+    goToCartButton ? <GoToOrdersButton cart={cart}/> : null
+}
             {/* Address and Delivery Type Selection */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Box display="flex" alignItems="center">
@@ -125,7 +137,7 @@ const Stores = () => {
             />
 
             {/* Scrollable Categories */}
-            <Box
+         {  searchQuery ? <></> : <Box
                 sx={{
                     display: 'flex',
                     overflowX: 'auto',
@@ -157,83 +169,87 @@ const Stores = () => {
                         <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{category}</Typography>
                     </Box>
                 ))}
-            </Box>
+            </Box>}
 
-            {/* Scrollable Store List for Each Category */}
-            {['Groceries', 'Fast Food', 'Restaurants'].map((category) => (
-                <Box key={category} sx={{ mb: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontSize: '0.9rem' }}>{category}</Typography>
-                        <IconButton size="small">
-                            <ArrowCircleRightOutlinedIcon />
-                        </IconButton>
-                    </Box>
+            {/* Render StoreList if there is a search query, otherwise render the filtered store categories */}
+            {searchQuery ? (
+                <StoreList stores={filteredStores} onStoreClick={handleStoreClick}/>
+            ) : (
+                ['Groceries', 'Fast Food', 'Restaurants'].map((category) => (
+                    <Box key={category} sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontSize: '0.9rem' }}>{category}</Typography>
+                            <IconButton size="small">
+                                <ArrowCircleRightOutlinedIcon />
+                            </IconButton>
+                        </Box>
 
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            overflowX: 'auto',
-                            scrollbarWidth: 'thin',
-                            '&::-webkit-scrollbar': { height: '6px' },
-                            '&::-webkit-scrollbar-thumb': { backgroundColor: '#888' },
-                        }}
-                    >
-                        {filteredStores
-                            .filter((store) => store.category === category.toLowerCase())
-                            .map((store) => {
-                                const isOpen =
-                                    store.open_time <= currentTimeString &&
-                                    store.close_time >= currentTimeString &&
-                                    store.status === 'open';
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                overflowX: 'auto',
+                                scrollbarWidth: 'thin',
+                                '&::-webkit-scrollbar': { height: '6px' },
+                                '&::-webkit-scrollbar-thumb': { backgroundColor: '#888' },
+                            }}
+                        >
+                            {filteredStores
+                                .filter((store) => store.category === category.toLowerCase())
+                                .map((store) => {
+                                    const isOpen =
+                                        store.open_time <= currentTimeString &&
+                                        store.close_time >= currentTimeString &&
+                                        store.status === 'open';
 
-                                return (
-                                    <Paper
-                                        key={store.id}
-                                        onClick={isOpen ? () => handleStoreClick(store.id) : null}
-                                        sx={{
-                                            cursor: isOpen ? 'pointer' : 'default',
-                                            width: '250px', // Fixed width for each card
-                                            textAlign: 'center',
-                                            p: 1,
-                                            mr: 2,
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        <img
-                                            src={`https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzW4EUZFweH3nNXHU6USz5v0ys6cK0a5xn7w&s`}
-                                            alt="store"
-                                            style={{
-                                                width: '100%',
-                                                height: '100px',
-                                                objectFit: 'cover',
-                                                borderRadius: '4px',
+                                    return (
+                                        <Paper
+                                            key={store._id}
+                                            onClick={isOpen ? () => handleStoreClick(store._id) : null}
+                                            sx={{
+                                                cursor: isOpen ? 'pointer' : 'default',
+                                                width: '200px', // Fixed width for each card
+                                                textAlign: 'center',
+                                                p: 1,
+                                                mr: 2,
+                                                flexShrink: 0,
                                             }}
-                                        />
+                                        >
+                                            <img
+                                                src={`https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzW4EUZFweH3nNXHU6USz5v0ys6cK0a5xn7w&s`}
+                                                alt="store"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100px',
+                                                    objectFit: 'cover',
+                                                    borderRadius: '4px',
+                                                }}
+                                            />
 
-                                        <Typography variant="subtitle2" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                                            {store.name}
-                                        </Typography>
+                                            <Typography variant="subtitle2" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                                                {store.name}
+                                            </Typography>
 
-                                        <Typography variant="body2" sx={{ mb: 1, fontSize: '0.75rem', color: '#555' }}>
-                                            456 Elm Street, City
-                                        </Typography>
+                                            <Typography variant="body2" sx={{ mb: 1, fontSize: '0.75rem', color: '#555' }}>
+                                                456 Elm Street, City
+                                            </Typography>
 
-                                        {store.status !== 'open' && (
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                sx={{ mt: 1, fontSize: '0.7rem' }}
-                                                disabled={store.status === 'close'}
-                                            >
-                                                {store.status === 'open' ? 'Shop Now' : 'Closed'}
-                                            </Button>
-                                        )}
-                                    </Paper>
-                                );
-                            })}
+                                            {store.status !== 'open' && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    sx={{ mt: 1, fontSize: '0.7rem' }}
+                                                    disabled={store.status === 'close'}
+                                                >
+                                                    {store.status === 'open' ? 'Shop Now' : 'Closed'}
+                                                </Button>
+                                            )}
+                                        </Paper>
+                                    );
+                                })}
+                        </Box>
                     </Box>
-                </Box>
-            ))}
+                ))
+            )}
         </Box>
     );
 };

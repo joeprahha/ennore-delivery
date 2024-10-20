@@ -4,10 +4,10 @@ import {
     Stepper, Step, StepLabel, TextField, AccordionActions, Button
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { baseUrl ,api} from '../utils/api';
-import {decodeToken} from '../utils/auth'
+import { baseUrl ,api} from '../../utils/api';
+import {decodeToken} from '../../utils/auth'
 import { useNavigate } from 'react-router-dom';
-import BikeLoader from '../loader/BikeLoader';
+import BikeLoader from '../../loader/BikeLoader';
 
 
 // Status steps for order progress

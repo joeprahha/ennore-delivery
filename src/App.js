@@ -6,15 +6,16 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import SignIn from './components/SignIn';
 import Deliveries from './components/Deliveries';
-import StoreDetail from './components/StoreDetail';
-import MyStore from './components/MyStore';
-import Home from './components/Home';
-import Stores from './components/Stores';
+import StoreDetail from './components/CustomerPage/StoreDetail';
+import MyStore from './components/OwnerPage/MyStore';
+
+import Stores from './components/CustomerPage/Stores';
 import ProtectedRoute from './components/ProtectedRoute';
-import Cart from './components/Cart';
+import Cart from './components/CustomerPage/Cart';
+import OrdersModal from './components/CustomerPage/ordersModal';
 import Payment from './components/Payment';
-import OrderHistory from './components/OrderHistory';
-import Reports from './components/Report';
+import OrderHistory from './components/CustomerPage/OrderHistory';
+import Reports from './components/OwnerPage/Report';
 import { getCartFromLocalStorage } from './utils/localStorage';
 import { lightTheme, darkTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
@@ -69,7 +70,7 @@ const App = () => {
                         <Route path="/stores" element={<Stores />} />
                         <Route path="/" element={<Stores />} />
                         <Route path="/stores/:storeId" element={<StoreDetail setCount={setCount} cart={cart} handleCartCount={handleCartCount} />} />
-                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/cart" element={<OrdersModal />} />
                         <Route path="/orders" element={<OrderHistory />} />
                         {/* Protected Routes based on scope */}
                         <Route path="/mystore" element={<MyStore />} />

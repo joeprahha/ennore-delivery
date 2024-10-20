@@ -1,10 +1,10 @@
 import React, { useState,useEffect } from 'react';
 import { Box, Button, TextField, Typography,Grid,TableContainer,TableRow,Table,TableCell,TableBody ,CircularProgress} from '@mui/material';
 
-import { decodeToken, getToken } from '../utils/auth';
+import { decodeToken, getToken } from '../../utils/auth';
 import { useParams, useNavigate } from 'react-router-dom';
-import {api} from '../utils/api';
-import{getUserInfo} from '../utils/localStorage'
+import {api} from '../../utils/api';
+import{getUserInfo} from '../../utils/localStorage'
 export const generateReport = async (storeId,startDate, endDate) => {
 
     try {

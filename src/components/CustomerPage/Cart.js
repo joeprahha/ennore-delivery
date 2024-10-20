@@ -34,10 +34,10 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { getCartFromLocalStorage, isValidCustomerDetails, getUserInfo } from '../utils/localStorage';
-import { isTokenValid } from '../utils/auth';
-import { logout } from '../utils/auth';
-import { baseUrl, api } from '../utils/api';
+import { getCartFromLocalStorage, isValidCustomerDetails, getUserInfo } from '../../utils/localStorage';
+import { isTokenValid } from '../../utils/auth';
+import { logout } from '../../utils/auth';
+import { baseUrl, api } from '../../utils/api';
 
 
 const Cart = () => {

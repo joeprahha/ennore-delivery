@@ -13,20 +13,30 @@ const lightTheme = createTheme({
       default: '#f5f5f5',
       paper: '#fff',
     },
+  
   },
   typography: {
-    fontFamily: 'Roboto, sans-serif',
+    fontFamily: 'Arial, sans-serif',
     h1: {
-      fontSize: '3rem',
+      fontWeight: 700,
+      fontSize: '2.5rem',
+     
     },
     h2: {
-      fontSize: '2.5rem',
+      fontWeight: 600,
+      fontSize: '2rem',
+     
     },
     h3: {
-      fontSize: '2rem',
+      fontWeight: 500,
+      fontSize: '1.75rem',
+   
     },
     body1: {
-      fontSize: '1.2rem',
+      fontSize: '1rem',
+    },
+    button: {
+      textTransform: 'none', // Prevent uppercase transformation
     },
   },
  components: {
@@ -36,6 +46,18 @@ const lightTheme = createTheme({
           color: '#333333', // Dark text
           margin: 0,
           fontFamily: 'Arial, sans-serif',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px', // Rounded corners
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Subtle shadow
+          '&:hover': {
+            backgroundColor: '#4682B4', // Steel blue on hover
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)', // Deeper shadow on hover
+          },
         },
       },
     },

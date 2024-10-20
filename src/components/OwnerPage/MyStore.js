@@ -27,9 +27,9 @@ import AddIcon from '@mui/icons-material/Add';
 import { Avatar } from '@mui/material';
 import { Select, MenuItem } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { decodeToken, getToken } from '../utils/auth';
+import { decodeToken, getToken } from '../../utils/auth';
 import { useNavigate, useParams } from 'react-router-dom';
-import { baseUrl,api } from '../utils/api';
+import { baseUrl,api } from '../../utils/api';
 import OrderControls from './orderControlls'
 
 const MyStore = () => {
