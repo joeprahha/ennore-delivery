@@ -4,7 +4,7 @@ const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#4caf50',
+      main: '#7B0099',
     },
     secondary: {
       main: '#ff5722',
@@ -13,50 +13,46 @@ const lightTheme = createTheme({
       default: '#f5f5f5',
       paper: '#fff',
     },
-  
   },
   typography: {
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     h1: {
       fontWeight: 700,
       fontSize: '2.5rem',
-     
     },
     h2: {
       fontWeight: 600,
       fontSize: '2rem',
-     
     },
     h3: {
       fontWeight: 500,
       fontSize: '1.75rem',
-   
     },
     body1: {
       fontSize: '1rem',
     },
     button: {
-      textTransform: 'none', // Prevent uppercase transformation
+      textTransform: 'none',
     },
   },
- components: {
+  components: {
     MuiBody: {
       styleOverrides: {
         root: {
-          color: '#333333', // Dark text
+          color: '#333333',
           margin: 0,
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px', // Rounded corners
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Subtle shadow
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
           '&:hover': {
-            backgroundColor: '#4682B4', // Steel blue on hover
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)', // Deeper shadow on hover
+            backgroundColor: '#4682B4',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
           },
         },
       },
@@ -68,24 +64,24 @@ const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#4682B4', // Steel blue for primary actions
-      contrastText: '#ffffff', // White text for contrast
+      main: '#4682B4',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#ff4081', // A vivid pink for secondary actions
-      contrastText: '#ffffff', // White text for contrast
+      main: '#ff4081',
+      contrastText: '#ffffff',
     },
     background: {
-      default: '#121212', // Darker background for better contrast
-      paper: '#1e1e1e', // Slightly lighter for cards and surfaces
+      default: '#121212',
+      paper: '#1e1e1e',
     },
     text: {
-      primary: '#e0e0e0', // Light grey for primary text
-      secondary: '#b0bec5', // Lighter grey for secondary text
+      primary: '#e0e0e0',
+      secondary: '#b0bec5',
     },
   },
   typography: {
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     h1: {
       fontWeight: 700,
       fontSize: '2.5rem',
@@ -106,28 +102,28 @@ const darkTheme = createTheme({
       color: '#e0e0e0',
     },
     button: {
-      textTransform: 'none', // Prevent uppercase transformation
+      textTransform: 'none',
     },
   },
   components: {
-   MuiBody: {
+    MuiBody: {
       styleOverrides: {
         root: {
-          backgroundColor: '#121212', // Dark background
-          color: '#f5f5f5', // Light text
+          backgroundColor: '#121212',
+          color: '#f5f5f5',
           margin: 0,
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px', // Rounded corners
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Subtle shadow
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
           '&:hover': {
-            backgroundColor: '#4682B4', // Steel blue on hover
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)', // Deeper shadow on hover
+            backgroundColor: '#4682B4',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
           },
         },
       },
@@ -136,3 +132,4 @@ const darkTheme = createTheme({
 });
 
 export { lightTheme, darkTheme };
+

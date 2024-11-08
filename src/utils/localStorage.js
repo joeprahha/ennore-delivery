@@ -1,11 +1,11 @@
 export const getCartFromLocalStorage = () => {
     const storedCart = localStorage.getItem('cart');
-    console.log(JSON.parse(storedCart))
-    return storedCart ? JSON.parse(storedCart) :[];
+    
+    return storedCart ? JSON.parse(storedCart||'{}') :{items:[]};
 };
 
 export const setCartToLocalStorage = (newItem) => {
-console.log("set",newItem)
+
     // Get the current cart from local storage
    
     // Save the updated cart back to local storage
@@ -17,6 +17,11 @@ console.log("set",newItem)
 export const getUserInfo = () => {
 let user =localStorage.getItem('userInfo')
    return user ? JSON.parse(user) :{};
+};
+
+export const setUserInfo = (data) => {
+let user =localStorage.setItem('userInfo',JSON.stringify(data))
+
 };
 
 

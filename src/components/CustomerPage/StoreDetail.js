@@ -1,27 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef,useCallback } from 'react';
 import {
     Box,
     TextField,
     Typography,
     IconButton,
     Paper,
-    InputAdornment,Chip
+    InputAdornment,
+    Grid,
+    Tabs,
+    Tab,
+    AppBar,
+    SwipeableDrawer,
+    List,
+    ListItem,
+    ListItemText,
+    Divider,
+    Button,
+    Chip
 } from '@mui/material';
+import ItemCard from './Components/ItemCard'; // Adjust the import based on your file structure
+
+import { GoToOrdersButton } from './Components/GoToOrdersButton';
 import BikeLoader from '../../loader/BikeLoader';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
-
+import CloseIcon from '@mui/icons-material/Close';
 import { isTokenValid, logout } from '../../utils/auth';
 import { api } from '../../utils/api';
-import ItemDetailModal from './ItemModal';
-import StoreList from './StoreList'
-import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
-
-import { getCartFromLocalStorage, setCartToLocalStorage } from '../../utils/localStorage';
-import {GoToOrdersButton} from './GoToOrdersButton'
+import ItemDetailModal from './Components/ItemModal';
+import { getCartFromLocalStorage } from '../../utils/localStorage';
+import MenuIcon from '@mui/icons-material/Menu';
+import QuantityButton from './Components/QuantityButton'
 
 const StoreDetail = () => {
     const { storeId } = useParams();
@@ -29,12 +39,63 @@ const StoreDetail = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [storeInfo, setStoreInfo] = useState(null);
-    
-    const [cart, setCart] = useState(getCartFromLocalStorage() || { items: [] });
-    	const[goToCartButton,setGoToCartButton]=useState(cart?.storeId||false)
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [activeTab, setActiveTab] = useState(0);
+    
+    const [cart, setCart] = useState(getCartFromLocalStorage() || {storeId, storeName: storeInfo.name, items: [] });
+	const goToCartButton =()=> JSON.parse(localStorage.getItem('cart'))?.items.length ? true :false
+    const addToCart = (item) => {
+        const existingCart = JSON.parse(localStorage.getItem('cart'));
+        
+        if (!existingCart || existingCart.storeId !== storeId) {
+            const newCart = {
+                storeId,
+                storeName: storeInfo.name,
+                items: [{ ...item, count: 1 }]
+            };
+            setCart(newCart);
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        } else {
+            const existingItem = existingCart.items.find(cartItem => cartItem.id === item.id);
+            if (existingItem) {
+                existingItem.count += 1;
+                setCart({ ...existingCart });
+                localStorage.setItem('cart', JSON.stringify(existingCart));
+            } else {
+                existingCart.items.push({ ...item, count: 1 });
+                setCart({ ...existingCart });
+                localStorage.setItem('cart', JSON.stringify(existingCart));
+            }
+        }
+    };
+
+    const incrementItemCount = (item) => {
+        const existingItem = cart.items.find(cartItem => cartItem.id === item.id);
+        if (existingItem) {
+            existingItem.count += 1;
+            setCart({ ...cart, items: [...cart.items] });
+            localStorage.setItem('cart', JSON.stringify({ ...cart, items: [...cart.items] }));
+        }
+    };
+
+    const decrementItemCount = (item) => {
+        const existingItem = cart.items.find(cartItem => cartItem.id === item.id);
+        if (existingItem) {
+            if (existingItem.count > 1) {
+                existingItem.count -= 1;
+            } else {
+                cart.items = cart.items.filter(cartItem => cartItem.id !== item.id);
+            }
+            setCart({ ...cart, items: [...cart.items] });
+            localStorage.setItem('cart', JSON.stringify({ ...cart, items: [...cart.items] }));
+        }
+    };
+    
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    
     const navigate = useNavigate();
+    const categoryRefs = useRef([]);
 
     const handleOpenModal = (item) => {
         setSelectedItem(item);
@@ -58,14 +119,6 @@ const StoreDetail = () => {
             setLoading(false);
         }
     };
-    
-      const getItemCountFromCart = (itemName) => {
-        if (cart.storeId === storeInfo?._id) { // Check if storeId matches
-            const cartItem = cart?.items?.find(cartItem => cartItem.name === itemName); // Check if the item exists in the cart
-            return cartItem ? cartItem.count : 0; // Return the count if found
-        }
-        return 0;
-    };
 
     useEffect(() => {
         if (!isTokenValid()) {
@@ -73,12 +126,22 @@ const StoreDetail = () => {
         }
         fetchMenu();
     }, []);
-    useEffect(() => {
-      
-    }, [cart]);
 
- 
- 
+    const handleTabChange = (event, newValue) => {
+        setActiveTab(newValue);
+        const categoryElement = document.getElementById(`category-${newValue}`);
+        if (categoryElement) {
+            const stickyHeaderHeight = 80;
+            const elementOffset = categoryElement.getBoundingClientRect().top + window.scrollY; 
+            const centerPosition = elementOffset - (window.innerHeight / 2) + (categoryElement.clientHeight / 2) + stickyHeaderHeight;
+
+            window.scrollTo({
+                top: centerPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     const filteredItems = searchTerm
         ? Object.keys(menuItems).reduce((acc, category) => {
             menuItems[category].forEach(item => {
@@ -88,140 +151,227 @@ const StoreDetail = () => {
             });
             return acc;
         }, [])
-        : (menuItems[Object.keys(menuItems)[0]] || []);
+        : (menuItems[Object.keys(menuItems)[activeTab]] || []);
 
-  
+    const toggleDrawer = (open) => () => {
+        setDrawerOpen(open);
+    };
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = categoryRefs.current.indexOf(entry.target);
+                    if (index !== -1) {
+                        setActiveTab(index);
+                    }
+                }
+            });
+        }, {
+            threshold: 0.5
+        });
+
+        categoryRefs.current.forEach(ref => {
+            if (ref) observer.observe(ref);
+        });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [menuItems]);
 
     return (
-        <Box sx={{width:'100%',p:0 }}>
-            {/* Store Header with Wallpaper */}
-            {
-    goToCartButton ? <GoToOrdersButton cart={cart}/> : null
-}
-          <Box
-    sx={{
-        position: 'relative',
-        width: '100%',
-        height: '150px',
-        backgroundImage: `url("https://fps.cdnpk.net/images/home/subhome-ai.webp")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-    }}
->
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
-        <IconButton
-            onClick={() => navigate('/stores')}
-            color="primary"
-        >
-            <ArrowBackIcon />
-        </IconButton>
+        <Box sx={{ width: '100%', p: 0 }}>
+            {loading ? (
+                <BikeLoader />
+            ) : (
+                <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
+                        
+                        <Typography variant="h6">{storeInfo?.name}</Typography>
+                    </Box>
 
-        {/* Centered Store Name */}
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-            {storeInfo && <Typography variant="h6">{storeInfo.name}</Typography>}
-        </Box>
-
-        {/* Optional space for alignment */}
-        <Box sx={{ width: '48px' }} /> {/* This box ensures that there's space on the right */}
-    </Box>
-</Box>
-
-
-            {/* Search Bar Below Wallpaper */}
-            <Box sx={{ mt: 1,p:1 }}>
-               
-                 <TextField
-                variant="outlined"
-                fullWidth
-                size="small"
-                onChange={(e) => setSearchTerm(e.target.value)}
-               
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon />
-                        </InputAdornment>
-                    ),
-                }}
-                placeholder={`Search items in "${storeInfo?.name}"`}	
-            />
-            </Box>
-
-          {searchTerm ? (
-    <StoreList stores={filteredItems} onStoreClick={() => {}} />
-) : (
-    <Box sx={{ p: 1 }}>
-        {Object.keys(menuItems).map((category) => (
-            <Box key={category} sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                           <Typography variant="subtitle2" sx={{ fontSize: '0.9rem', mb: 1 }}>
-                    {category}
-                </Typography>
-                 <IconButton size="small">
-                                <ArrowCircleRightOutlinedIcon />
-                            </IconButton>
-                        </Box>
-                
-                <Box sx={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'thin' }}>
-                    {menuItems[category].map((item) => (
-                        <Paper
-                            key={item.id}
-                            onClick={() => handleOpenModal(item)} // Open modal on click
-                            sx={{
-                                cursor: 'pointer',
-                                width: '100px', // Fixed width for each card
-                                textAlign: 'center',
-                                p: 1,
-                                mr: 2,
-                                flexShrink: 0,
-                                textAlign:'left'
+                    <Box 
+                        sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            flexDirection: 'column',
+                            position: 'sticky', 
+                            top: 0, 
+                            zIndex: 10, 
+                            backgroundColor: '#fff', 
+                            pt: 1, 
+                        }}
+                    >
+                      <Box sx={{display:'flex',width:'100%'}}>  
+				<IconButton onClick={() => navigate('/stores')} sx={{ }}>
+                            <ArrowBackIcon />
+                        </IconButton>
+				<TextField
+                            variant="outlined"
+                            size="small"
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ width: '95%',pr:1	 }}
+                            placeholder={`Search items in "${storeInfo?.name}"`}
+                        /> </Box>
+                       {searchTerm?
+                       
+                       <Box 
+                            sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                width: '100%', 
+                                overflow: 'hidden', 
                             }}
                         >
-                            <img
-                                src={`https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzW4EUZFweH3nNXHU6USz5v0ys6cK0a5xn7w&s`}
-                                alt={item.name}
-                                style={{
-                                    width: '100%',
-                                    height: '100px',
-                                    objectFit: 'cover',
-                                    borderRadius: '4px',
-                                }}
-                            />
-                            <Typography variant="subtitle2" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                                {item.name}
-                            </Typography>
-                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Typography variant="body2" sx={{ mb: 1, fontSize: '0.75rem', color: '#555' }}>
-                                                    ₹{item.price}
-                                                </Typography>
-                                                {/* Show count in the line of price if item is in cart */}
-                                                {getItemCountFromCart(item.name) > 0 && (
-                                                    <Typography variant="body2" sx={{ mb: 1, fontSize: '0.75rem', color: '#555' }}>
-                                                        <Chip label={getItemCountFromCart(item.name)} size="small" />
+				 <Typography variant="h6" align="left"  sx={{ m: 2}}>
+			    {'Search Results :'}
+			  </Typography>
+			</Box>
+                       
+                       
+                       :<Box 
+                            sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                width: '100%', 
+                                overflow: 'hidden', 
+                            }}
+                        >
+                            <IconButton sx={{ color: 'inherit', flexShrink: 0 }} onClick={toggleDrawer(true)}>
+                                <MenuIcon />
+                            </IconButton>
+                            <Tabs
+                                value={activeTab}
+                                onChange={handleTabChange}
+                                variant="scrollable"
+                                scrollButtons="auto"
+                                sx={{ 
+                                    overflowX: 'auto', 
+                                    flexGrow: 1, 
+                                    flexShrink: 1, 
+                                    minHeight: '48px', 
+                                }} 
+                            >
+                                {Object.keys(menuItems).map((category, index) => (
+                                    <Tab label={category} key={index} />
+                                ))}
+                            </Tabs>
 
-                                                    </Typography>
-                                                )}
-                                            </Box>
-                        </Paper>
-                    ))}
-                </Box>
-            </Box>
-        ))}
+                        </Box>}
+                    </Box>
 
-        {/* Item Detail Modal */}
-        {selectedItem && (
-            <ItemDetailModal
-                open={modalOpen}
-                onClose={handleCloseModal}
-                item={selectedItem}
-		storeInfo={storeInfo}
-		cart={cart}
-		setCart={setCart}
+                <>
+  {!searchTerm ? (
+    Object.keys(menuItems).map((category, index) => (
+      <Box key={index} id={`category-${index}`} sx={{ p: 1, mt: 2 }} ref={el => (categoryRefs.current[index] = el)}>
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 96,
+            backgroundColor: 'white',
+            pt: 1,
+            zIndex: 8,
+          }}
+        >
+          <Typography variant="subtitle2" align="left" id={`category-${index}`} sx={{ mb: 1,fontSize:'1rem' }}>
+            {category}
+          </Typography>
+          <Divider />
+        </Box>
+        <Grid container spacing={2}>
+          {menuItems[category].map(item => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              cart={cart}
+              setCart={setCart}
+              addToCart={addToCart}
+              handleOpenModal={handleOpenModal}
             />
-        )}
-    </Box>
-)}
+          ))}
+        </Grid>
+      </Box>
+    ))
+  ) : (
+    <Grid container spacing={2}>
+      {filteredItems.map(item => (
+        <ItemCard
+          key={item.id}
+          item={item}
+          cart={cart}
+          setCart={setCart}
+          addToCart={addToCart}
+          handleOpenModal={handleOpenModal}
+        />
+      ))}
+    </Grid>
+  )}
+</>
 
+
+                    {false && (
+                        <ItemDetailModal
+                            open={modalOpen}
+                            onClose={handleCloseModal}
+                            item={selectedItem}
+                            storeInfo={storeInfo}
+                            cart={cart}
+                            setCart={setCart}
+                        />
+                    )}
+
+                    <SwipeableDrawer
+                        anchor="bottom"
+                        open={drawerOpen}
+                        onClose={toggleDrawer(false)}
+                        onOpen={toggleDrawer(true)}
+                        sx={{
+                            '& .MuiDrawer-paper': {
+                                height: '85%',
+                                bottom: 0,
+                                borderRadius: '16px 16px 0 0',
+                            },
+                        }}
+                    >
+                        <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <IconButton onClick={toggleDrawer(false)}>
+                                    <CloseIcon />
+                                </IconButton>
+                                <Typography variant="h6" sx={{ ml: 1 }}>Select Category</Typography>
+                            </Box>
+                            <List sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                                {Object.keys(menuItems).map((category, index) => (
+                                    <React.Fragment key={index}>
+                                        <ListItem button onClick={() => {
+                                            handleTabChange(null, index);
+                                            toggleDrawer(false)();
+                                        }}>
+                                            <ListItemText primary={category} />
+                                        </ListItem>
+                                        <Divider />
+                                    </React.Fragment>
+                                ))}
+                            </List>
+                            <Box sx={{ mt: 'auto', mb: 2 }}>
+                                <Button fullWidth variant="contained" onClick={toggleDrawer(false)}>
+                                    DISMISS
+                                </Button>
+                            </Box>
+                        </Box>
+                    </SwipeableDrawer>
+                </>
+            )}
+                                {goToCartButton ? <GoToOrdersButton cart={cart} /> : null}
+       <Box sx={{height:'80px'}}/>
         </Box>
     );
 };

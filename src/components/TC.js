@@ -66,7 +66,7 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
             {/* Navigation List */}
             <List>
                 {/* Profile item */}
-                <ListItem button component={Link} to={`/profile`} onClick={handleLinkClick}>
+                <ListItem>
                     <ListItemIcon>
                         <PersonIcon />
                     </ListItemIcon>

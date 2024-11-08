@@ -1,0 +1,146 @@
+import React from 'react';
+import { Container, Typography, Paper, Button, Box, Divider, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import LocalPhoneOutlinedIcon from '@mui/icons-material/LocalPhoneOutlined';
+import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
+import { getUserInfo,setUserInfo } from '../utils/localStorage';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import {  logout } from '../utils/auth';
+const Account = ({toggleTheme,isDarkMode}) => {
+console.log("dfar",isDarkMode)
+
+    const navigate = useNavigate();
+const[address,setAddress]=React.useState(getUserInfo()||{})
+    const handleProfileClick = () => {
+        navigate('/profile');
+    };
+
+    const handleOrdersClick = () => {
+        navigate('/orders');
+    };
+const handleAboutClick=()=>{
+        navigate('/about');
+}
+    const handleLogout = () => {
+        // Implement your logout logic here
+        console.log("Logged out");
+    };
+
+
+    return (
+        <Container maxWidth="sm" sx={{ mt: 4 }}>
+        
+         <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mt: 2,mb:2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1,flexDirection:'column' }}>
+                 <AccountCircleIcon  sx={{ fontSize:'5rem',color:'text.secondary'}}/>
+                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="body1" sx={{ marginLeft: 1,flex:1 }}>Profile</Typography>
+
+                   </Box>
+                <Typography variant="body1" align="right" onClick={handleProfileClick} sx={{ mr:1,color:'blue',fontSize:"0.75rem" }}>Edit</Typography>
+                     </Box>
+                <Divider />
+                <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }}>
+
+                    <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
+                        Name:
+                    </Typography>
+                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+                        {address.name}
+                    </Typography>
+                </Box>
+
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }}>
+               
+                    <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
+                        Phone:
+                    </Typography>
+                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+                        {address.phone}
+                    </Typography>
+                </Box>
+
+                
+                 <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }}>
+
+                    <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
+                        Address:
+                    </Typography>
+                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+                        {address.address1}, {address.local}
+                    </Typography>
+                </Box>
+                <Divider />
+               
+               
+            </Paper>
+           
+            <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
+                <List>
+                    <ListItem button onClick={handleProfileClick}>
+                        <ListItemIcon>
+                            <AccountCircleIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Profile" />
+                    </ListItem>
+                    <Divider />
+                    <ListItem button onClick={handleOrdersClick}>
+                        <ListItemIcon>
+                            <ReceiptIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Your Orders" />
+                    </ListItem>
+                </List>
+            </Paper>
+            
+
+ 	<Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
+    <Typography variant="h6" sx={{ mb: 1 }}> Ennore Delivery settings</Typography>
+    <List >
+         <ListItem button onClick={toggleTheme}>
+                    <ListItemIcon>
+                        {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                    </ListItemIcon>
+                    <ListItemText
+                        primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                        sx={{ color: '#2D3748' }}
+                    />
+                </ListItem>
+        <Divider />
+        <ListItem button onClick={handleAboutClick}>
+            <ListItemIcon>
+                <InfoOutlinedIcon />
+            </ListItemIcon>
+            <ListItemText primary="About" />
+        </ListItem>
+    </List>
+</Paper>
+
+
+           
+
+            <Button
+                variant="contained"
+                color="secondary"
+                onClick={()=>logout(navigate)}
+                sx={{ mt: 3, width: '100%' }}
+            >
+                Logout
+            </Button>
+            
+            <Box sx={{height:'80px'}}/>
+        </Container>
+    );
+};
+
+export default Account;
+

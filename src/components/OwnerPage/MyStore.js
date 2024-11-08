@@ -18,7 +18,8 @@ import {
     Switch,
     Select,
     MenuItem,
-    Avatar
+    Avatar,
+    InputLabel,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ItemModal from './itemModal'; 
@@ -28,7 +29,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import OrderControls from './orderControlls';
 import MenuManagement from './MenuMange';
-import  CreateStoreModal from './CreateStoreModal';
+import CreateStoreDialog from './CreateStoreModal';
 
 const MyStore = () => {
     const userId = decodeToken()?.id;
@@ -38,6 +39,7 @@ const MyStore = () => {
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [loadingMenu, setLoadingMenu] = useState(true);
     const [stores, setStores] = useState([]);
+    const [selectedStore, setSelectedStore] = useState(null); // State for selected store
     const [storeModalOpen, setStoreModalOpen] = useState(false);
     const [itemModal, setItemModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState({});
@@ -50,11 +52,9 @@ const MyStore = () => {
         setItemModal(false);
     };
 
-    const fetchOrders = async (storeId) => {
-    console.log(stores[0])
-        const id = storeId || stores[0]._id;
+    const fetchOrders = async (selectedStore) => {
         try {
-            const response = await api.get(`mystore/${id}/orders`, {
+            const response = await api.get(`mystore/${selectedStore}/orders`, {
                 headers: {
                     Authorization: `Bearer ${getToken()}`,
                 },
@@ -72,22 +72,25 @@ const MyStore = () => {
         try {
             const response = await api.get('mystore');
             setStores(response.data);
-            fetchOrdersFlag && fetchOrders(response.data[0]._id);
+            if (fetchOrdersFlag && response.data.length > 0) {
+                setSelectedStore(response.data[0]._id);
+                fetchOrders(response.data[0]._id);
+            }
         } catch (error) {
             console.error('Error fetching stores:', error);
         }
     };
-    const fetchMenu = async () => {
-	console.log("st",stores[0])
-            try {
-                const response = await api.get(`menus/${stores[0]?._id}`);
-                setMenu(response.data);
-                setLoadingMenu(false);
-            } catch (error) {
-                console.error('Error fetching menu:', error);
-                setLoadingMenu(false);
-            }
-        };
+
+    const fetchMenu = async (storeId) => {
+        try {
+            const response = await api.get(`menus/${storeId}`);
+            setMenu(response.data);
+            setLoadingMenu(false);
+        } catch (error) {
+            console.error('Error fetching menu:', error);
+            setLoadingMenu(false);
+        }
+    };
 
     useEffect(() => {
         if (!getToken()) {
@@ -98,10 +101,17 @@ const MyStore = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            fetchOrders();
+            if (selectedStore) fetchOrders(selectedStore);
         }, 300000); // Fetch orders every 5 minutes
         return () => clearInterval(interval);
-    }, []);
+    }, [selectedStore]);
+
+    const handleStoreChange = (event) => {
+        const storeId = event.target.value;
+        setSelectedStore(storeId);
+        fetchOrders(storeId);
+        fetchMenu(storeId);
+    };
 
     const handleToggle = async () => {
         const newStatus = stores[0]?.status === 'open' ? 'close' : 'open';
@@ -125,7 +135,7 @@ const MyStore = () => {
 
         try {
             await api.put(`orders/${orderId}/status`, { status: newStatus });
-            fetchOrders();
+            fetchOrders(selectedStore);
             if (newStatus === 'ready') {
                 await api.post('/api/notify-drivers', { orderId });
             }
@@ -141,26 +151,78 @@ const MyStore = () => {
 
     return (
         <Box>
-            { (
-                <Button
+            <Box mb={4} display="flex" alignItems="center" justifyContent="space-between" style={{ margin: 10 }}>
+                
+		
+            </Box>
+
+            {selectedStore && stores.length ? (
+                <Box mb={4} display="flex" alignItems="center" justifyContent="space-between" style={{ margin: 10 }}>
+                    <Box display="flex" alignItems="center">
+                        <Avatar
+                            alt={stores.find(s => s._id === selectedStore)?.name}
+                            src={stores.find(s => s._id === selectedStore)?.logo}
+                            sx={{ width: 30, height: 30, mr: 1 }}
+                            imgProps={{
+                                style: {
+                                    objectFit: 'contain',
+                                    width: '100%',
+                                    height: '100%',
+                                },
+                            }}
+                        />
+                        <FormControl  variant="outlined">
+                    <InputLabel>Select Store</InputLabel>
+                    <Select
+                        value={selectedStore || "Create Store"}
+                        onChange={handleStoreChange}
+                        label="Select Store"
+                    >
+                        {stores.map((store) => (
+                            <MenuItem key={store._id} value={store._id}>
+                                {store.name}
+                            </MenuItem>
+                        ))}
+                        
+                <MenuItem  onClick={(e) => { setStoreModalOpen(true)}}>
+                         <Button
                     variant="contained"
                     color="primary"
                     sx={{ marginBottom: 2 }}
-                    onClick={() => setStoreModalOpen(true)}
+                    //onClick={() => setStoreModalOpen(true)}
                 >
                     Create Store
                 </Button>
-            )}
+                </MenuItem>
+                    </Select>
+                </FormControl>
+                    </Box>
 
-            {/* Modal for creating a new store */}
-           <CreateStoreModal storeModalOpen={storeModalOpen} setStoreModalOpen={setStoreModalOpen} fetchStores={fetchStores} />
+                    <Box display="flex" alignItems="center">
+                        <Switch
+                            checked={stores.find(s => s._id === selectedStore)?.status === 'open'}
+                            onChange={handleToggle}
+                            color="primary"
+                            sx={{ ml: 2 }}
+                        />
+                        <Typography variant="body2" style={{ marginLeft: 5, marginRight: 10 }}>
+                            {stores.find(s => s._id === selectedStore)?.status === 'open' ? 'Open' : 'Closed'}
+                        </Typography>
+                    </Box>
+                </Box>
+            ) :null}
+               
+            <CreateStoreDialog
+                storeDialogOpen={storeModalOpen}
+                setStoreDialogOpen={setStoreModalOpen}
+                fetchStores={fetchStores}
+            />
 
-            {/* Sticky Tab Navigation */}
             <Tabs
                 value={value}
                 onChange={(e, newValue) => {
                     setValue(newValue);
-                    menu.length === 0 && fetchMenu();
+                    menu.length === 0 && fetchMenu(selectedStore);
                 }}
                 variant="scrollable"
                 scrollButtons="auto"
@@ -170,79 +232,100 @@ const MyStore = () => {
                 <Tab label="Menu" />
             </Tabs>
 
-            {/* Tab Content */}
             <Box mt={8} style={{ margin: 0 }}>
                 {value === 0 && (
-                    <Box p={3}>
+                  <>                      
+                            <OrderControls onRefresh={() => fetchOrders(selectedStore)} />
+                    <Box p={1}>
                         {loadingOrders ? (
                             <CircularProgress />
                         ) : (
                             <>
-                                <OrderControls onRefresh={() => fetchOrders()} />
+
                                 <ItemModal open={itemModal} handleClose={handleClose} order={selectedOrder} />
-                                <TableContainer stickyHeader sx={{ width: '100%' }}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                                                    Order ID
-                                                </TableCell>
-                                                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                                                    Customer
-                                                </TableCell>
-                                                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                                                    Action
-                                                </TableCell>
-                                                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                                                    Status
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {orders.map((order) => (
-                                                <TableRow key={order._id}>
-                                                    <TableCell>{order._id.slice(-4)}</TableCell>
-                                                    <TableCell>{order.createduser}</TableCell>
-                                                    <TableCell>
-                                                        <Button onClick={(e) => showItems(e, order)}>
-                                                            Items
-                                                        </Button>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <FormControl fullWidth>
-                                                            <Select
-                                                                fullWidth
-                                                                onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
-                                                                value={order.status}
-                                                                sx={{
-                                                                    border: order.status === "new" ? '2px solid red' : 'none',
-                                                                    '&:focus': {
-                                                                        border: order.status === "new" ? '2px solid red' : 'none',
-                                                                        boxShadow: 'none',
-                                                                    },
-                                                                }}
-                                                            >
-                                                                <MenuItem value="" disabled>
-                                                                    Select Status
-                                                                </MenuItem>
-                                                                <MenuItem value="new">New</MenuItem>
-                                                                <MenuItem value="accepted">Accepted</MenuItem>
-                                                                <MenuItem value="ready">Ready</MenuItem>
-                                                                <MenuItem value="delivered">Delivered</MenuItem>
-                                                            </Select>
-                                                        </FormControl>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                        <TableContainer stickyHeader sx={{ width: '100%', overflowX: 'auto' }}>
+    <Table sx={{ width: '100%', tableLayout: 'fixed', '& .MuiTableCell-root': { fontSize: '0.75rem' } }}> {/* Set font size for all TableCell */}
+        <TableHead>
+            <TableRow>
+                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1, width: '25%' }}>
+                    Order ID
+                </TableCell>
+                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1, width: '25%' }}>
+                    Customer
+                </TableCell>
+                
+                <TableCell sx={{ position: 'sticky', top: 0, zIndex: 1, width: '25%' }}>
+                    Status
+                </TableCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            {orders.map((order) => (
+                <TableRow key={order._id}>
+                    <TableCell onClick={(e) => showItems(e, order)}>{order._id.slice(-4)}</TableCell>
+                    <TableCell onClick={(e) => showItems(e, order)}>{order.createduser}</TableCell>
+                   
+                    <TableCell>
+                        <FormControl fullWidth>
+                            <Select
+                                fullWidth
+                                onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
+                                value={order.status}
+                                sx={{
+                                    border: order.status === "new" ? '2px solid red' : 'none',
+                                    '&:focus': {
+                                        border: order.status === "new" ? '2px solid red' : 'none',
+                                        boxShadow: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                        fontSize: '0.75rem', // Set font size for Select component
+                                        height: '30px', // Set height for the Select
+                                        lineHeight: '30px', // Align text vertically
+                                    },
+                                    '& .MuiInputBase-root': {
+                                        height: '30px', // Set height for the input root
+                                    },
+                                }}
+                                MenuProps={{
+                                    PaperProps: {
+                                        style: {
+                                            maxHeight: 200, // Adjust max height of the dropdown if needed
+                                        },
+                                    },
+                                    MenuListProps: {
+                                        sx: {
+                                            '& .MuiMenuItem-root': {
+                                                fontSize: '0.75rem', // Set font size for MenuItem
+                                                height: '24px', // Adjust height for MenuItem
+                                                lineHeight: '24px', // Align text vertically
+                                            },
+                                        },
+                                    },
+                                }}
+                            >
+                                <MenuItem value="" disabled>
+                                    Select Status
+                                </MenuItem>
+                                <MenuItem value="new">New</MenuItem>
+                                <MenuItem value="accepted">Accepted</MenuItem>
+                                <MenuItem value="ready">Ready</MenuItem>
+                                <MenuItem value="delivered">Delivered</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </TableCell>
+                </TableRow>
+            ))}
+        </TableBody>
+    </Table>
+</TableContainer>
+
+
                             </>
                         )}
-                    </Box>
+                    </Box></>
                 )}
                 {value === 1 && (
-                    <MenuManagement menu={menu} loadingMenu={loadingMenu} setMenu={setMenu} userId={userId}/>
+                    <MenuManagement menu={menu} loadingMenu={loadingMenu} setMenu={setMenu} userId={userId} selectedStore={selectedStore}/>
                 )}
             </Box>
         </Box>

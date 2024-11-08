@@ -2,50 +2,73 @@ import React, { useState } from 'react';
 import {
     Box,
     Button,
+    TextField,
+    Typography,
+    Paper,
+    Grid,
+    Switch,
+    IconButton,
     CircularProgress,
     Tabs,
     Tab,
-    TextField,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../../utils/api';
 
-const MenuManagement = ({
-	menu,
-	setMenu,
-    loadingMenu,
-    userId
-}) => {
-
-
+const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
     const [newCategory, setNewCategory] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(Object.keys(menu)[0]);
-    const [newItem, setNewItem] = useState({ name: '', price: '' });
-    const [editedItem, setEditedItem] = useState({ name: '', price: '' });
-    const [editIndex, setEditIndex] = useState(null);
-
-	 
-    // Add a new category
+    const [newItem, setNewItem] = useState({ name: '', price: '', available: true, image: '' });
+    const [editedItem, setEditedItem] = useState(null);
+    const [imageUploading, setImageUploading] = useState(false);
+    const [save, setSave] = useState(false);
+    
     const handleAddCategory = () => {
         if (newCategory) {
             setMenu((prevMenu) => ({ ...prevMenu, [newCategory]: [] }));
             setNewCategory('');
-
         }
     };
 
-    // Add a new item to a category
-   const handleAddItem = (category) => {
+    const handleAddItem = (category) => {
         const updatedMenu = { ...menu };
-        updatedMenu[category].push(newItem); // Add the new item
+        updatedMenu[category].push({ ...newItem, id: Date.now() }); // Generate a unique ID
         setMenu(updatedMenu);
-        setNewItem({ name: '', price: '' }); // Clear the input
+        setNewItem({ name: '', price: '', available: true, image: '' });
+    };
+
+    const handleUpdateItem = (id, category, field, value) => {
+        const updatedMenu = { ...menu };
+        const itemIndex = updatedMenu[category].findIndex(item => item.id === id);
+        if (itemIndex !== -1) {
+            updatedMenu[category][itemIndex] = { ...updatedMenu[category][itemIndex], [field]: value };
+            setMenu(updatedMenu);
+        }
+    };
+
+    const handleDeleteItem = (id, category) => {
+        const updatedMenu = { ...menu };
+        updatedMenu[category] = updatedMenu[category].filter(item => item.id !== id);
+        setMenu(updatedMenu);
+    };
+
+    const handleImageUpload = async (event, item) => {
+        const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+        setImageUploading(true);
+        try {
+            const response = await api.post('/upload-image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            const imageUrl = response.data.url;
+            handleUpdateItem(item.id, selectedCategory, 'image', imageUrl);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        } finally {
+            setImageUploading(false);
+        }
     };
 
     const handleSaveMenu = async () => {
@@ -53,33 +76,20 @@ const MenuManagement = ({
             categoryName,
             items,
         }));
-
+        setSave(true);
         try {
-            await api.put(`menus/${userId}`, { menu: formattedMenu });
+            await api.put(`menus/${selectedStore}`, { menu: formattedMenu });
             alert('Menu saved successfully');
         } catch (error) {
             console.error('Error saving menu:', error);
             alert('Error saving menu');
+        } finally {
+            setSave(false);
         }
     };
-    
-      const handleUpdateItem = (index,category) => {
-        const updatedMenu = { ...menu };
-        updatedMenu[category][index] = editedItem; // Update the item
-        setMenu(updatedMenu); // Update the state
-        setEditedItem({ name: '', price: '' }); // Clear the input
-        setEditIndex(null); // Reset the edit index
-    };
-
-    const handleDeleteItem = (index,category) => {
-        const updatedMenu = { ...menu };
-        updatedMenu[category].splice(index, 1); // Remove the item
-        setMenu(updatedMenu); // Update the state
-    };
-
 
     return (
-        <Box p={3}>
+        <Box p={1}>
             <Box display="flex" mb={2} sx={{ alignItems: 'center' }}>
                 <TextField
                     label="Add New Category"
@@ -87,14 +97,14 @@ const MenuManagement = ({
                     onChange={(e) => setNewCategory(e.target.value)}
                     fullWidth
                     margin="normal"
-                    sx={{ height: '40px', mb: 2, mt: 0 }}
+                    sx={{ height: '40px', m: 0 }}
                 />
                 {newCategory && (
                     <Button
                         variant="contained"
                         color="primary"
                         size="small"
-                        onClick={() => handleAddCategory(newCategory)}
+                        onClick={handleAddCategory}
                         sx={{ ml: 2, height: '40px', alignSelf: 'stretch' }}
                     >
                         Add
@@ -105,10 +115,13 @@ const MenuManagement = ({
             {loadingMenu ? (
                 <CircularProgress />
             ) : (
-                <Box sx={{ mt: 2 }}>
+                <Box>
                     <Tabs
                         value={selectedCategory}
                         onChange={(event, newValue) => setSelectedCategory(newValue)}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        allowScrollButtonsMobile
                     >
                         {Object.keys(menu).map((category) => (
                             <Tab key={category} label={category} value={category} />
@@ -116,150 +129,110 @@ const MenuManagement = ({
                     </Tabs>
 
                     <Box sx={{ mt: 2 }}>
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Item Name</TableCell>
-                                        <TableCell align="right">Price</TableCell>
-                                        <TableCell align="right">Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {menu[selectedCategory]?.map((item, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                <TextField
-                                                    value={
-                                                        editIndex === index ? editedItem.name : item.name
-                                                    }
-                                                    onChange={(e) => {
-                                                        const newName = e.target.value;
-                                                        if (editIndex === index) {
-                                                            setEditedItem({
-                                                                ...editedItem,
-                                                                name: newName,
-                                                            });
-                                                        }
-                                                    }}
-                                                    disabled={editIndex !== index}
-                                                />
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <TextField
-                                                    value={
-                                                        editIndex === index ? editedItem.price : item.price
-                                                    }
-                                                    type="number"
-                                                    onChange={(e) => {
-                                                        const newPrice = parseFloat(e.target.value);
-                                                        if (editIndex === index && !isNaN(newPrice)) {
-                                                            setEditedItem({
-                                                                ...editedItem,
-                                                                price: newPrice,
-                                                            });
-                                                        }
-                                                    }}
-                                                    disabled={editIndex !== index}
-                                                />
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                {editIndex === index ? (
-                                                    <>
-                                                        <Button
-                                                            onClick={() =>
-                                                                handleUpdateItem(index, selectedCategory)
-                                                            }
-                                                            color="primary"
-                                                        >
-                                                            Save
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => setEditIndex(null)}
-                                                            color="secondary"
-                                                        >
-                                                            Cancel
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Button
-                                                            onClick={() => {
-                                                                setEditedItem(item);
-                                                                setEditIndex(index);
-                                                            }}
-                                                            color="primary"
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() =>
-                                                                handleDeleteItem(index, selectedCategory)
-                                                            }
-                                                            color="secondary"
-                                                        >
-                                                            <DeleteIcon />
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    <TableRow>
-                                        <TableCell>
-                                            <TextField
-                                                label="Name"
-                                                value={newItem.name}
-                                                onChange={(e) =>
-                                                    setNewItem({
-                                                        ...newItem,
-                                                        name: e.target.value,
-                                                    })
-                                                }
-                                                InputProps={{
-                                                    style: { height: '30px' },
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField
-                                                label="Price"
-                                                value={newItem.price}
-                                                type="number"
-                                                onChange={(e) =>
-                                                    setNewItem({
-                                                        ...newItem,
-                                                        price: parseFloat(e.target.value),
-                                                    })
-                                                }
-                                                InputProps={{
-                                                    style: { height: '30px' },
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button
-                                                size="small"
-                                                variant="contained"
-                                                color="primary"
-                                                onClick={() => handleAddItem(selectedCategory)}
-                                            >
-                                                Add
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        <Grid container spacing={0.5}>
+                            {menu[selectedCategory]?.map((item) => (
+                                <Grid item key={item.id} xs={12}>
+                                    <Paper
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: 1,
+                                            height:'30px'
+                                        }}
+                                        elevation={0}
+                                    >
+                                        <input
+                                            type="file"
+                                            id={`image-upload-${item.id}`}
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => handleImageUpload(e, item)}
+                                        />
+                                       <Box
+					    sx={{
+						cursor: 'pointer',
+						mr: 2,
+						width: '30px',
+						height: '30px',
+						overflow: 'hidden',
+						display: 'flex', // Add display flex to center the image
+						alignItems: 'center',
+						justifyContent: 'center',
+						border: '1px solid lightgrey', // Optional: add a border for better visibility
+						borderRadius: '4px', // Optional: round corners
+					    }}
+					    onClick={() => document.getElementById(`image-upload-${item.id}`).click()}
+					>
+					    {imageUploading ? (
+						<CircularProgress size="40px" />
+					    ) : (
+						<img
+						    src={item.image}
+						    alt={item.name}
+						    style={{
+							width: '100%', // Ensure the image takes full width
+							height: 'auto', // Maintain aspect ratio
+							objectFit: 'cover', // Crop image to fit
+						    }}
+						/>
+					    )}
+					</Box>
+					<TextField
+					    value={item.name}
+					    onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'name', e.target.value)}
+					    sx={{ flexGrow: 1, marginRight: 1, '& .MuiInputBase-root': { height: '30px' } }} // Adjust height
+					    InputProps={{
+						style: { fontSize: '0.75rem' }, // Set font size
+					    }}
+					/>
+					<TextField
+					    value={item.price}
+					    sx={{p:0}}
+					    type="number"
+					    onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'price', parseFloat(e.target.value))}
+					    sx={{ width: '70px', marginRight: 1, '& .MuiInputBase-root': { height: '30px' } }} // Adjust height
+					    InputProps={{
+						style: { fontSize: '0.75rem',p:0 }, // Set font size
+					    }}
+					/>
+
+                                        <Switch
+                                            checked={item.available}
+                                            size="small" 
+                                            onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'available', e.target.checked)}
+                                        />
+                                        <IconButton onClick={() => handleDeleteItem(item.id, selectedCategory)} color="secondary" size="small">
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Paper>
+                                </Grid>
+                            ))}
+
+                            <Grid item>
+                                <Paper
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        width: '100%',
+                                        height: 50,
+                                    }}
+                                    elevation={3}
+                                    onClick={() => handleAddItem(selectedCategory)}
+                                >
+                                    <AddIcon fontSize="large" />
+                                </Paper>
+                            </Grid>
+                        </Grid>
                     </Box>
 
                     <Button
                         variant="contained"
                         color="secondary"
                         onClick={handleSaveMenu}
-                        sx={{ mt: 2 }}
+                        sx={{ mt: 2, width: "180px" }}
                     >
-                        Save Menu
+                        {save ? <CircularProgress size='24px' /> : "Save Menu"}
                     </Button>
                 </Box>
             )}

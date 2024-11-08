@@ -15,16 +15,15 @@ import {
     Slide
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { getCartFromLocalStorage, setCartToLocalStorage } from '../../utils/localStorage';
-import OrdersModal from './ordersModal'; // Import the Orders modal
-import {GoToOrdersButton} from './GoToOrdersButton'
+import { getCartFromLocalStorage, setCartToLocalStorage } from '../../../utils/localStorage';
+
+import { GoToOrdersButton } from './GoToOrdersButton';
 
 const SlideTransition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
-
+const ItemDetailModal = ({ open, onClose, item, storeInfo, cart, setCart }) => {
     const [ordersModalOpen, setOrdersModalOpen] = useState(false);
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [quantity, setQuantity] = useState(0);
@@ -34,14 +33,16 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
             setCartToLocalStorage(cart);
         }
     }, [cart]);
+ useEffect(() => {
+        if (cart?.items?.length) {
+            setCartToLocalStorage(cart);
+        }
+    }, [setOrdersModalOpen,ordersModalOpen]);
+
 
     const getCartItemCount = () => {
         const existingItem = cart?.items?.find(cartItem => cartItem.name === item.name);
         return existingItem ? existingItem.count : quantity;
-    };
-
-    const isAlreadyInCart = () => {
-        return cart?.items?.some(cartItem => cartItem.name === item.name);
     };
 
     const updateCartQuantity = (newQuantity) => {
@@ -63,38 +64,35 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
                 });
             }
         } else if (newQuantity > 0) {
-            cart.items?.length ? setCart({
-                ...cart,
-                items: [...cart.items, { ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }],
-            }) :
+            const updatedItems = cart.items?.length
+                ? [...cart.items, { ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }]
+                : [{ ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }];
+
             setCart({
                 ...cart,
                 storeId: storeInfo._id,
                 storeName: storeInfo.name,
-                items: [{ ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }],
+                items: updatedItems,
             });
         }
     };
 
-    const handleAddToCart = (fromInc=false) => {
-        if ((cart.storeId && cart.storeId !== storeInfo._id) || !cart.items?.length) {
-            setConfirmationOpen(true); // Open the confirmation dialog
+    const handleAddToCart = (fromInc = false) => {
+
+        if (cart.storeId && cart.storeId !== storeInfo._id) {
+            setConfirmationOpen(true);
         } else {
-            updateCartQuantity(fromInc ? getCartItemCount()+1:getCartItemCount());
+            updateCartQuantity(fromInc ? getCartItemCount() + 1 : getCartItemCount());
         }
     };
 
     const handleConfirmClearCart = () => {
         setCart({
             storeId: storeInfo._id,
-                storeName: storeInfo.name,
-            items: [{ ...item, count: quantity }],
+            storeName: storeInfo.name,
+            items: [{ ...item, count: 1 }],
         });
-        setConfirmationOpen(false); // Close the confirmation dialog
-    };
-
-    const handleGoToOrders = () => {
-        setOrdersModalOpen(true);
+        setConfirmationOpen(false);
     };
 
     return (
@@ -102,11 +100,11 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
             fullScreen
             open={open}
             onClose={onClose}
-            TransitionComponent={SlideTransition} // Add slide transition here
+            TransitionComponent={SlideTransition}
         >
             <AppBar position="static" sx={{ backgroundColor: '#fff', color: '#000' }}>
                 <Toolbar>
-                    <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
+                    <IconButton edge="start" color="inherit" onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
                     <Typography variant="h6">{item.name}</Typography>
@@ -116,29 +114,19 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
                 <Box
                     component="img"
-                    src={`https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzW4EUZFweH3nNXHU6USz5v0ys6cK0a5xn7w&s`}
+                    src={item.image || storeInfo.logo}
                     alt={item.name}
-                    sx={{
-                        width: '100%',
-                        height: '40%',
-                        objectFit: 'cover',
-                    }}
+                    sx={{ width: '100%', height: '40%', objectFit: 'cover', objectPosition: 'center' }}
                 />
 
-                <Box sx={{ padding: 2, backgroundColor: 'white', borderRadius: '8px' }}>
+                <Box sx={{ padding: 2 }}>
                     <Typography variant="h5">{item.name}</Typography>
                     <Typography variant="h6" color="textSecondary">
                         Rs. {item.price}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        {'dfaeaf kadnfdnkfdsjdanfkjds v v jasd vkjd nvjasnd v knflk'}
-                    </Typography>
 
-                    {/* Quantity Selector and Cart Adjustment */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                        <IconButton
-                            onClick={() => updateCartQuantity(Math.max(getCartItemCount() - 1, 0))}
-                        >
+                        <IconButton onClick={() => updateCartQuantity(Math.max(getCartItemCount() - 1, 0))}>
                             -
                         </IconButton>
                         <TextField
@@ -153,22 +141,12 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
                     </Box>
                 </Box>
 
-                {isAlreadyInCart() ? (
+                {cart?.items && getCartItemCount() > 0 ? (
                     <Button
                         variant="contained"
                         color="secondary"
-                        onClick={handleGoToOrders}
-                        sx={{
-                           position: 'absolute',
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            height: '50px',
-                             bottom: 16,
-			borderRadius: 20,
-			fontSize: '1rem',
-			px: 2,
-                        }}
+                        onClick={() =>{setCartToLocalStorage(cart); setOrdersModalOpen(true)}}
+                        sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, borderRadius: 20, height: '50px' }}
                     >
                         Go to Orders
                     </Button>
@@ -176,43 +154,24 @@ const ItemDetailModal = ({ open, onClose, item, storeInfo ,cart,setCart}) => {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => handleAddToCart(item)}
-                        sx={{
-                           position: 'absolute',
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            height: '50px',
-                             bottom: 16,
-			borderRadius: 20,
-			fontSize: '1rem',
-			px: 2,
-                        }}
+                        onClick={() => handleAddToCart()}
+                        sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, borderRadius: 20, height: '50px' }}
                     >
                         Add to Order
                     </Button>
                 )}
             </Box>
 
-            {/* Render the Orders Modal */}
-            <OrdersModal
-                open={ordersModalOpen}
-                onClose={() => setOrdersModalOpen(false)}
-                cart={cart}
-                storeName={storeInfo?.name}
-            />
 
-            {/* Confirmation Dialog */}
+
             <Dialog
                 open={confirmationOpen}
                 onClose={() => setConfirmationOpen(false)}
-                aria-labelledby="confirm-dialog-title"
-                aria-describedby="confirm-dialog-description"
             >
-                <DialogTitle id="confirm-dialog-title">Clear Cart?</DialogTitle>
+                <DialogTitle>Clear Cart?</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="confirm-dialog-description">
-                        You have items from another store in your cart. Do you want to clear the cart and add items from this new store?
+                    <DialogContentText>
+                        Do you want to clear the cart and add items from this new store?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

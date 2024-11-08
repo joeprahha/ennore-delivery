@@ -22,11 +22,23 @@ const ItemModal = ({ open, handleClose, order }) => {
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <Box sx={{
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)', width: '80%',
-        bgcolor: 'background.paper', boxShadow: 24, p: 4, borderRadius: 2
-      }}>
+      <Box
+    sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '80%',
+        bgcolor: 'background.paper',
+        boxShadow: 24,
+        p: 4,
+        borderRadius: 2,
+        height: '70vh',
+        overflowY: 'auto', // Enable vertical scrolling
+        overflowX: 'hidden', // Hide horizontal scrolling if not needed
+    }}
+>
+
         <Typography variant="h6" component="h2" gutterBottom>
           Order Details #{orderId}
         </Typography>

@@ -1,25 +1,66 @@
 import React, { useState } from 'react';
-import { Modal, Box, Typography, TextField, Select, MenuItem, Button, Paper } from '@mui/material';
+import {
+    Dialog,
+    AppBar,
+    Toolbar,
+    IconButton,
+    Typography,
+    Box,
+    TextField,
+    Select,
+    MenuItem,
+    Button,
+    Paper,
+    Chip,
+    ListItemText,
+    OutlinedInput,
+    Slide,Autocomplete
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { api } from '../../utils/api';
-import { decodeToken, getToken } from '../../utils/auth';
+import { decodeToken } from '../../utils/auth';
 
-const CreateStoreModal = ({ storeModalOpen, setStoreModalOpen, fetchStores }) => {
+const SlideTransition = React.forwardRef(function SlideTransition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+const locations = [
+    'Nettukuppam',
+    'Ennore Kuppam',
+    'Thazhankuppam',
+    'Mugathuvara Kuppam',
+    'Ulagnathapuram',
+    'SVM Nagar',
+    'Vallur Nagar',
+    'Kamaraj Nagar',
+    'High School Surroundings',
+    'Kaathukuppam',
+    'RS Road',
+    'Ennore Bus Depot Surroundings',
+];
+const categories = [
+    'groceries',
+    'fast food',
+    'pizza',
+    'burger',
+    'bakery',
+];
+
+const CreateStoreDialog = ({ storeDialogOpen, setStoreDialogOpen, fetchStores }) => {
     const [storeName, setStoreName] = useState('');
-    const [storeCategory, setStoreCategory] = useState('');
+    const [storeCategories, setStoreCategories] = useState([]); // Update state to handle multiple categories
     const [storeOpenTime, setStoreOpenTime] = useState('');
     const [storeCloseTime, setStoreCloseTime] = useState('');
     const [storeAddress1, setStoreAddress1] = useState('');
     const [storeLocalArea, setStoreLocalArea] = useState('');
     const [storeImageUrl, setStoreImageUrl] = useState('');
-const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?export=view&id=d6d189a515121d8c85fd8273fd8cb0dc');
-
+    const [storeLogoUrl, setStoreLogoUrl] = useState('');
 
     const handleCreateStore = async () => {
         try {
-            const { id } = decodeToken(); // Assuming the token has owner id
+            const { id } = decodeToken();
             const response = await api.post('/create-store', {
                 name: storeName,
-                category: storeCategory,
+                category: storeCategories.join(','), // Send multiple categories
                 open_time: storeOpenTime,
                 close_time: storeCloseTime,
                 address1: storeAddress1,
@@ -28,11 +69,18 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
                 image: storeImageUrl,
                 logo: storeLogoUrl,
             });
-            setStoreModalOpen(false); // Close the modal after creating the store
-            fetchStores(); // Fetch updated stores list
+            setStoreDialogOpen(false);
+            fetchStores();
         } catch (error) {
             console.error('Error creating store:', error);
         }
+    };
+
+    const handleCategoryChange = (event) => {
+        const {
+            target: { value },
+        } = event;
+        setStoreCategories(typeof value === 'string' ? value.split(',') : value);
     };
 
     const handleImageUpload = async (event, setUrl) => {
@@ -44,8 +92,7 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
             const response = await api.post('/upload-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            const imageUrl = response.data.url; // Ensure your backend returns the correct URL
-            console.log(imageUrl)
+            const imageUrl = response.data.url;
             setUrl(imageUrl);
         } catch (error) {
             console.error('Error uploading image:', error);
@@ -53,29 +100,29 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
     };
 
     return (
-        <Modal
-            open={storeModalOpen}
-            onClose={() => setStoreModalOpen(false)}
-            aria-labelledby="create-store-modal-title"
-            aria-describedby="create-store-modal-description"
+        <Dialog
+            fullScreen
+            open={storeDialogOpen}
+            onClose={() => setStoreDialogOpen(false)}
+            TransitionComponent={SlideTransition}
         >
+            <AppBar position="static" sx={{ backgroundColor: '#fff', color: '#000' }}>
+                <Toolbar>
+                    <IconButton edge="start" color="inherit" onClick={() => setStoreDialogOpen(false)} aria-label="close">
+                        <CloseIcon />
+                    </IconButton>
+                    <Typography variant="h6">Create Store</Typography>
+                </Toolbar>
+            </AppBar>
+
             <Box
                 sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
+                    display: 'flex',
+                    flexDirection: 'column',
                     height: '100vh',
-                    bgcolor: 'background.paper',
-                    boxShadow: 24,
-                    p: 4,
-                    overflowY: 'auto',
+                    padding: 2,
                 }}
             >
-                <Typography id="create-store-modal-title" variant="h4" component="h2" gutterBottom>
-                    Create Store
-                </Typography>
-
                 <TextField
                     label="Store Name"
                     fullWidth
@@ -85,32 +132,100 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
                     margin="normal"
                 />
                 
-                {/* Store Category */}
                 <Select
-                    label="Category"
+                    label="Categories"
                     fullWidth
-                    required
-                    value={storeCategory}
-                    onChange={(e) => setStoreCategory(e.target.value)}
-                    displayEmpty
+                    multiple
+                    value={storeCategories}
+                    onChange={handleCategoryChange}
+                    input={<OutlinedInput label="Categories" />}
+                    renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                            {selected.map((value) => (
+                                <Chip key={value} label={value} sx={{ margin: 0.5 }} />
+                            ))}
+                        </Box>
+                    )}
                     margin="normal"
                 >
-                    <MenuItem value="">
-                        <em>Select a category</em>
-                    </MenuItem>
-                    <MenuItem value="groceries">Groceries</MenuItem>
-                    <MenuItem value="restaurant">Restaurant</MenuItem>
+                    {categories.map((category) => (
+                        <MenuItem key={category} value={category}>
+                            <ListItemText primary={category} />
+                        </MenuItem>
+                    ))}
                 </Select>
+             <Box sx={{display:"flex"}}>
+                <TextField
+                    label="Open Time"
+                    type="time"
+                    fullWidth
+                    required
+                    value={storeOpenTime}
+                    onChange={(e) => setStoreOpenTime(e.target.value)}
+                    margin="normal"
+                />
+
+                <TextField
+                    label="Close Time"
+                    type="time"
+                    fullWidth
+                    required
+                    value={storeCloseTime}
+                    onChange={(e) => setStoreCloseTime(e.target.value)}
+                    margin="normal"
+                /> </Box>
+
+                <TextField
+                    label="Address Line"
+                    fullWidth
+                    required
+                    value={storeAddress1}
+                    onChange={(e) => setStoreAddress1(e.target.value)}
+                    margin="normal"
+                />
+
+                 <Autocomplete
+                    fullWidth
+                    sx={{ mt: 1, mb: 2 }}
+                    options={locations}
+                    onChange={(e) => {
+                        setStoreLocalArea(e.target.value)
+                    }}
+
+                    onInputChange={(event, newInputValue) => {
+                       setStoreLocalArea(newInputValue)
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            name="local"
+                            label="Local Area"
+                            
+                            InputProps={{
+                                ...params.InputProps,
+                            }}
+                        />
+                    )}
+                />
 
                 {/* Image Upload for Store Image */}
                 <Paper
-                    sx={{ width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed grey', cursor: 'pointer' }}
+                    sx={{
+                        width: '100%',
+                        height: 150,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px dashed grey',
+                        cursor: 'pointer',
+                        mt: 2,
+                    }}
                     onClick={() => document.getElementById('store-image-upload').click()}
                 >
                     {storeImageUrl ? (
-                        <img src={storeImageUrl} alt="Store Image" style={{ width: '100%', height: '100%' }} />
+                        <img src={storeImageUrl} alt="Store Image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                        '+ Add Image'
+                        <Typography variant="body2">+ Add Image</Typography>
                     )}
                 </Paper>
                 <input
@@ -123,13 +238,22 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
 
                 {/* Image Upload for Store Logo */}
                 <Paper
-                    sx={{ width: 100, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed grey', cursor: 'pointer', mt: 2 }}
+                    sx={{
+                        width: '100%',
+                        height: 100,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px dashed grey',
+                        cursor: 'pointer',
+                        mt: 2,
+                    }}
                     onClick={() => document.getElementById('store-logo-upload').click()}
                 >
                     {storeLogoUrl ? (
-                        <img src={storeLogoUrl} alt="Store Logo" />
+                        <img src={storeLogoUrl} alt="Store Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                        '+ Add Logo'
+                        <Typography variant="body2">+ Add Logo</Typography>
                     )}
                 </Paper>
                 <input
@@ -144,14 +268,14 @@ const [storeLogoUrl, setStoreLogoUrl] = useState('https://drive.google.com/uc?ex
                     variant="contained"
                     color="primary"
                     onClick={handleCreateStore}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2,mb:2, width: '100%' }}
                 >
                     Create Store
                 </Button>
             </Box>
-        </Modal>
+        </Dialog>
     );
 };
 
-export default CreateStoreModal;
+export default CreateStoreDialog;
 

@@ -1,34 +1,40 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
+const isDarkMode=localStorage.getItem('theme')==='dark'
 const BikeLoader = () => {
     return (
         <Box
             sx={{
-                position: 'fixed', // Fixed positioning to cover the entire screen
+                position: 'fixed',
                 top: 0,
                 left: 0,
-                width: '100vw', // Full viewport width
-                height: '100vh', // Full viewport height
-                backgroundColor: 'rgba(0, 0, 0, 0.7)', // Semi-transparent black background
-                display: 'flex', // Flexbox for centering
-                justifyContent: 'center', // Center horizontally
-                alignItems: 'center', // Center vertically
-                zIndex: 9999, // High z-index to overlay on other content
+                width: '100%',
+                height: '100vh',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
             }}
         >
-            <Box
-                className="bike-loader"
-                sx={{
-                    animation: 'moveRight 2s linear infinite', // CSS animation for moving
+            <img
+               src="/img2.png"
+                alt="Loading..."
+                style={{
+                    width: '100px', // Adjust the size as needed
+                    animation: 'blink 0.5s infinite', // Blinking effect
+                     filter: !isDarkMode && 'invert(1)' 
                 }}
-            >
-                <img
-                    src="/img2.png" // Replace with your bike logo path
-                    alt="Bike Logo"
-                    style={{ height: '65px' }} // Adjust height as needed
-                />
-            </Box>
+            />
+            <style>
+                {`
+                    @keyframes blink {
+                        0% { opacity: 1; }
+                        50% { opacity: 0; }
+                        100% { opacity: 1; }
+                    }
+                `}
+            </style>
         </Box>
     );
 };
