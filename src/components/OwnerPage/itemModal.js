@@ -7,18 +7,13 @@ const ItemModal = ({ open, handleClose, order }) => {
   const orderedBy = order?.createduser; // Customer name
   const total = order?.total - order?.donation - order?.delivery_fee; // Total calculation
   const orderId = order?._id; // Order ID
-  const placedAtUTC = order?.created_at;
+  const placedAtIST = order?.created_at ?   new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) :''
+  
 
-  // Convert UTC to IST
-  const convertUTCtoIST = (utcDate) => {
-    const date = new Date(utcDate);
-    // IST is UTC +5:30
-    const offsetIST = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(date.getTime() + offsetIST);
-    return istDate.toLocaleString(); // Formats to local date and time
-  };
 
-  const placedAtIST = convertUTCtoIST(placedAtUTC);
+  
+
+
 
   return (
     <Modal open={open} onClose={handleClose}>

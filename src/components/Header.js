@@ -24,8 +24,9 @@ const Header = ({ onMenuClick, isDarkMode }) => {
                     </IconButton>
                 )}
                 
-                <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }} onClick={()=>navigate('/')}>
+                <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }} >
                     <img
+                    onClick={()=>navigate('/')}
                         src="/img2.png" // Replace with the correct path to your logo image
                         alt="Logo"
                         style={{ height: '38px',marginRight:'15px', filter: !isDarkMode && 'invert(1)' }} // Adjust height as needed

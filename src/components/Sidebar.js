@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 import PersonIcon from '@mui/icons-material/Person';
 import HomeIcon from '@mui/icons-material/Home';
 import HistoryIcon from '@mui/icons-material/History';
@@ -22,9 +23,35 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { useNavigate } from 'react-router-dom';
 import { getToken, getUserFromToken, logout, decodeToken } from '../utils/auth';
 
+    const user = getUserFromToken(getToken());
+
+const obj = {
+  customer: [
+    { label: "Home", link: "/stores", icon: <HomeIcon /> },
+    { label: "My Orders", link: "/orders", icon: <HistoryIcon /> },
+  ],
+  owner: [
+    { label: "My Store", link: `/mystore/${user?.id}`, icon: <HomeIcon /> },
+    { label: "Report", link: `/reports`, icon: <HistoryIcon /> },
+  ],
+  deliveryPartner: [
+    { label: "Deliveries", link: "/deliveries", icon: <HistoryIcon /> },
+  ],
+  god: []
+};
+
+
+obj.god = [
+    { label: "Management System", link: "/ms", icon: <HistoryIcon /> },	
+  ...obj.customer,
+  ...obj.owner,
+  ...obj.deliveryPartner,
+];
+
+
 const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
     const navigate = useNavigate();
-    const user = getUserFromToken(getToken());
+
     const { scope } = decodeToken();
 
     const handleLinkClick = () => {
@@ -73,50 +100,20 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
                     <ListItemText primary={user?.name} sx={{ color: '#2D3748' }} />
                 </ListItem>
 
+             {
+             
+  scope &&obj[scope]?.map((comps) => (
+    <ListItem button component={Link} to={comps.link} onClick={handleLinkClick} key={comps.label}>
+      <ListItemIcon>
+        {comps.icon}
+      </ListItemIcon>
+      <ListItemText primary={comps.label} sx={{ color: '#2D3748' }} />
+    </ListItem>
+  ))
+}
+
+
               
-
-                {scope === 'owner' && (
-                    <>
-                        <ListItem button component={Link} to={`/mystore/${user?.id}`} onClick={handleLinkClick}>
-                            <ListItemIcon>
-                                <HomeIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="My store" sx={{ color: '#2D3748' }} />
-                        </ListItem>
-                        <ListItem button component={Link} to={`/reports`} onClick={handleLinkClick}>
-                            <ListItemIcon>
-                                <HistoryIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Report" sx={{ color: '#2D3748' }} />
-                        </ListItem>
-                    </>
-                )}
-
-                {scope === 'customer' && (
-                    <>
-                        <ListItem button component={Link} to="/stores" onClick={handleLinkClick}>
-                            <ListItemIcon>
-                                <HomeIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Home" sx={{ color: '#2D3748' }} />
-                        </ListItem>
-                        <ListItem button component={Link} to="/orders" onClick={handleLinkClick}>
-                            <ListItemIcon>
-                                <HistoryIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="My Orders" sx={{ color: '#2D3748' }} />
-                        </ListItem>
-                    </>
-                )}
-
-                {scope === 'delivery_partner' && (
-                    <ListItem button component={Link} to="/deliveries" onClick={handleLinkClick}>
-                        <ListItemIcon>
-                            <HistoryIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Deliveries" sx={{ color: '#2D3748' }} />
-                    </ListItem>
-                )}
 
                 {/* About link */}
                 <ListItem button component={Link} to="/about" onClick={handleLinkClick}>
@@ -124,6 +121,13 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
                         <InfoIcon />
                     </ListItemIcon>
                     <ListItemText primary="About" sx={{ color: '#2D3748' }} />
+                </ListItem>
+                
+                 <ListItem button component={Link} to="/tc" onClick={handleLinkClick}>
+                    <ListItemIcon>
+                        <SummarizeIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Term & Condition" sx={{ color: '#2D3748' }} />
                 </ListItem>
 
                 {/* Dark Mode/Light Mode Toggle */}

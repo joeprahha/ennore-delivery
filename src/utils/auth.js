@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';  // Keep this at 
 
+import axios from 'axios';
 
+import { setUserInfo } from './localStorage';
 // Utility to check authentication before loading any page
 export const requireAuth = (navigate) => {
     if (!isTokenValid()) {
@@ -18,7 +20,7 @@ export const setToken = (token) => {
 };
 
 export const getToken = () => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY)||'';
 };
 
 export const decodeToken = () => {
@@ -42,12 +44,13 @@ export const isTokenValid = () => {
     return decoded.exp > currentTime;
 };
 
-export const redirectUser = (navigate) => {
+export const redirectUser = async(navigate) => {
     const token = getToken();
     if (!token) return navigate('/signin');
     
     const decoded = jwtDecode(token);
     const scope = decoded.scope;
+	
     switch (scope) {
         case 'customer':
             navigate('/stores');
@@ -55,9 +58,12 @@ export const redirectUser = (navigate) => {
         case 'owner':
             navigate(`/mystore/${decoded.id}`);
             break;
-        case 'delivery_partner':
+        case 'deliveryPartner':
             navigate('/deliveries');
             break;
+          case 'god':
+             navigate('/ms');
+             break;
         default:
             navigate('/signin');
     }
@@ -70,8 +76,8 @@ export const getUserFromToken = (token) => {
         return null;
     }
 };
-export const logout = (navigate) => {
-        removeToken();
-                    navigate('/signin');
+export const logout = (navigate=null) => {
+           localStorage.clear();
+                   navigate && navigate('/signin');
     };
 

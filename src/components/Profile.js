@@ -30,7 +30,7 @@ const locations = [
 ];
 
 const ProfilePage = () => {
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(true);
     const [userInfo, setUserInfo] = useState(getUserInfo() || { address1: '', area: '', phone: '' });
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -50,7 +50,7 @@ const ProfilePage = () => {
         if (!validateFields()) return;
 
         await handleUpdateUserDetails();
-        setIsEditing(false);
+        //setIsEditing(false);
         setSnackbarMessage('Profile successfully updated!');
         setSnackbarOpen(true);
     };

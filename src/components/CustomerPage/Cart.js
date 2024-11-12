@@ -82,7 +82,11 @@ const Cart = () => {
 
     const handleCheckout = async () => {
         setLoading(true);
-        
+        if(!address.address1 || !address.phone){
+		alert('name and address required')
+		        setLoading(false);
+		return
+	}
         // Create orderData object
         const orderData = {
             storeId: cart.storeId,
@@ -110,7 +114,7 @@ const Cart = () => {
           const response = await api.post('orders', orderData);
 
 	if(response.data.order._id){
-	navigate(`/orderSuccess/${response.data.order._id}`)
+	navigate(`/ordersuccess/${response.data.order._id}`)
  	localStorage.removeItem('cart');
          setCart([]);
         setLoading(false);
@@ -207,12 +211,12 @@ const Cart = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }} onClick={() => handleDrawer('deliver')}>
                     <VillaOutlinedIcon />
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                        <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
+                        <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem'}}>
                             Deliver at:
                         </Typography>
-                        <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
-                            {address.address1}, {address.local}
-                        </Typography>
+                      <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem',color:address.phone?'inherit':'red	'  }}>
+  {address.address1 ? address.address1 + ", " + address.local : "Add Address"}
+</Typography>
                     </Box>
                     <IconButton onClick={() => handleDrawer('deliver')}>
                         <KeyboardArrowRightOutlinedIcon />
@@ -221,8 +225,9 @@ const Cart = () => {
                 <Divider />
                 <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }} onClick={() => handleDrawer('phone')}>
                     <LocalPhoneOutlinedIcon />
-                    <Typography variant="body1" sx={{ marginLeft: 1, flexGrow: 1, fontSize: '0.8rem' }}>
-                        {address.name} ({address.phone})
+                    
+                    <Typography variant="body1" sx={{ marginLeft: 1, flexGrow: 1, fontSize: '0.8rem',color:address.phone?'inherit':'red	' }}>
+  {address.phone ? address.name + "( " + address.phone+" )" : "Add Phone number"}
                     </Typography>
                     <IconButton onClick={() => handleDrawer('phone')}>
                         <KeyboardArrowRightOutlinedIcon />
@@ -413,6 +418,7 @@ const Cart = () => {
     </>
 )}
 
+<Box sx={{height:'80px'}}/>
 
 
                 </Box>
@@ -426,7 +432,16 @@ const Cart = () => {
                 message={successMessage}
             />
         </Box>):     
-                <Typography variant="h6">Your cart is empty</Typography>} </>
+<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                        <Box textAlign="center">
+                            <Typography  gutterBottom>Your cart is empty</Typography>
+                            <Button variant="contained" color="primary" onClick={() => navigate('/stores')}>
+                                Click here to order
+                            </Button>
+                        </Box>
+                    </Box>
+                
+                } </>
     );
 };
 

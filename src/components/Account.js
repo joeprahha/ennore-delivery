@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { Container, Typography, Paper, Button, Box, Divider, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -10,12 +10,31 @@ import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-
+import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import {  logout } from '../utils/auth';
+import { api } from '../utils/api';
+
+const required =   <Typography
+            variant="body1"
+            sx={{
+                marginLeft: 1,
+                fontSize: '0.8rem',
+                color: 'red',
+                animation: 'blink 0.5s step-start infinite',
+                '@keyframes blink': {
+                    '0%': { opacity: 1 },
+                    '50%': { opacity: 0 },
+                    '100%': { opacity: 1 }
+                }
+            }}
+        >
+            Required
+        </Typography>
+
 const Account = ({toggleTheme,isDarkMode}) => {
-console.log("dfar",isDarkMode)
+
 
     const navigate = useNavigate();
 const[address,setAddress]=React.useState(getUserInfo()||{})
@@ -30,15 +49,15 @@ const handleAboutClick=()=>{
         navigate('/about');
 }
     const handleLogout = () => {
-        // Implement your logout logic here
-        console.log("Logged out");
+    	logout()
     };
+
 
 
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
         
-         <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mt: 2,mb:2 }}>
+         <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mt: 2,mb:2 }} onClick={handleProfileClick}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1,flexDirection:'column' }}>
                  <AccountCircleIcon  sx={{ fontSize:'5rem',color:'text.secondary'}}/>
                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -53,9 +72,12 @@ const handleAboutClick=()=>{
                     <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
                         Name:
                     </Typography>
-                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
-                        {address.name}
-                    </Typography>
+                   {address.name ? (
+        <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+            {address.name}
+        </Typography>
+    ) :required
+    }
                 </Box>
 
                 
@@ -64,9 +86,12 @@ const handleAboutClick=()=>{
                     <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
                         Phone:
                     </Typography>
-                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
-                        {address.phone}
-                    </Typography>
+                     {address.phone ? (
+        <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+            {address.phone}
+        </Typography>
+    ) :required
+    }
                 </Box>
 
                 
@@ -75,9 +100,12 @@ const handleAboutClick=()=>{
                     <Typography variant="subtitle2" sx={{ marginLeft: 1, fontWeight: 500, fontSize: '0.8rem' }}>
                         Address:
                     </Typography>
-                    <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
-                        {address.address1}, {address.local}
-                    </Typography>
+                     {address.address1 ? (
+        <Typography variant="body1" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+            {address.address1}, {address.local}
+        </Typography>
+    ) :required
+    }
                 </Box>
                 <Divider />
                
@@ -122,6 +150,13 @@ const handleAboutClick=()=>{
             </ListItemIcon>
             <ListItemText primary="About" />
         </ListItem>
+        
+         <ListItem button onClick={()=>{navigate('/tc')}}>
+            <ListItemIcon>
+                <SummarizeOutlinedIcon />
+            </ListItemIcon>
+            <ListItemText primary="Terms & Conditions" />
+        </ListItem>	
     </List>
 </Paper>
 

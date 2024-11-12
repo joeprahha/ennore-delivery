@@ -2,7 +2,7 @@ import React from 'react';
 import { Grid, Paper, Box, Typography, Button } from '@mui/material';
 import QuantityButton from './QuantityButton'; // Adjust the import based on your file structure
 
-const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal }) => {
+const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus }) => {
     const cartItem = cart.items.find(cartItem => cartItem.id === item.id);
 
     return (
@@ -87,7 +87,42 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal }) => {
                     ₹{item.price}
                 </Typography>
 
-                {cartItem ? (
+                { storeStatus?.status!=="open" ?   
+
+                
+                <Button
+                        disableRipple
+                        variant="outlined"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(item);
+                        }}
+                        sx={{
+                            width: '100%',
+                            mt: 'auto',
+                            height: '25px',
+                            fontSize: '0.65rem',
+                            mb: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: 'none',
+                            '&:hover': {
+                                backgroundColor: 'transparent',
+                                boxShadow: 'none',
+                            },
+                            '&:active': {
+                                backgroundColor: '#e0e0e0',
+                                boxShadow: 'none',
+                            },
+                           
+                        }}
+                        disabled={true}
+                    >
+                        Store Closed
+                    </Button>
+                
+                : cartItem ? (
                     <QuantityButton 
                         item={item} 
                         cart={cart} 

@@ -17,6 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../../utils/api';
 
 const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
+
     const [newCategory, setNewCategory] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(Object.keys(menu)[0]);
     const [newItem, setNewItem] = useState({ name: '', price: '', available: true, image: '' });
@@ -32,6 +33,7 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
     };
 
     const handleAddItem = (category) => {
+    console.log('ca',category||selectedCategory)
         const updatedMenu = { ...menu };
         updatedMenu[category].push({ ...newItem, id: Date.now() }); // Generate a unique ID
         setMenu(updatedMenu);
@@ -117,7 +119,7 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
             ) : (
                 <Box>
                     <Tabs
-                        value={selectedCategory}
+                        value={selectedCategory }
                         onChange={(event, newValue) => setSelectedCategory(newValue)}
                         variant="scrollable"
                         scrollButtons="auto"

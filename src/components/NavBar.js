@@ -17,11 +17,11 @@ const NavBar = () => {
 
     const handleScroll = () => {
         if (window.scrollY > lastScrollY) {
-            setVisible(false); // Scrolling down
+        //    setVisible(false); // Scrolling down
         } else {
-            setVisible(true); // Scrolling up
+         //   setVisible(true); // Scrolling up
         }
-        setLastScrollY(window.scrollY);
+      //  setLastScrollY(window.scrollY);
     };
 
     useEffect(() => {
@@ -52,6 +52,7 @@ const NavBar = () => {
                 transition: 'transform 0.3s ease',
                 transform: visible ? 'translateY(0)' : 'translateY(100%)',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.3)', // Box shadow on top
+                zIndex:'99999'
             }}
         >
             <BottomNavigationAction

@@ -19,6 +19,7 @@ import {
     Chip
 } from '@mui/material';
 import ItemCard from './Components/ItemCard'; // Adjust the import based on your file structure
+import ClearIcon from '@mui/icons-material/Clear';
 
 import { GoToOrdersButton } from './Components/GoToOrdersButton';
 import BikeLoader from '../../loader/BikeLoader';
@@ -42,7 +43,16 @@ const StoreDetail = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [activeTab, setActiveTab] = useState(0);
-    
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearchFocus = () => {
+        setIsSearching(true);
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setIsSearching(false);
+    };
     const [cart, setCart] = useState(getCartFromLocalStorage() || {storeId, storeName: storeInfo.name, items: [] });
 	const goToCartButton =()=> JSON.parse(localStorage.getItem('cart'))?.items.length ? true :false
     const addToCart = (item) => {
@@ -112,6 +122,7 @@ const StoreDetail = () => {
             const response = await api.get(`menus/${storeId}`);
             setMenuItems(response.data);
             const storeResponse = await api.get(`stores/${storeId}`);
+
             setStoreInfo(storeResponse.data);
         } catch (error) {
             console.error('Error fetching menu items:', error);
@@ -157,28 +168,31 @@ const StoreDetail = () => {
         setDrawerOpen(open);
     };
 
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const index = categoryRefs.current.indexOf(entry.target);
-                    if (index !== -1) {
-                        setActiveTab(index);
-                    }
-                }
-            });
-        }, {
-            threshold: 0.5
-        });
+ useEffect(() => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Find the index of the category that is intersecting
+        const index = categoryRefs.current.indexOf(entry.target);
+        if (index !== -1 && activeTab !== index) {
+          setActiveTab(index); // Set the active tab based on the category index
+        }
+      }
+    });
+  }, {
+    threshold: 0.5,  // This means at least 50% of the category should be visible to trigger the observer
+  });
 
-        categoryRefs.current.forEach(ref => {
-            if (ref) observer.observe(ref);
-        });
+  // Observe all category elements
+  categoryRefs.current.forEach(ref => {
+    if (ref) observer.observe(ref);
+  });
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [menuItems]);
+  return () => {
+    observer.disconnect();  // Cleanup the observer when the component is unmounted or dependencies change
+  };
+}, [menuItems, activeTab,categoryRefs]);  // Add activeTab and menuItems as dependencies
+
 
     return (
         <Box sx={{ width: '100%', p: 0 }}>
@@ -186,41 +200,73 @@ const StoreDetail = () => {
                 <BikeLoader />
             ) : (
                 <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
-                        
-                        <Typography variant="h6">{storeInfo?.name}</Typography>
-                    </Box>
+                   
+                    <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                backgroundColor: '#fff',
+                pt: 1,
+            }}
+        >
+            <Box sx={{ display: 'flex', width: '100%', alignItems: 'center', height: '50px' }}>
+                <IconButton onClick={() => navigate('/stores')} sx={{}}>
+                    <ArrowBackIcon />
+                </IconButton>
 
-                    <Box 
-                        sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            flexDirection: 'column',
-                            position: 'sticky', 
-                            top: 0, 
-                            zIndex: 10, 
-                            backgroundColor: '#fff', 
-                            pt: 1, 
+                {/* Conditionally render either the store name or search bar */}
+                {isSearching ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            width: '100%',
+                            transition: 'width 0.3s ease-in-out', // Slide-in transition
                         }}
                     >
-                      <Box sx={{display:'flex',width:'100%'}}>  
-				<IconButton onClick={() => navigate('/stores')} sx={{ }}>
-                            <ArrowBackIcon />
-                        </IconButton>
-				<TextField
+                        <TextField
                             variant="outlined"
                             size="small"
+                            value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={handleSearchFocus}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
                                         <SearchIcon />
                                     </InputAdornment>
                                 ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={handleSearchClear}>
+                                            <ClearIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
                             }}
-                            sx={{ width: '95%',pr:1	 }}
+                            sx={{
+                                width: '100%', // Initially full width for search bar when focused
+                                pr: 1,
+                                transition: 'width 0.3s ease-in-out',
+                            }}
                             placeholder={`Search items in "${storeInfo?.name}"`}
-                        /> </Box>
+                        />
+                    </Box>
+                ) : (
+                    <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', p: 1, flexGrow: 1 }}>
+                            <Typography variant="h6">{storeInfo?.name}</Typography>
+                        </Box>
+                        <IconButton onClick={handleSearchFocus} sx={{ p: 1, mr: 2 }}>
+                            <SearchIcon />
+                        </IconButton>
+                    </>
+                )}
+            </Box>
+        
                        {searchTerm?
                        
                        <Box 
@@ -268,10 +314,16 @@ const StoreDetail = () => {
                         </Box>}
                     </Box>
 
-                <>
-  {!searchTerm ? (
+   <>
+   {
+  !searchTerm ? (
     Object.keys(menuItems).map((category, index) => (
-      <Box key={index} id={`category-${index}`} sx={{ p: 1, mt: 2 }} ref={el => (categoryRefs.current[index] = el)}>
+      <Box
+        key={index}
+        id={`category-${index}`}
+        sx={{ p: 1, mt: 2 }}
+        ref={el => (categoryRefs.current[index] = el)}  // Ensure ref is assigned properly
+      >
         <Box
           sx={{
             position: 'sticky',
@@ -281,13 +333,13 @@ const StoreDetail = () => {
             zIndex: 8,
           }}
         >
-          <Typography variant="subtitle2" align="left" id={`category-${index}`} sx={{ mb: 1,fontSize:'1rem' }}>
+          <Typography variant="subtitle2" align="left" sx={{ mb: 1, fontSize: '1rem' }}>
             {category}
           </Typography>
           <Divider />
         </Box>
         <Grid container spacing={2}>
-          {menuItems[category].map(item => (
+          {menuItems[category].filter(i=>i.available).map(item => (
             <ItemCard
               key={item.id}
               item={item}
@@ -295,6 +347,7 @@ const StoreDetail = () => {
               setCart={setCart}
               addToCart={addToCart}
               handleOpenModal={handleOpenModal}
+              storeStatus={storeInfo}
             />
           ))}
         </Grid>
@@ -313,8 +366,10 @@ const StoreDetail = () => {
         />
       ))}
     </Grid>
-  )}
-</>
+  )
+}
+
+   </>
 
 
                     {false && (

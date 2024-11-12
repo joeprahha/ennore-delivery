@@ -77,6 +77,7 @@ const MyStore = () => {
                 fetchOrders(response.data[0]._id);
             }
         } catch (error) {
+
             console.error('Error fetching stores:', error);
         }
     };
@@ -156,7 +157,7 @@ const MyStore = () => {
 		
             </Box>
 
-            {selectedStore && stores.length ? (
+            {(
                 <Box mb={4} display="flex" alignItems="center" justifyContent="space-between" style={{ margin: 10 }}>
                     <Box display="flex" alignItems="center">
                         <Avatar
@@ -171,34 +172,30 @@ const MyStore = () => {
                                 },
                             }}
                         />
-                        <FormControl  variant="outlined">
+                        <FormControl fullWidth  variant="outlined">
                     <InputLabel>Select Store</InputLabel>
                     <Select
-                        value={selectedStore || "Create Store"}
+                        value={selectedStore ||stores[0] || "Create Store"}
                         onChange={handleStoreChange}
                         label="Select Store"
                     >
+
                         {stores.map((store) => (
                             <MenuItem key={store._id} value={store._id}>
                                 {store.name}
                             </MenuItem>
                         ))}
                         
-                <MenuItem  onClick={(e) => { setStoreModalOpen(true)}}>
-                         <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ marginBottom: 2 }}
-                    //onClick={() => setStoreModalOpen(true)}
-                >
+                <MenuItem  onClick={(e) => { setStoreModalOpen(true)}} >
+                        
                     Create Store
-                </Button>
+
                 </MenuItem>
                     </Select>
                 </FormControl>
                     </Box>
 
-                    <Box display="flex" alignItems="center">
+            {  selectedStore &&      <Box display="flex" alignItems="center">
                         <Switch
                             checked={stores.find(s => s._id === selectedStore)?.status === 'open'}
                             onChange={handleToggle}
@@ -208,9 +205,9 @@ const MyStore = () => {
                         <Typography variant="body2" style={{ marginLeft: 5, marginRight: 10 }}>
                             {stores.find(s => s._id === selectedStore)?.status === 'open' ? 'Open' : 'Closed'}
                         </Typography>
-                    </Box>
+                    </Box> }
                 </Box>
-            ) :null}
+            ) }
                
             <CreateStoreDialog
                 storeDialogOpen={storeModalOpen}
@@ -224,9 +221,10 @@ const MyStore = () => {
                     setValue(newValue);
                     menu.length === 0 && fetchMenu(selectedStore);
                 }}
-                variant="scrollable"
+
                 scrollButtons="auto"
                 sx={{ borderBottom: '1px solid #ccc' }}
+
             >
                 <Tab label="Orders" />
                 <Tab label="Menu" />

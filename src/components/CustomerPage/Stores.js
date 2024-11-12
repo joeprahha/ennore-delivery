@@ -100,47 +100,41 @@ const Stores = () => {
 
     return (
         <Box sx={{ p: 2, minHeight: '100vh', overflowX: 'hidden' }}>
-           
-
-            {/* Sticky Search Bar */}
-          <Box
-		    sx={{
-			position: 'sticky',
-			top: 0,
-			zIndex: 1,
-			backgroundColor: 'transparent',
-			width: '100%',
-			mb: 2,
-			transition: 'background-color 0.3s ease',
-			height: '30px'
-		    }}
-		>
-		    <TextField
-			variant="outlined"
-			size="small"
-			onChange={(e) => setSearchQuery(e.target.value)}
-			InputProps={{
-			    startAdornment: (
-				<InputAdornment position="start">
-				    <SearchIcon sx={{ color: 'black' }} />
-				</InputAdornment>
-			    ),
-			    // Adjust the input style to reduce height
-			    sx: {
-				height: '30px', // Set your desired height
-				padding: '4px 8px', // Adjust padding as needed
-			    },
-			}}
-			placeholder="search Ennore Delivery "
-			sx={{
-			    width: '100%',
-			    p: 0,
-			    boxSizing: 'border-box',
-			}}
-		    />
-		</Box>
-
-
+         <>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        flexDirection: 'column',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        backgroundColor: '#fff',
+        pt: 1,
+        width: '100%', // Ensure it spans the full width of its parent
+        boxSizing: 'border-box', // Ensure proper box model behavior
+      }}
+    >
+      <TextField
+        variant="outlined"
+        size="small"
+        onChange={(e) => setSearchQuery(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+        placeholder="Search Ennore Delivery"
+        sx={{
+          width: '100%',
+          p: 0,
+          boxSizing: 'border-box',
+        }}
+      />
+    </Box>
+  </>
             {/* Display Loader while fetching data */}
             {loading ? (
                 <BikeLoader />
@@ -170,16 +164,17 @@ const Stores = () => {
                                     }}
                                 >
                                     <img
-                                        src={store.image}
-                                        alt="store"
-                                        style={{
-                                            width: '100%',
-                                            height: '120px',
-                                            objectFit: 'cover',
-                                            objectPosition: 'center',
-                                            borderRadius: '6px'
-                                        }}
-                                    />
+                                         src={store?.image ||"/app.png" }
+					  alt="store"
+					  style={{
+					    width: '100%',
+					    height: '180px',
+					    objectFit: 'cover',
+					    objectPosition: 'center',
+					    borderRadius: '6px',
+
+					  }}
+					/>
                                     <Box sx={{ display: "flex", flexDirection: "column", p: 0.5 }}>
                                         <Typography variant="subtitle2" align='left' sx={{ fontSize: '1rem', fontWeight: 500 }}>
                                             {store.name}
@@ -199,8 +194,8 @@ const Stores = () => {
                                                 top: 0,
                                                 left: 0,
                                                 width: '100%',
-                                                height: '100%',
-                                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                height: '180px',
+					    backgroundColor: !isOpen ? 'rgba(0, 0, 0, 0.5)' : 'inherit',  // Add a comma here
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -213,7 +208,7 @@ const Stores = () => {
                                             <Typography variant="subtitle2" color="white" display="flex" alignItems="center">
 					    Store Closed
 					    <BedtimeIcon sx={{ marginLeft: 0.5 }} />
-					</Typography>hy>
+					</Typography>
                                             {store.open_time >= currentTimeString && (
                                                 <Typography variant="subtitle2" color="white">
                                                     opens at: {store.open_time}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, BottomNavigation, IconButton, Grid } from '@mui/material';
+import { Box, Typography, BottomNavigation, IconButton, Grid, Link } from '@mui/material';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import InstagramIcon from '@mui/icons-material/Instagram';
 
@@ -49,27 +49,27 @@ const BottomNav = ({ isDarkMode }) => {
                 <img src="/img2.png" alt="Delivery" style={{ height: '38px', marginLeft: '8px', filter: !isDarkMode && 'invert(1)' }} />
             </Box>
 
-            <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            <Typography variant="h4" align="left" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '0.7rem', marginBottom: 2 }}>
                 Welcome to Ennore Delivery
             </Typography>
-            <Typography variant="body1" align="center" sx={{ marginBottom: 1 }}>
+            <Typography variant="body1" align="left" sx={{ marginBottom: 1, fontSize: '0.7rem' }}>
                 Whatever you order in Ennore
             </Typography>
-            <Typography variant="body1" align="center" gutterBottom sx={{ marginBottom: 1 }}>
+            <Typography variant="body1" align="left" gutterBottom sx={{ marginBottom: 1, fontSize: '0.7rem' }}>
                 Wherever we will deliver in Ennore
             </Typography>
-            <Typography variant="body1" align="center" gutterBottom sx={{ marginBottom: 2, color: 'primary.main' }}>
+            <Typography variant="body1" align="left" gutterBottom sx={{ marginBottom: 2, color: 'primary.main', fontSize: '0.7rem' }}>
                 Just order!
             </Typography>
-            <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
+            <Typography variant="h6" align="left" sx={{ fontWeight: 'bold', marginBottom: 2, fontSize: '0.7rem' }}>
                 We will deliver to:
             </Typography>
 
             {/* Locations in two rows */}
-            <Grid container spacing={2} justifyContent="center">
+            <Grid container spacing={2} justifyContent="flex-start">
                 {locations.map((location, index) => (
                     <Grid item xs={6} sm={4} key={index}>
-                        <Typography variant="body2" align="center">
+                        <Typography variant="body2" align="left" sx={{ fontSize: '0.7rem' }}>
                             {location}
                         </Typography>
                     </Grid>
@@ -77,10 +77,10 @@ const BottomNav = ({ isDarkMode }) => {
             </Grid>
 
             {/* Shop by Category Section */}
-            <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2 }}>
+            <Typography variant="h6" align="left" sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2, fontSize: '0.7rem' }}>
                 Shop by Category:
             </Typography>
-            <Grid container spacing={2} justifyContent="center">
+            <Grid container spacing={2} justifyContent="flex-start">
                 {categories.map((category, index) => (
                     <Grid item xs={4} sm={2} key={index}>
                         <Box sx={{ textAlign: 'center' }}>
@@ -89,7 +89,7 @@ const BottomNav = ({ isDarkMode }) => {
                                 alt={category.name}
                                 style={{ width: '80%', height: 'auto', borderRadius: '5px' }}
                             />
-                            <Typography variant="body2" sx={{ marginTop: 1 }}>
+                            <Typography variant="body2" sx={{ marginTop: 1, fontSize: '0.7rem' }}>
                                 {category.name}
                             </Typography>
                         </Box>
@@ -98,7 +98,7 @@ const BottomNav = ({ isDarkMode }) => {
             </Grid>
 
             <Box sx={{ marginTop: 2, textAlign: 'center' }}>
-                <Typography variant="caption" display="block" gutterBottom sx={{ marginBottom: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                <Typography variant="caption" display="block" gutterBottom sx={{ marginBottom: 1, color: 'primary.main', fontWeight: 'bold', fontSize: '0.7rem' }}>
                     Ennore Delivery - Since 2024
                 </Typography>
                 <IconButton href="https://wa.me/your_whatsapp_number" target="_blank">
@@ -111,6 +111,16 @@ const BottomNav = ({ isDarkMode }) => {
 
             {/* Add 20px height empty space */}
             <Box sx={{ height: '80px' }} />
+
+            {/* Terms and Conditions, About Section */}
+            <Box sx={{ marginTop: 3, textAlign: 'left', fontSize: '0.7rem' }}>
+                <Link href="/terms" sx={{ marginRight: 2, textDecoration: 'none', color: 'primary.main' }}>
+                    Terms and Conditions
+                </Link>
+                <Link href="/about" sx={{ textDecoration: 'none', color: 'primary.main' }}>
+                    About
+                </Link>
+            </Box>
         </Box>
     );
 };

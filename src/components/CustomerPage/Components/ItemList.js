@@ -9,7 +9,7 @@ import {
 
 const ItemList = ({  handleItemClick,items }) => {
     return (
-       items.map((item)=> <React.Fragment key={item.id}>
+       items.filter(i=>i.available).map((item)=> <React.Fragment key={item.id}>
             <ListItem
                 button={item.available}
                 onClick={item.available ? () => handleItemClick(item) : null}

@@ -29,6 +29,7 @@ const OrderHistory = ({ userId }) => {
             case 'new': return 0;
             case 'accepted': return 1;
             case 'ready': return 2;
+            case 'picked':return 3;
             case 'delivered': return 4;
             default: return 0;
         }
@@ -262,7 +263,7 @@ const handleDeleteOrder=()=>{}
   <Typography variant="subtitle2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2,p:2 }}>
                 Thanks ,Ennore Delivery!!
             </Typography>
-                                <Box sx={{height:'40px'}}/>
+                                <Box sx={{height:'80px'}}/>
             </SwipeableDrawer>
         </Box>
     );

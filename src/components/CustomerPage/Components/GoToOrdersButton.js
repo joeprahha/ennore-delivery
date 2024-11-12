@@ -14,11 +14,11 @@ export const GoToOrdersButton = ({ cart }) => {
 
     const handleScroll = () => {
         if (window.scrollY > lastScrollY) {
-            setVisible(false); // Scrolling down
+       //     setVisible(false); // Scrolling down
         } else {
-            setVisible(true); // Scrolling up
+         //   setVisible(true); // Scrolling up
         }
-        setLastScrollY(window.scrollY);
+      //  setLastScrollY(window.scrollY);
     };
 
     useEffect(() => {

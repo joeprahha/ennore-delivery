@@ -51,8 +51,8 @@ const lightTheme = createTheme({
           borderRadius: '8px',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
           '&:hover': {
-            backgroundColor: '#4682B4',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+            //backgroundColor: '#4682B4',
+            //boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
           },
         },
       },
