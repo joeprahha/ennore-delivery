@@ -71,6 +71,7 @@ const handleUpdateStore = async () => {
       local: storeLocalArea,
       fssai,
       phone,
+      storeId:selectedStore
     });
 
     console.log('Store updated successfully:', response.data);

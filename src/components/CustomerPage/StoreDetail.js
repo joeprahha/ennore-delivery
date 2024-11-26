@@ -269,9 +269,19 @@ const StoreDetail = () => {
                     </Box>
                 ) : (
                     <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', p: 1, flexGrow: 1 }}>
-                            <Typography variant="h6">{storeInfo?.name}</Typography>
-                        </Box>
+                       <Box sx={{ display: 'flex', alignItems: 'center', p: 1, flexGrow: 1 }}>
+    {/* Display the logo or fallback to the image */}
+    {storeInfo.logo || storeInfo.image ? (
+        <img
+            src={storeInfo.logo || storeInfo.image}
+            alt="store icon"
+            style={{ width: 36, height: 36, borderRadius: '50%', marginRight: 7 }}
+        />
+    ) : null}
+    
+    {/* Display the store name */}
+    <Typography variant="h6">{storeInfo?.name}</Typography>
+</Box>
                         <IconButton onClick={handleSearchFocus} sx={{ p: 1, mr: 2 }}>
                             <SearchIcon />
                         </IconButton>
@@ -373,33 +383,7 @@ const StoreDetail = () => {
         </Grid>
         
 
-{!storeInfo?.fssai &&
-<Box sx={{ padding: 2 }}>
-  <Paper elevation={0} sx={{ padding: 2, fontSize: '0.75rem' ,backgroundColor:'rgba(95, 37, 159, 0.05)'}}>
-    {/* Store Name Section */}
-    <Box display="flex" flexDirection="column" marginBottom={1}>
-      <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary",fontSize: '0.75rem'  }}>
-        {storeInfo?.name || "Store Name"}
-      </Typography>
-    </Box>
 
-    {/* FSSAI Section */}
-    <Box display="flex" alignItems="center" marginBottom={1}>
-      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500,fontSize: '0.75rem'  }}>
-        FSSAI: {storeInfo?.fssai || "N/A"}
-      </Typography>
-    </Box>
-
-    {/* Phone Section */}
-    <Box display="flex" alignItems="center">
-      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500 ,fontSize: '0.75rem' }}>
-        Phone: {storeInfo?.phone || "N/A"}
-      </Typography>
-    </Box>
-
-    {/* Add other sections as needed */}
-  </Paper>
-</Box>}
 
         
       </Box>
@@ -458,7 +442,7 @@ const StoreDetail = () => {
                                 <Typography variant="h6" sx={{ ml: 1 }}>Select Category</Typography>
                             </Box>
                             <List sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                                {Object.keys(menuItems).filter(c=>c.available).map((category, index) => (
+                              {  Object.keys(menuItems).filter(c=>menuItems[c]?.available).map((category, index) => (
                                     <React.Fragment key={index}>
                                         <ListItem button onClick={() => {
                                             handleTabChange(null, index);
@@ -476,6 +460,34 @@ const StoreDetail = () => {
                 </>
             )}
                                 {goToCartButton ? <GoToOrdersButton cart={cart} /> : null}
+                                
+                                {!storeInfo?.fssai &&
+<Box sx={{ padding: 2 }}>
+  <Paper elevation={0} sx={{ padding: 2, fontSize: '0.75rem' ,backgroundColor:'rgba(95, 37, 159, 0.05)'}}>
+    {/* Store Name Section */}
+    <Box display="flex" flexDirection="column" marginBottom={1}>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary",fontSize: '0.75rem'  }}>
+        {storeInfo?.name || "Store Name"}
+      </Typography>
+    </Box>
+
+    {/* FSSAI Section */}
+    <Box display="flex" alignItems="center" marginBottom={1}>
+      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500,fontSize: '0.75rem'  }}>
+        FSSAI: {storeInfo?.fssai || "N/A"}
+      </Typography>
+    </Box>
+
+    {/* Phone Section */}
+    <Box display="flex" alignItems="center">
+      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500 ,fontSize: '0.75rem' }}>
+        Phone: {storeInfo?.phone || "N/A"}
+      </Typography>
+    </Box>
+
+    {/* Add other sections as needed */}
+  </Paper>
+</Box>}
        <Box sx={{height:'80px'}}/>
         </Box>
     );

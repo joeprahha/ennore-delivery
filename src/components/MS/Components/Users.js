@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
 import { Box, Table, FormControl, Select, InputLabel, MenuItem, TableBody, SwipeableDrawer,TableCell, TableContainer, TableHead, TableRow, CircularProgress, Typography, Chip, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search'; // Import Search icon
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -56,6 +57,23 @@ const [drawerOpen, setDrawerOpen] = useState(false);
             setIsUpdating(false);
         }
     };
+const handleDelete = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+        try {
+                        const response = await api.delete(`users/${userId}`);
+
+            if (response.status === 200) {
+
+
+            } else {
+                alert('Failed to delete user');
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('An error occurred while deleting the user');
+        }
+    }
+};
 
     const handleScopeFilter = (scope) => {
         setSelectedScope(scope);
@@ -140,6 +158,8 @@ const [drawerOpen, setDrawerOpen] = useState(false);
                         <TableRow>
                             <TableCell sx={{ height: 30 }}>Email</TableCell>
                             <TableCell sx={{ height: 30 }}>Scope</TableCell>
+                             <TableCell sx={{ height: 30 }}>Action</TableCell>
+
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -164,6 +184,12 @@ const [drawerOpen, setDrawerOpen] = useState(false);
                                         </Select>
                                     </FormControl>
                                 </TableCell>
+<TableCell
+    sx={{ height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    onClick={() => handleDelete(user._id)}
+>
+    <DeleteIcon sx={{ color: 'red' }} />
+</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

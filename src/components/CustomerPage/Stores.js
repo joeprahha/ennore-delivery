@@ -27,6 +27,7 @@ const convertToMinutes = (timeString) => {
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
 };
+
 const Stores = () => {
     const [stores, setStores] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -193,11 +194,16 @@ const Stores = () => {
 
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 ,p:1.5}}>
                         {filteredStores.map(store => {
-                            const currentTimeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-				const currentMinutes = convertToMinutes(currentTimeString);
-				const openMinutes = convertToMinutes(store.open_time);
-				const closeMinutes = convertToMinutes(store.close_time);
-				const isTimeOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes 
+                           const now = new Date();
+const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+const currentMinutes = convertToMinutes(currentTimeString);
+const openMinutes = convertToMinutes(store.open_time);
+const closeMinutes = convertToMinutes(store.close_time);
+const isTimeOpen = closeMinutes > openMinutes
+    ? currentMinutes >= openMinutes && currentMinutes <= closeMinutes
+    : currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+
 				const isOpen= isTimeOpen && store.status==='open';
                             return (
                                 <Paper
