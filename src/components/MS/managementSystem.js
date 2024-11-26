@@ -12,11 +12,13 @@ import Users from './Components/Users';   // Import Users component
 import Orders from './Components/Orders'; // Import Orders component
 import Stores from './Components/Stores'; // Import Stores component
 import Reports from './Components/Reports'; // Import Reports component
+import QRCodeManager from './Components/Qr.js'
+import Agreement from './Components/Agreement.js'
 
 const MS = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(0);
-    const [categories] = useState(['Users', 'Orders', 'Stores', 'Reports']);
+    const [categories] = useState(['Users', 'Orders', 'Stores', 'Reports','Qr','Aggrement']);
 
     // Dummy effect to simulate loading data
     useEffect(() => {
@@ -81,6 +83,10 @@ const MS = () => {
                         {activeTab === 1 && <Orders />}
                         {activeTab === 2 && <Stores />}
                         {activeTab === 3 && <Reports />}
+                        {activeTab === 4 && <QRCodeManager />}
+                                                {activeTab === 5 && <Agreement />}
+                        
+                       
                     </Box>
                 </>
             )}

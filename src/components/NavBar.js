@@ -48,7 +48,7 @@ const NavBar = () => {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: '46px', // Adjust the height of the navbar
+                height: '52px', // Adjust the height of the navbar
                 transition: 'transform 0.3s ease',
                 transform: visible ? 'translateY(0)' : 'translateY(100%)',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.3)', // Box shadow on top
@@ -64,7 +64,7 @@ const NavBar = () => {
 
                     typography: 'caption', // Use typography for consistency
                     fontSize: '0.55rem', // Label font size
-                  
+                  mb:1
                 }}
             />
              <BottomNavigationAction
@@ -75,7 +75,7 @@ const NavBar = () => {
                     color: value === '/orders' ? 'primary.main' : 'text.secondary',
                     typography: 'caption',
                     fontSize: '0.55rem',
-                   
+                                     mb:1
                 }}
             />
             <BottomNavigationAction
@@ -86,7 +86,7 @@ const NavBar = () => {
                     color: value === '/cart' ? 'primary.main' : 'text.secondary',
                     typography: 'caption',
                     fontSize: '0.55rem',
-                    
+                                      mb:1
                 }}
             />
             <BottomNavigationAction
@@ -97,7 +97,7 @@ const NavBar = () => {
                     color: value === '/account' ? 'primary.main' : 'text.secondary',
                     typography: 'caption',
                     fontSize: '0.55rem',
-                   
+                                     mb:1
                 }}
             />
         </BottomNavigation>

@@ -1,61 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
-
-const isDarkMode = localStorage.getItem('theme') === 'dark';
+import { Box, CircularProgress, LinearProgress, Typography, Button } from '@mui/material';
 
 const CircularLoader = () => {
-    // State to control when to show the text
-    const [showText, setShowText] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
+  const [showConnectionIssue, setShowConnectionIssue] = useState(false);
 
-    useEffect(() => {
-        // Set a timeout to show the text after 1.5 seconds
-        const timer = setTimeout(() => {
-            setShowText(true);
-        }, 1500);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowLoader(false);
+      setShowConnectionIssue(true);
+    }, 60000); // 50 seconds
 
-        // Cleanup the timer on unmount or when the component is rerendered
-        return () => clearTimeout(timer);
-    }, []);
+    return () => clearTimeout(timeout); // Clean up timeout on unmount
+  }, []);
 
-    return (
-        <Box
-            sx={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100vh',
-                backgroundColor: '#ffffff',  // White background
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999,  // Ensure it appears above other content
-                flexDirection: 'column',  // Stack the loader and text vertically
-            }}
-        >
-            <CircularProgress
-                sx={{
-                    color: isDarkMode ? '#ffffff' : '#1976d2', // Adjust color based on dark mode
-                }}
-            />
-            
-            {/* Conditionally render the text after 1.5 seconds */}
-            {showText && (
-              <>  <Typography
-                    variant="subtitle"
-                    sx={{
-                        marginTop: 4, // Add some space between the loader and the text
-                  
-                    }}
-                    fontSize='0.9rem'
-                    gutterBottom
-                >
-                    It’s taking longer than expected
-                </Typography>
-                <Typography fontSize='0.9rem'>Please wait...</Typography></>
-            )}
-        </Box>
-    );
+  const handleRetry = () => {
+    window.location.reload(); // Refresh the page
+  };
+
+  return showLoader ? (
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)', // Half-transparent white
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        zIndex: 9999,
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* LinearProgress on top */}
+      <Box sx={{ width: '100%', position: 'absolute', backgroundColor: 'white', top: 0, zIndex: 1000 }}>
+        <LinearProgress
+          sx={{
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: 'blue', // Set to blue or any custom color you prefer
+            },
+          }}
+        />
+      </Box>
+     
+    </Box>
+  ) : showConnectionIssue ? (
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white', // Fully white screen
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        zIndex: 9999,
+      }}
+    >
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        Connection Issue
+      </Typography>
+      <Button variant="contained" color="primary" onClick={handleRetry}>
+        Retry
+      </Button>
+    </Box>
+  ) : null;
 };
 
 export default CircularLoader;

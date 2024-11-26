@@ -45,7 +45,7 @@ const BottomNav = ({ isDarkMode }) => {
     return (
         <Box sx={{ backgroundColor: 'background.paper', padding: 3, position: 'relative', boxShadow: 2 }}>
             {/* Image Section */}
-            <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
+            <Box sx={{ textAlign: 'left', marginBottom: 3 }}>
                 <img src="/img2.png" alt="Delivery" style={{ height: '38px', marginLeft: '8px', filter: !isDarkMode && 'invert(1)' }} />
             </Box>
 
@@ -76,7 +76,7 @@ const BottomNav = ({ isDarkMode }) => {
                 ))}
             </Grid>
 
-            {/* Shop by Category Section */}
+            {/*  
             <Typography variant="h6" align="left" sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2, fontSize: '0.7rem' }}>
                 Shop by Category:
             </Typography>
@@ -96,11 +96,23 @@ const BottomNav = ({ isDarkMode }) => {
                     </Grid>
                 ))}
             </Grid>
-
-            <Box sx={{ marginTop: 2, textAlign: 'center' }}>
-                <Typography variant="caption" display="block" gutterBottom sx={{ marginBottom: 1, color: 'primary.main', fontWeight: 'bold', fontSize: '0.7rem' }}>
+*/}
+            <Box sx={{ marginTop: 5, textAlign: 'center' }}>
+                
+                 <Box sx={{  textAlign: 'center', fontSize: '0.7rem' }}>
+                 <Typography variant="caption" display="block" gutterBottom sx={{ marginBottom: 1, color: 'primary.main', fontWeight: 'bold', fontSize: '0.7rem' }}>
                     Ennore Delivery - Since 2024
                 </Typography>
+                <Link href="/terms" sx={{ marginRight: 2, textDecoration: 'none', color: 'primary.main' }}>
+                    Terms and Conditions   	 
+                </Link>
+                 <Link href="/terms" sx={{ marginRight: 2, textDecoration: 'none', color: 'primary.main' }}>
+                    Privacy Policy  	 
+                </Link>
+                <Link href="/about" sx={{ textDecoration: 'none', color: 'primary.main' }}>
+                    About
+                </Link>
+            </Box>
                 <IconButton href="https://wa.me/your_whatsapp_number" target="_blank">
                     <WhatsAppIcon />
                 </IconButton>
@@ -108,22 +120,15 @@ const BottomNav = ({ isDarkMode }) => {
                     <InstagramIcon />
                 </IconButton>
             </Box>
+             {/* Terms and Conditions, About Section */}
+           
 
             {/* Add 20px height empty space */}
             <Box sx={{ height: '80px' }} />
 
-            {/* Terms and Conditions, About Section */}
-            <Box sx={{ marginTop: 3, textAlign: 'left', fontSize: '0.7rem' }}>
-                <Link href="/terms" sx={{ marginRight: 2, textDecoration: 'none', color: 'primary.main' }}>
-                    Terms and Conditions
-                </Link>
-                <Link href="/about" sx={{ textDecoration: 'none', color: 'primary.main' }}>
-                    About
-                </Link>
-            </Box>
+           
         </Box>
     );
 };
 
 export default BottomNav;
-

@@ -11,7 +11,7 @@ import {
 import { api } from '../utils/api';
 import { getUserInfo,setUserInfo } from '../utils/localStorage';
 import { isTokenValid } from '../utils/auth';
-import { logout } from '../utils/auth';
+import { logout,redirectUser } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 const locations = [
@@ -53,6 +53,7 @@ const ProfilePage = () => {
         //setIsEditing(false);
         setSnackbarMessage('Profile successfully updated!');
         setSnackbarOpen(true);
+        redirectUser(navigate)
     };
 
     const validateFields = () => {

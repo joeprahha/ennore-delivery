@@ -20,6 +20,8 @@ import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDown
 import axios from 'axios';
 import { api } from '../../utils/api';
 import { getUserInfo,setUserInfo } from '../../utils/localStorage';
+import { formatDistanceToNow } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 const steps = ['Placed', 'Accepted', 'Ready', 'Driver Picked', 'Delivered'];
 const collectionSteps = ['Placed', 'Accepted', 'Ready'];
@@ -36,8 +38,61 @@ const collectionSteps = ['Placed', 'Accepted', 'Ready'];
     };
    const DriverStatus={ready:"Picked",picked:"Delivered",}
     
+    
+function getRelativeTimeFromIST(istDateString) {
+  if (!istDateString) return 'Invalid date';
+
+
+  // Split date and time parts
+  const [datePart, timePart] = istDateString.split(', ');
+  if (!datePart || !timePart) return 'Invalid date';
+
+  // Parse the date part (DD/MM/YYYY)
+  const [day, month, year] = datePart.split('/').map(Number);
+
+  // Parse the time part (hh:mm:ss am/pm)
+  const [time, period] = timePart.split(' ');
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+
+  // Convert 12-hour time to 24-hour time
+  const adjustedHours =
+    period.toLowerCase() === 'pm' && hours !== 12
+      ? hours + 12
+      : period.toLowerCase() === 'am' && hours === 12
+      ? 0
+      : hours;
+
+  // Create the Date object
+  const parsedDate = new Date(year, month - 1, day, adjustedHours, minutes, seconds);
+
+
+
+  if (isNaN(parsedDate)) return 'Invalid date'; // Ensure it's a valid date
+
+  // Calculate relative time
+  const now = new Date();
+  const diff = now - parsedDate; // Difference in milliseconds
+
+  const secondsDiff = Math.floor(diff / 1000);
+  const minutesDiff = Math.floor(secondsDiff / 60);
+  const hoursDiff = Math.floor(minutesDiff / 60);
+  const daysDiff = Math.floor(hoursDiff / 24);
+
+  if (daysDiff > 0) {
+    return `${daysDiff} day${daysDiff > 1 ? 's' : ''} ago`;
+  } else if (hoursDiff > 0) {
+    return `${hoursDiff} hour${hoursDiff > 1 ? 's' : ''} ago`;
+  } else if (minutesDiff > 0) {
+    return `${minutesDiff} minute${minutesDiff > 1 ? 's' : ''} ago`;
+  } else {
+    return `${secondsDiff} second${secondsDiff > 1 ? 's' : ''} ago`;
+  }
+}
+
+    
 const Deliveries = () => {
     const [value, setValue] = useState(0); // Track the active tab
+    const [orders,setOrders]=useState([])
     const [newOrders, setNewOrders] = useState([]);
     const [assignedOrders, setAssignedOrders] = useState([]); // Added state for assigned orders
     const [completedOrders, setCompletedOrders] = useState([]);
@@ -54,7 +109,8 @@ console.log("a",selectedOrder )
         try {
             setLoadingNew(true);
             const response = await api.get('/orders');
-            setNewOrders(response.data);
+            setOrders(response.data)
+            setNewOrders(response.data.filter(o=>o.status!=="delivered"));
             setError(null); // Clear any previous error on success
         } catch (error) {
             setError('Error fetching new orders');
@@ -134,11 +190,23 @@ const assignToMe = async () => {
 
     return (
         <Box>
-            <Tabs sx={{ mt: 2 }} value={value} onChange={handleTabChange} indicatorColor="primary" textColor="inherit" centered>
+           <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+ 		backgroundColor:  '#fff', 
+                pt: 1,
+            }}
+        > <Tabs sx={{ mt: 2 }} value={value} onChange={handleTabChange} indicatorColor="primary" textColor="inherit" centered>
                 <Tab label="New" />
                 <Tab label="Assigned to Me" />
                 <Tab label="Completed" />
             </Tabs>
+            </Box>
 
             <Box sx={{ padding: 2 }}>
                 {/* Error message */}
@@ -155,26 +223,39 @@ const assignToMe = async () => {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        <TableContainer sx={{ maxHeight: 400, overflowX: 'auto' }}>
+                        <TableContainer sx={{  overflowX: 'auto' }}>
                             <Table stickyHeader>
                                 <TableHead>
                                     <TableRow>
 
                                         <TableCell>Customer Name</TableCell>
-                                        <TableCell>Price</TableCell>
+                                        <TableCell>time</TableCell>
                                         <TableCell>Status</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {newOrders.length > 0 ? (
-                                         newOrders.filter(order => !order?.deliver_by).map((order) => (
-                                            <TableRow key={order._id} onClick={() => handleRowClick(order)}>
+                                         newOrders.filter(order => !order?.deliver_by).map((order) =>{
+                                         const placedAtIST = order?.created_at ? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '';
 
-                                                <TableCell>{order.createduser}</TableCell>
-                                                <TableCell>{order.total}</TableCell>
-                                                <TableCell>{order.status}</TableCell>
-                                            </TableRow>
-                                        ))
+  const relativeTime = getRelativeTimeFromIST(placedAtIST)
+
+                                         return (
+                                           <TableRow 
+  key={order._id} 
+  onClick={() => handleRowClick(order)} 
+  sx={{ 
+    backgroundColor: order.status === 'ready' ? 'red' : 'transparent', // Apply red background if the status is "ready"
+    '&:hover': { 
+      backgroundColor: order.status === 'ready' ? 'darkred' : 'lightgray' // Optionally change hover color for ready status
+    }
+  }}
+>
+  <TableCell>{order.createduser}</TableCell>
+  <TableCell>{relativeTime}</TableCell>
+  <TableCell>{order.status}</TableCell>
+</TableRow>
+                                        )})
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={4} align="center">
@@ -195,7 +276,7 @@ const assignToMe = async () => {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        <TableContainer sx={{ maxHeight: 400, overflowX: 'auto' }}>
+                        <TableContainer sx={{ overflowX: 'auto' }}>
                             <Table stickyHeader>
                                 <TableHead>
                                     <TableRow>
@@ -235,7 +316,7 @@ const assignToMe = async () => {
                             <CircularProgress />
                         </Box>
                     ) : (
-                        <TableContainer sx={{ maxHeight: 400, overflowX: 'auto' }}>
+                        <TableContainer sx={{ overflowX: 'auto' }}>
                             <Table stickyHeader>
                                 <TableHead>
                                     <TableRow>
@@ -329,12 +410,17 @@ const assignToMe = async () => {
                                             </Step>
                                         ))}
                                     </Stepper>
-        {/* Order Summary */}
+                                    
+                
+            {/* Order Summary */}
         <Paper elevation={3} sx={{ borderRadius: 2, padding: 1, mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
-                <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
+                <Typography variant="body1" sx={{ fontSize: '0.75rem' ,mr:2}}>
                     <strong>Order ID:</strong> {selectedOrder._id}
                 </Typography>
+                {selectedOrder.payment==='paid'? <Typography variant="h6"  sx={{ fontSize: '0.9rem',color:'green' }}> PAID</Typography>:
+           <Typography variant="h6" sx={{ fontSize: '0.9rem',color:'red' }}>NOT PAID</Typography>}
+           
             </Box>
             
             <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
@@ -348,8 +434,22 @@ const assignToMe = async () => {
                 </Typography>
             </Box>
         </Paper>
+           
+        {/* Store Details */}
+        <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
+            <Typography variant="h6" sx={{ fontSize: '0.75rem' }}>Store Details</Typography>
+            <Divider />
+            <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
+                <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
+                    <strong>Store Name:</strong> {selectedOrder.storename}
+                </Typography>
+            </Box>
+            <Divider />
+            
 
-        {/* Customer Details */}
+        </Paper>    
+        
+           {/* Customer Details */}
         <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
             <Typography variant="h6" sx={{ fontSize: '0.75rem' }}>Customer Details</Typography>
             <Divider />
@@ -370,21 +470,10 @@ const assignToMe = async () => {
                     <strong>Address:</strong> {selectedOrder.customer_details.address?.address1}, {selectedOrder.customer_details.address?.local}
                 </Typography>
             </Box>
-        </Paper>
+        </Paper>                
+       
 
-        {/* Store Details */}
-        <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
-            <Typography variant="h6" sx={{ fontSize: '0.75rem' }}>Store Details</Typography>
-            <Divider />
-            <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
-                <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
-                    <strong>Store Name:</strong> {selectedOrder.storename}
-                </Typography>
-            </Box>
-            <Divider />
-            
-
-        </Paper>
+       
 
         {/* Items */}
         <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>

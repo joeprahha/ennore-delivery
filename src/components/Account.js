@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React,{useEffect,useState} from 'react';
 import { Container, Typography, Paper, Button, Box, Divider, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -14,6 +14,7 @@ import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import {  logout } from '../utils/auth';
+import MobileFriendlyIcon from '@mui/icons-material/MobileFriendly';
 import { api } from '../utils/api';
 
 const required =   <Typography
@@ -32,12 +33,60 @@ const required =   <Typography
         >
             Required
         </Typography>
+        
+        export function useAddToHomescreenPrompt() {
+  const [promptEvent, setPromptEvent] = React.useState(null);
+
+  const promptToInstall = () => {
+    if (promptEvent) {
+      return promptEvent.prompt();
+    }
+    return Promise.reject(
+      new Error("Tried installing before the browser sent the 'beforeinstallprompt' event.")
+    );
+  };
+
+  React.useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault(); // Prevent default display of the prompt
+      setPromptEvent(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  return [promptEvent, promptToInstall];
+}
 
 const Account = ({toggleTheme,isDarkMode}) => {
 
 
     const navigate = useNavigate();
 const[address,setAddress]=React.useState(getUserInfo()||{})
+
+ const [prompt, promptToInstall] = useAddToHomescreenPrompt();
+  const [isInstalled, setIsInstalled] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkIfInstalled = () => {
+      if (window.matchMedia("(display-mode: standalone)").matches) {
+        setIsInstalled(true);
+      }
+    };
+
+    window.addEventListener("appinstalled", checkIfInstalled);
+    checkIfInstalled(); // Run on initial load
+
+    return () => {
+      window.removeEventListener("appinstalled", checkIfInstalled);
+    };
+  }, []);
+
+
     const handleProfileClick = () => {
         navigate('/profile');
     };
@@ -51,6 +100,7 @@ const handleAboutClick=()=>{
     const handleLogout = () => {
     	logout()
     };
+
 
 
 
@@ -150,13 +200,21 @@ const handleAboutClick=()=>{
             </ListItemIcon>
             <ListItemText primary="About" />
         </ListItem>
-        
+                <Divider />
          <ListItem button onClick={()=>{navigate('/tc')}}>
             <ListItemIcon>
                 <SummarizeOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary="Terms & Conditions" />
+        </ListItem>
+                        <Divider />
+         {prompt && <ListItem button onClick={promptToInstall} >
+            <ListItemIcon>
+                <MobileFriendlyIcon />
+            </ListItemIcon>
+            <ListItemText primary="Add to Home Screen" />
         </ListItem>	
+        }
     </List>
 </Paper>
 

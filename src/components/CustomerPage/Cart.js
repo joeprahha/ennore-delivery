@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+
+
+
+
 import { Link ,useNavigate} from 'react-router-dom'; // or the appropriate routing library
 import {
     Box,
@@ -12,9 +16,12 @@ import {
     CircularProgress,
     TextField,
     Autocomplete,
-    Chip
+    Chip,SwipeableDrawer
 } from '@mui/material';
 import TipAndDonationSection from './Components/TipAndDonationSection'; // Adjust the import path as needed
+import CryptoJS from 'crypto-js';
+
+
 
 import CheckoutButton from './Components/CheckoutButton'; // Adjust the import path as needed
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
@@ -30,11 +37,13 @@ import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivism
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
-import {  api } from '../../utils/api';
+import {  api ,baseUrl} from '../../utils/api';
 
 
 import { getCartFromLocalStorage, setCartToLocalStorage, getUserInfo } from '../../utils/localStorage';
 import QuantityButton from './Components/QuantityButton';
+
+
 
 const locations = [
     'Nettukuppam',
@@ -51,20 +60,99 @@ const locations = [
     'Ennore Bus Depot Surroundings',
 ];
 
+
+
+const PaymentDrawer = ({ redirectUrl, open, onClose, onOpen }) => {
+  return (
+    <SwipeableDrawer
+  anchor="bottom"
+  open={open}
+  onClose={onClose}
+  onOpen={onOpen}
+  sx={{
+    '& .MuiDrawer-paper': {
+      height: '100vh',
+      bottom: 20,
+     // borderRadius: '16px 16px 0 0',
+      overflowX: 'hidden',
+      width: '100%',
+      maxWidth: '500px',
+      margin: '0 auto',
+    },
+  }}
+>
+<Box sx={{}}>
+
+<Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+	
+                zIndex: 10,
+                backgroundColor: '#fff',
+                pl:1,
+              pr:1,pt:2            }}
+        >
+   <ArrowBackIosNewOutlinedIcon onClick={onClose}/>
+    
+    <h2>Payment</h2>
+   
+    
+  
+ </Box>
+    {/* Content */}
+{redirectUrl ? (
+        <iframe
+          src={redirectUrl}
+          style={{
+            width: '100%',
+            height: '100vh',
+            border: 'none',
+            overflowX: 'hidden',
+          }}
+          title="Payment Page"
+        />
+      ) : (
+        <>
+          <Typography variant="h6" style={{ marginBottom: '20px' }}>
+            Your order is being processed...
+          </Typography>
+          <Typography variant="body1">
+            Redirecting to payment page shortly...
+          </Typography>
+          <div style={{ marginTop: '20px' }}>
+            <CircularProgress />
+          </div>
+        </>
+      )}
+      <Box sx={{height:'40px'}}/>
+</Box>
+</SwipeableDrawer>
+  );
+};
+
+
+
 const Cart = () => {
     const [cart, setCart] = useState(getCartFromLocalStorage());
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [address, setAddress] = useState(getUserInfo() || {name:'', phone: '', address1: '', local: '' });
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const[instructions, setInstruction]=useState('')
     const [donation, setDonation] = useState(1);
     const [driverTip, setDriverTip] = useState(1);
     const [drawerItem, setDrawerItem] = useState(null);
     const navigate=useNavigate()
+     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState('');
+
     
     const subtotal = cart.items.reduce((total, item) => total + item.price * item.count, 0);
-    const platformFee = 1;
-    const deliveryFee = 4.5;
+    const platformFee = 2;
+    const deliveryFee = 7.5;
     const total = subtotal + platformFee + deliveryFee + donation + driverTip;
 	
 	const handleChange = (field) => (event) => {
@@ -79,12 +167,55 @@ const Cart = () => {
         setDrawerOpen(true);
     };
 
+ const initiatePhonePePayment = async (orderId) => {
+    try {
 
+      const response = await api.post('initiate-payment', {
+        merchantTransactionId: orderId,
+        redirectUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/redirect`, //
+        callbackUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/callback-payment`, // Backend callback URL
+      });
+      
+      
+
+      if (response.data.success) {
+        // Redirect to the payment URL
+              //setRedirectUrl(response.data.redirectUrl); // Set the redirect URL from API response
+
+      window.location.href = response.data.redirectUrl;
+      } else {
+      setLoading(false);
+    setIsDrawerOpen(false);
+
+        console.error("Payment initiation failed:", response.data.message);
+      }
+    } catch (error) {
+    setLoading(false);
+    setIsDrawerOpen(false);
+
+      console.error("Error initiating payment:", error);
+    }
+  
+  };
+  
+  const closeDrawer = () => {
+  
+    setLoading(false);
+    setIsDrawerOpen(false);
+    setRedirectUrl(''); 
+  };
+  
     const handleCheckout = async () => {
         setLoading(true);
+	if(subtotal<100){
+	alert('Minimum order value is 100 rs')
+	setLoading(false);
+	return
+	}
+
         if(!address.address1 || !address.phone){
 		alert('name and address required')
-		        setLoading(false);
+		setLoading(false);
 		return
 	}
         // Create orderData object
@@ -104,20 +235,43 @@ const Cart = () => {
                 },
                 name: address.name, // Ensure you have a name field in address
                 phone: address.phone,
+                id:address._id,
+                email:address.email
             },
             items: cart.items,
 	    driverTip,
 	    platformFee,
-	    subTotal:subtotal	
+	    subTotal:subtotal,
+	    payment:'pending',
+	    redirectUrl: `${window.origin}/ordersuccess}`, //
+        callbackUrl: `${baseUrl}callback-payment`,
+        instructions:instructions
+
         };
+        let response;
+try
+{
+           response = await api.post('orders', orderData);
+}
+catch(err){
+ setLoading(false);
+}
+	if(response?.data?.order?._id){
+	let orderId=response.data.order._id
+	if(orderId){
+		        setIsDrawerOpen(true);
+		await initiatePhonePePayment(orderId)
 
-          const response = await api.post('orders', orderData);
+	 
+	}
+	else{
+	 setLoading(false);
+		 alert('Error in creating order')
+	}
+	
 
-	if(response.data.order._id){
-	navigate(`/ordersuccess/${response.data.order._id}`)
- 	localStorage.removeItem('cart');
-         setCart([]);
-        setLoading(false);
+ 
+
         }
 	
     };
@@ -125,6 +279,12 @@ const Cart = () => {
     return (
     
     <>
+     <PaymentDrawer
+        redirectUrl={redirectUrl}
+        open={isDrawerOpen}
+        onClose={closeDrawer}
+        onOpen={() => setIsDrawerOpen(true)}
+      />
  <Box 
                         sx={{ 
                             display: 'flex', 
@@ -132,7 +292,7 @@ const Cart = () => {
 				alignItems:'center',
                             top: 0, 
                             zIndex: 10, 
-                            backgroundColor: '#fff', 
+                            backgroundColor: 'inherit', 
                            mt:1,ml:1
                         }}
                     >
@@ -199,6 +359,32 @@ const Cart = () => {
                         <KeyboardArrowRightOutlinedIcon />
                     </IconButton>
                 </Box>
+                 <Box
+        sx={{
+          p: 0,
+          mt:2,
+
+          borderRadius: '8px',
+        
+        }}
+      >
+        <TextField
+          fullWidth
+          multiline
+          rows={2}
+          variant="outlined"
+          label="Add Instructions"
+          placeholder="Enter your instructions here..."
+          value={instructions}
+          onChange={(e)=>setInstruction(e.target.value)}
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: '4px',
+            fontSize:'0.75rem'
+          }}
+        />
+      </Box>
+
             </Paper>
 
             {/* Delivery Details */}
@@ -279,7 +465,7 @@ const Cart = () => {
             <Box sx={{ height: '80px' }} />
             {/* Checkout Button */}
           
-            <CheckoutButton total={total} loading={loading} handleCheckout={handleCheckout} />
+            <CheckoutButton total={total} loading={loading} handleCheckout={handleCheckout}/>
 
             {/* Drawer for Address */}
             <Drawer

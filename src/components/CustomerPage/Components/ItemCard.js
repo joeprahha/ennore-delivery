@@ -1,8 +1,11 @@
 import React from 'react';
 import { Grid, Paper, Box, Typography, Button } from '@mui/material';
 import QuantityButton from './QuantityButton'; // Adjust the import based on your file structure
+import { isTokenValid, logout } from '../../../utils/auth';
 
-const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus }) => {
+
+const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,navigate }) => {
+
     const cartItem = cart.items.find(cartItem => cartItem.id === item.id);
 
     return (
@@ -48,7 +51,7 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus 
                         style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'contain',
+                            objectFit: 'cover',
                         }}
                     />
                 </Box>
@@ -135,6 +138,12 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus 
                         variant="outlined"
                         onClick={(e) => {
                             e.stopPropagation();
+
+                             if (!isTokenValid()) {
+                                    alert('Sign in to Add Cart')
+				   // logout(navigate);
+				    return
+				}
                             addToCart(item);
                         }}
                         sx={{

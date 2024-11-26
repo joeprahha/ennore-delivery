@@ -16,26 +16,31 @@ const Header = ({ onMenuClick, isDarkMode }) => {
     };
 
     return (
-        <AppBar position="static">
-            <Toolbar>
-                {getToken() && (
-                    <IconButton edge="start" color="inherit" aria-label="menu" onClick={onMenuClick}>
-                        <MenuIcon />
-                    </IconButton>
-                )}
-                
-                <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }} >
-                    <img
-                    onClick={()=>navigate('/')}
-                        src="/img2.png" // Replace with the correct path to your logo image
-                        alt="Logo"
-                        style={{ height: '38px',marginRight:'15px', filter: !isDarkMode && 'invert(1)' }} // Adjust height as needed
-                    />
-                </Box>
+       <AppBar position="static" sx={{ backgroundColor: 'inherit', color: 'primary.main' }} elevation={0}>
+    <Toolbar>
+        {getToken() && (
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={onMenuClick}>
+                <MenuIcon />
+            </IconButton>
+        )}
 
-                {/* Other icons can be added here, e.g., shopping cart, profile, etc. */}
-            </Toolbar>
-        </AppBar>
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+           <img
+    onClick={() => navigate('/')}
+    src="/img2.png" // Replace with the correct path to your logo image
+    alt="Logo"
+    style={{
+        height: '38px',
+        marginRight: '15px',
+        filter: !isDarkMode && 'invert(1) ', // Combine filters conditionally
+    }}
+/>
+
+        </Box>
+
+        {/* Other icons can be added here, e.g., shopping cart, profile, etc. */}
+    </Toolbar>
+</AppBar>
     );
 };
 

@@ -1,190 +1,125 @@
-import React, { useEffect, useState } from 'react';
+import React from "react";
 import {
-    Box,
-    Typography,
-    IconButton,
-    Button,
-    TextField,
-    Dialog,
-    AppBar,
-    Toolbar,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Slide
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { getCartFromLocalStorage, setCartToLocalStorage } from '../../../utils/localStorage';
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  SwipeableDrawer,
+  AppBar,
+  Toolbar,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import QuantityButton from "./QuantityButton"; // Adjust import as needed
+import { isTokenValid } from "../../../utils/auth";
 
-import { GoToOrdersButton } from './GoToOrdersButton';
+const ItemDetailModal = ({
+  open,
+  onClose,
+  item,
+  storeInfo,
+  cart,
+  setCart,
 
-const SlideTransition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+  addToCart,
+}) => {
+  const cartItem = cart.items.find((cartItem) => cartItem?.id === item?.id);
+console.log("a",cartItem)
+  return (
+    <SwipeableDrawer
+      anchor="bottom"
+      open={open}
+      onClose={onClose}
+      sx={{
+        "& .MuiDrawer-paper": {
+          height: "auto",
+          bottom: 0,
+          borderRadius: "16px 16px 0 0",
+          overflowY: "auto",
+        },
+      }}
+    >
+      {/* AppBar with title */}
+      <AppBar position="static" sx={{ backgroundColor: "#fff", color: "#000" }} elevation={0}>
+        <Toolbar>
+          <IconButton edge="start" color="inherit" onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap>
+            {item?.name}
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-const ItemDetailModal = ({ open, onClose, item, storeInfo, cart, setCart }) => {
-    const [ordersModalOpen, setOrdersModalOpen] = useState(false);
-    const [confirmationOpen, setConfirmationOpen] = useState(false);
-    const [quantity, setQuantity] = useState(0);
+      {/* Modal content */}
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+        {/* Image section */}
+        <Box
+          component="img"
+          src={item?.image || storeInfo.logo}
+          alt={item?.name}
+          sx={{
+            width: "100%",
+            height: "40%",
+            objectFit: "contain",
 
-    useEffect(() => {
-        if (cart?.items?.length) {
-            setCartToLocalStorage(cart);
-        }
-    }, [cart]);
- useEffect(() => {
-        if (cart?.items?.length) {
-            setCartToLocalStorage(cart);
-        }
-    }, [setOrdersModalOpen,ordersModalOpen]);
+          }}
+        />
 
+        {/* Details section */}
+        <Box sx={{ padding: 2 }}>
+          <Typography variant="h5">{item?.name}</Typography>
+          <Typography variant="h6" color="textSecondary">
+            Rs. {item?.price}
+          </Typography>
+        </Box>
 
-    const getCartItemCount = () => {
-        const existingItem = cart?.items?.find(cartItem => cartItem.name === item.name);
-        return existingItem ? existingItem.count : quantity;
-    };
-
-    const updateCartQuantity = (newQuantity) => {
-        const existingItem = cart?.items?.find(cartItem => cartItem.name === item.name);
-        if (existingItem) {
-            if (newQuantity <= 0) {
-                setCart({
-                    ...cart,
-                    items: cart.items.filter(cartItem => cartItem.name !== item.name),
-                });
-            } else {
-                setCart({
-                    ...cart,
-                    items: cart.items.map(cartItem =>
-                        cartItem.name === item.name
-                            ? { ...cartItem, count: newQuantity }
-                            : cartItem
-                    ),
-                });
-            }
-        } else if (newQuantity > 0) {
-            const updatedItems = cart.items?.length
-                ? [...cart.items, { ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }]
-                : [{ ...item, storeId: storeInfo._id, storeName: storeInfo.name, count: newQuantity }];
-
-            setCart({
-                ...cart,
-                storeId: storeInfo._id,
-                storeName: storeInfo.name,
-                items: updatedItems,
-            });
-        }
-    };
-
-    const handleAddToCart = (fromInc = false) => {
-
-        if (cart.storeId && cart.storeId !== storeInfo._id) {
-            setConfirmationOpen(true);
-        } else {
-            updateCartQuantity(fromInc ? getCartItemCount() + 1 : getCartItemCount());
-        }
-    };
-
-    const handleConfirmClearCart = () => {
-        setCart({
-            storeId: storeInfo._id,
-            storeName: storeInfo.name,
-            items: [{ ...item, count: 1 }],
-        });
-        setConfirmationOpen(false);
-    };
-
-    return (
-        <Dialog
-            fullScreen
-            open={open}
-            onClose={onClose}
-            TransitionComponent={SlideTransition}
-        >
-            <AppBar position="static" sx={{ backgroundColor: '#fff', color: '#000' }}>
-                <Toolbar>
-                    <IconButton edge="start" color="inherit" onClick={onClose}>
-                        <CloseIcon />
-                    </IconButton>
-                    <Typography variant="h6">{item.name}</Typography>
-                </Toolbar>
-            </AppBar>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-                <Box
-                    component="img"
-                    src={item.image || storeInfo.logo}
-                    alt={item.name}
-                    sx={{ width: '100%', height: '40%', objectFit: 'cover', objectPosition: 'center' }}
-                />
-
-                <Box sx={{ padding: 2 }}>
-                    <Typography variant="h5">{item.name}</Typography>
-                    <Typography variant="h6" color="textSecondary">
-                        Rs. {item.price}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                        <IconButton onClick={() => updateCartQuantity(Math.max(getCartItemCount() - 1, 0))}>
-                            -
-                        </IconButton>
-                        <TextField
-                            variant="outlined"
-                            value={getCartItemCount()}
-                            onChange={(e) => updateCartQuantity(Math.max(1, Number(e.target.value)))}
-                            sx={{ width: '60px', mx: 1 }}
-                        />
-                        <IconButton onClick={() => handleAddToCart(true)}>
-                            +
-                        </IconButton>
-                    </Box>
-                </Box>
-
-                {cart?.items && getCartItemCount() > 0 ? (
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() =>{setCartToLocalStorage(cart); setOrdersModalOpen(true)}}
-                        sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, borderRadius: 20, height: '50px' }}
-                    >
-                        Go to Orders
-                    </Button>
-                ) : (
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleAddToCart()}
-                        sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, borderRadius: 20, height: '50px' }}
-                    >
-                        Add to Order
-                    </Button>
-                )}
-            </Box>
-
-
-
-            <Dialog
-                open={confirmationOpen}
-                onClose={() => setConfirmationOpen(false)}
+        {/* Action buttons */}
+        <Box sx={{ padding: 2}}>
+          {storeInfo?.status !== "open" ? (
+            <Button
+              variant="outlined"
+              fullWidth
+              disabled
+              sx={{
+                height: "40px",
+                fontSize: "0.9rem",
+                cursor: "not-allowed",
+              }}
             >
-                <DialogTitle>Clear Cart?</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Do you want to clear the cart and add items from this new store?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setConfirmationOpen(false)} color="primary">
-                        No
-                    </Button>
-                    <Button onClick={handleConfirmClearCart} color="primary" autoFocus>
-                        Yes
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Dialog>
-    );
+              Store Closed
+            </Button>
+          ) : cartItem ? (
+            <QuantityButton
+              item={item}
+              cart={cart}
+              setCart={setCart}
+              cartItem={cartItem}
+              height={'60px'}
+            />
+          ) : (
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isTokenValid()) {
+                  alert("Sign in to Add Cart");
+                  return;
+                }
+                addToCart(item);
+              }}
+              sx={{
+                height: "60px",
+                fontSize: "0.9rem",
+              }}
+            >
+              Add to Cart
+            </Button>
+          )}
+        </Box>
+      </Box>
+    </SwipeableDrawer>
+  );
 };
 
 export default ItemDetailModal;

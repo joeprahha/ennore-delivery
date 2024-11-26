@@ -73,7 +73,7 @@ const About = ({ isDarkMode }) => {
                 ))}
             </Grid>
 
-            {/* Shop by Category Section */}
+            {/* 
             <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2 }}>
                 Shop by Category:
             </Typography>
@@ -93,6 +93,7 @@ const About = ({ isDarkMode }) => {
                     </Grid>
                 ))}
             </Grid>
+            */}	
 
             {/* Terms & Conditions Section */}
             <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', marginTop: 4 }}>
@@ -102,14 +103,14 @@ const About = ({ isDarkMode }) => {
                 Please read our terms and conditions carefully before using our service.
             </Typography>
 
-            {/* Become a Partner Section */}
+            {/* 
             <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', marginTop: 4 }}>
                 Become a Partner
             </Typography>
             <Typography variant="body1" align="center" sx={{ marginBottom: 2 }}>
                 Interested in partnering with us? Join us and be a part of the Ennore Delivery family!
             </Typography>
-
+ */}
             <Box sx={{ marginTop: 2, textAlign: 'center' }}>
                 <Typography variant="caption" display="block" gutterBottom sx={{ marginBottom: 1, color: 'primary.main', fontWeight: 'bold' }}>
                     Ennore Delivery - Since 2024

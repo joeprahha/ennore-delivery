@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -16,44 +16,57 @@ import MyStore from './components/OwnerPage/MyStore';
 import Stores from './components/CustomerPage/Stores';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/CustomerPage/Cart';
-import Payment from './components/Payment';
+import Payment from './components/CustomerPage/Payment';
 import OrderHistory from './components/CustomerPage/OrderHistory';
 import Reports from './components/OwnerPage/Report';
-import { getCartFromLocalStorage } from './utils/localStorage';
+import { getCartFromLocalStorage, isValidCustomerDetails } from './utils/localStorage';
 import { decodeToken } from './utils/auth';
 import { api } from './utils/api';
 import { lightTheme, darkTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import NavBar from './components/NavBar';
-import MS from './components/MS/managementSystem'; 
-import Account from './components/Account'; 
-
+import MS from './components/MS/managementSystem';
+import Account from './components/Account';
 import CircularLoader from './loader/loader';  // Import the new CircularLoader
+import SplashScreen from './loader/SplashScreen';  // Import the new CircularLoader
+// Import ToastContainer and toast from react-toastify
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme, isDarkMode, cart, setCart, count, setCount, handleCartCount, loading }) => {
     const location = useLocation();
+    const navigate = useNavigate();
     const showBottomNav = ['/', '/stores'].includes(location.pathname);
-    const navBar = ['/signin', '/ms', '/tc', '/deliveries', '/mystore']
-  .some(item => location.pathname.includes(item));
+    const navBar = ['/signin', '/ms', '/tc', '/deliveries', '/mystore', '/about', '/profile'].some(item => location.pathname.includes(item));
+    
+    // Ensure valid customer details on first render
+       const userScope = decodeToken().scope; 
+    useEffect(() => {
+    if(!userScope){
+                navigate('/signin');
+    }
+       else if ( !isValidCustomerDetails()) {
+            navigate('/profile');
+        }
+    }, [navigate]);
 
+    const showHeader = !location.pathname.startsWith('/stores/') && !location.pathname.startsWith('/mystore');
 
-    const showHeader = !location.pathname.startsWith('/stores/');
-    const userScope = decodeToken().scope || 'customer'; 
 
     const customerRoutes = [
-        "/signin", "/stores", "/about", "/profile", "/stores/:storeId",
-        "/cart", "/orders", "/orderSuccess/:orderid", "/tc", '/account',"/orderSuccess/:orderid"
+        "/signin", "/stores", "/about", "/profile", "/stores/:storeId", "/cart", "/orders", "/ordersuccess/:orderid", "/tc", '/account', "/ordersuccess/:orderid", "/payment"
     ];
 
     const ownerRoutes = [
-        "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', '/ms', "/tc"
+        "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', "/tc"
     ];
 
     const deliveryPartnerRoutes = [
         "/signin", "/deliveries", "/orders", "/tc"
     ];
-    const god = [
-        "/ms", "/tc", ...customerRoutes, ...ownerRoutes, ...deliveryPartnerRoutes
+    
+    const godRoutes = [
+        "/ms", "/tc", ...customerRoutes, ...ownerRoutes, ...deliveryPartnerRoutes, "/reports"
     ];
 
     const isRouteAllowed = (routeList) => {
@@ -69,7 +82,7 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
     if (userScope === 'deliveryPartner' && !isRouteAllowed(deliveryPartnerRoutes)) {
         return <Navigate to="/signin" />;
     }
-    if (userScope === 'god' && !isRouteAllowed(god)) {
+    if (userScope === 'god' && !isRouteAllowed(godRoutes)) {
         return <Navigate to="/signin" />;
     }
 
@@ -77,12 +90,13 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
         <>
             {showHeader && <Header onMenuClick={handleMenuClick} cart={cart} setCart={setCart} cartCount={count} isDarkMode={isDarkMode} />}
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
-            
+
             {/* Show the CircularLoader when the `loading` state is true */}
             {loading && <CircularLoader />}
 
             <Routes>
                 {/* Public Routes */}
+                <Route path="/payment" element={<Payment />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/" element={<Navigate to="/stores" />} />
                 <Route path="/stores" element={<Stores />} />
@@ -92,20 +106,24 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
                 <Route path="/stores/:storeId" element={<StoreDetail setCount={setCount} cart={cart} handleCartCount={handleCartCount} />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/orders" element={<OrderHistory />} />
-                <Route path="/orderSuccess/:orderid" element={<OrderSuccess />} />
-                
+                <Route path="/ordersuccess/:orderid" element={<OrderSuccess />} />
+
                 {/* Protected Routes based on scope */}
-                <Route path="/mystore" element={<MyStore />} />
-                <Route path="/mystore/:storeId" element={<MyStore />} />
+                <Route path="/mystore" element={<MyStore onMenuClick={handleMenuClick}/>} />
+                <Route path="/mystore/:storeId" element={<MyStore onMenuClick={handleMenuClick}/>} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/deliveries" element={<Deliveries />} />
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/account" element={<Account toggleTheme={toggleTheme} isDarkMode={isDarkMode} />} />
                 <Route path="/ms" element={<MS />} />
             </Routes>
+
             {showBottomNav && <BottomNav />}
             {!navBar && <NavBar />}
             <Box sx={{ height: '70px' }} />
+            
+            {/* Toast Container */}
+            <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false}  draggable  />
         </>
     );
 };
@@ -118,7 +136,10 @@ const App = () => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
     });
-    const [loading, setLoading] = useState(false); // Add loading state
+
+    const [loading, setLoading] = useState(false);
+const[splashLoading,setSplashLoading]=useState(false);
+const [isHealthReady,SetIsHealthReady]=useState(false)
 
     const handleMenuClick = () => {
         setSidebarOpen(prev => !prev);
@@ -140,36 +161,59 @@ const App = () => {
     useEffect(() => {
         document.body.style.backgroundColor = isDarkMode ? '#181818' : '#ffffff';
     }, [isDarkMode]);
-  useEffect(() => {
 
-    const fetchHealthData = async () => {
-      try {
-        const response = await api.get('/health');
-        console.log(response.data);  // Handle response data here
-      } catch (error) {
-        console.error("Error fetching health data:", error);
+
+ useEffect(() => {
+  const checkHealth = async () => {
+    try {
+      const response = await api.get("/health"); // Call the health API
+      if (response.status === 200) {
+        // Set the new expiration time to 20 minutes from now
+        const expirationTime = Date.now() + 20 * 60 * 1000; // 20 minutes in milliseconds
+        sessionStorage.setItem("expirationTime", expirationTime);
+        setSplashLoading(false); // Proceed to the app
+      } else {
+        setSplashLoading(false); // Proceed even if health API fails
       }
-    };
+    } catch (error) {
+      console.error("Health check failed:", error);
+      setSplashLoading(false); // Proceed even if there's an error
+    }
+  };
 
-    fetchHealthData();  // Call the async function
-  }, []); // Empty dependency array ensures this effect runs only once (on mount)
+  const handleSplashLogic = () => {
+    const expirationTime = sessionStorage.getItem("expirationTime");
+    if (expirationTime && Date.now() < parseInt(expirationTime, 10)) {
+      // If the current time is before expiration, skip the splash
+      setSplashLoading(false);
+    } else {
+      // If expired or no expiration set, show the splash and fetch health
+      setSplashLoading(true);
+      checkHealth();
+    }
+  };
 
+  handleSplashLogic();
+}, []);
 
-    // Axios Interceptor to show loading
+    // Axios Interceptor to show loading and display toasts
     useEffect(() => {
-        const handleRequestStart = () => {
-            setLoading(true);  // Start loading
-        };
-
-        const handleRequestEnd = () => {
-            setLoading(false);  // Stop loading
-        };
-
+    if(!splashLoading){
+        const handleRequestStart = () => setLoading(true);
+        const handleRequestEnd = () => setLoading(false);
         const handleRequestError = () => {
-            setLoading(false);  // Stop loading if request fails
+            setLoading(false);
+            toast.error('Something went wrong. Please try again.');
         };
 
-        // Attach interceptors to the Axios instance (assuming `api` is set up already)
+        const handleResponseSuccess = (response) => {
+            if (response.data?.message) {
+                toast.success(response.data.message);
+            }
+            setLoading(false);
+            return response;
+        };
+
         api.interceptors.request.use(
             (config) => {
                 handleRequestStart();
@@ -182,10 +226,7 @@ const App = () => {
         );
 
         api.interceptors.response.use(
-            (response) => {
-                handleRequestEnd();
-                return response;
-            },
+            handleResponseSuccess,
             (error) => {
                 handleRequestError();
                 return Promise.reject(error);
@@ -194,14 +235,31 @@ const App = () => {
 
         return () => {
             api.interceptors.request.eject(handleRequestStart);
-            api.interceptors.response.eject(handleRequestEnd);
-        };
+            api.interceptors.response.eject(handleResponseSuccess);
+        };}
     }, []);
+    
+     useEffect(() => {
+
+    if (splashLoading) {
+      setSplashLoading(true);
+    } else {
+      const timer = setTimeout(() => {
+        setSplashLoading(false);
+      }, 5000); 
+
+      // Cleanup timer when the component unmounts or splashLoading changes
+      return () => clearTimeout(timer);
+    }
+  }, [splashLoading]);
+    
 
     return (
         <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
             <AuthProvider>
                 <Router>
+                     {splashLoading && <SplashScreen onComplete={() => setLoading(false)} splashLoading setSplashLoading />}
+
                     <AppContent 
                         handleMenuClick={handleMenuClick}
                         sidebarOpen={sidebarOpen} 
@@ -213,7 +271,7 @@ const App = () => {
                         count={count} 
                         setCount={setCount} 
                         handleCartCount={handleCartCount} 
-                        loading={loading} // Pass loading state to AppContent
+                        loading={loading} 
                     />
                 </Router>
             </AuthProvider>

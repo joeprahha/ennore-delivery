@@ -4,40 +4,53 @@ import {
     TextField,
     Typography,
     Paper,
-    Chip,
+
     InputAdornment,
-    Button,
+
     IconButton,
-    Menu,
-    MenuItem,Divider
 } from '@mui/material';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import BikeLoader from '../../loader/BikeLoader';
 import { isTokenValid, logout } from '../../utils/auth';
 import { api } from '../../utils/api';
 import SearchIcon from '@mui/icons-material/Search';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
-import StoreCategoryListModal from './Components/StoreCategoryList';
-import { getCartFromLocalStorage, getUserInfo } from '../../utils/localStorage';
-import { GoToOrdersButton } from './Components/GoToOrdersButton';
 
+
+
+import StoreCategoryListModal from './Components/StoreCategoryList';
+import { getCartFromLocalStorage } from '../../utils/localStorage';
+import { GoToOrdersButton } from './Components/GoToOrdersButton';
+import ClearIcon from '@mui/icons-material/Clear';
+
+const convertToMinutes = (timeString) => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+};
 const Stores = () => {
     const [stores, setStores] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredStores, setFilteredStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const location = useLocation();
-    const [selectedCategories, setSelectedCategories] = useState([]);
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [deliveryType, setDeliveryType] = useState('Delivery');
+
+
+
+
 
     const [isModalOpen, setModalOpen] = useState(false);
     const [cart, setCart] = useState(getCartFromLocalStorage() || { items: [] });
+ const [isSearching, setIsSearching] = useState(false);
 
+    const handleSearchFocus = () => {
+        setIsSearching(true);
+    };
+
+    const handleSearchClear = () => {
+        setSearchQuery	('');
+        setIsSearching(false);
+    };
+   
     const categories = [
         "Groceries",
         "Fast Food",
@@ -69,11 +82,11 @@ const Stores = () => {
     useEffect(() => {
         const newFilteredStores = stores.filter(store => {
             const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(store.category);
-            return matchesSearch && matchesCategory;
+
+            return matchesSearch;
         });
         setFilteredStores(newFilteredStores);
-    }, [stores, selectedCategories, searchQuery]);
+    }, [stores, searchQuery]);
 
  
 
@@ -81,77 +94,115 @@ const Stores = () => {
         navigate(`/stores/${storeId}`);
     };
 
-    const handleMenuClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
+   
 
-    const handleMenuClose = (option) => {
-        setDeliveryType(option);
-        setAnchorEl(null);
-    };
-
-    const handleModalOpen = () => {
-        setModalOpen(true);
-    };
-
-    const handleModalClose = () => {
-        setModalOpen(false);
-    };
+   
 
     return (
-        <Box sx={{ p: 2, minHeight: '100vh', overflowX: 'hidden' }}>
+        <Box sx={{ p: 0, minHeight: '100vh', overflowX: 'hidden',backgroundColor: 'rgba(95, 37, 159, 0.05)' }}>
          <>
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        flexDirection: 'column',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-        backgroundColor: '#fff',
-        pt: 1,
-        width: '100%', // Ensure it spans the full width of its parent
-        boxSizing: 'border-box', // Ensure proper box model behavior
-      }}
-    >
-      <TextField
-        variant="outlined"
-        size="small"
-        onChange={(e) => setSearchQuery(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-        placeholder="Search Ennore Delivery"
+  <Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    height: '50px',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+
+    width: '100%', 
+  }}
+>
+  <Paper
+    elevation={0}
+    sx={{
+      width: '100%',
+      height: 'auto',
+      textAlign: 'center',
+      display: 'flex',
+
+
+    }}
+  >
+    {isSearching ? (
+      <Box
         sx={{
+          display: 'flex',
           width: '100%',
-          p: 0,
-          boxSizing: 'border-box',
+          transition: 'width 0.3s ease-in-out', // Slide-in transition
+          height: '40px',
         }}
-      />
-    </Box>
+      >
+        <TextField
+          variant="outlined"
+          autoFocus
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={handleSearchFocus}
+          InputProps={{
+            disableUnderline: true,
+            sx: {
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            },
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleSearchClear}>
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            width: '100%', // Initially full width for search bar when focused
+            pr: 1,
+            transition: 'width 0.3s ease-in-out',
+          }}
+          placeholder={`Search stores in Ennore Delivery`}
+        />
+      </Box>
+    ) : (
+      <Box sx={{ height: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', p: 1,pl:2, flexGrow: 1 }}>
+          <Typography variant="subtitle2">All Stores</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end',mr:2 }}>
+          <IconButton onClick={handleSearchFocus} sx={{ p: 1 }}>
+            <SearchIcon />
+          </IconButton>
+        </Box>
+      </Box>
+    )}
+  </Paper>
+</Box>
+
   </>
             {/* Display Loader while fetching data */}
             {loading ? (
                 <BikeLoader />
             ) : (
                 <>
-		<Divider sx={{mb:1}}/>
-                    <Typography variant="h6" sx={{ mb: 1 , fontWeight:'bold'}}>All Stores</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 ,p:1.5}}>
                         {filteredStores.map(store => {
                             const currentTimeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            const isOpen = store.open_time <= currentTimeString &&
-                                           store.close_time >= currentTimeString &&
-                                           store.status === 'open';
+				const currentMinutes = convertToMinutes(currentTimeString);
+				const openMinutes = convertToMinutes(store.open_time);
+				const closeMinutes = convertToMinutes(store.close_time);
+				const isTimeOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes 
+				const isOpen= isTimeOpen && store.status==='open';
                             return (
                                 <Paper
                                     key={store._id}
-                                    elevation={0}
+                                    elevation={1}
                                     onClick={isOpen ? () => handleStoreClick(store._id) : null}
                                     sx={{
                                         mb: 1,
@@ -171,11 +222,12 @@ const Stores = () => {
 					    height: '180px',
 					    objectFit: 'cover',
 					    objectPosition: 'center',
-					    borderRadius: '6px',
+borderTopLeftRadius: '6px',
+borderTopRightRadius: '6px',
 
 					  }}
 					/>
-                                    <Box sx={{ display: "flex", flexDirection: "column", p: 0.5 }}>
+                                    <Box sx={{ display: "flex", flexDirection: "column", p:0.5,pl:2 }}>
                                         <Typography variant="subtitle2" align='left' sx={{ fontSize: '1rem', fontWeight: 500 }}>
                                             {store.name}
                                         </Typography>
@@ -200,7 +252,8 @@ const Stores = () => {
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                borderRadius: '5px',
+                                                borderTopLeftRadius: '6px',
+borderTopRightRadius: '6px',
                                                 zIndex: 1,
                                                 textAlign: 'center',
                                             }}
@@ -209,7 +262,7 @@ const Stores = () => {
 					    Store Closed
 					    <BedtimeIcon sx={{ marginLeft: 0.5 }} />
 					</Typography>
-                                            {store.open_time >= currentTimeString && (
+                                            {!isTimeOpen && (
                                                 <Typography variant="subtitle2" color="white">
                                                     opens at: {store.open_time}
                                                 </Typography>
@@ -225,7 +278,7 @@ const Stores = () => {
 
             {/* Go to Orders Button */}
             {cart.storeId && <GoToOrdersButton cart={cart} />}
-            <StoreCategoryListModal open={isModalOpen} onClose={handleModalClose} stores={stores} handleStoreClick={handleStoreClick} />
+
         </Box>
     );
 };

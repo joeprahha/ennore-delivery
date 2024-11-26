@@ -23,7 +23,7 @@ const OrderHistory = ({ userId }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    console.log("sel",selectedOrder)
+
      const getStatusIndex = (status) => {
         switch (status) {
             case 'new': return 0;
@@ -48,8 +48,11 @@ const OrderHistory = ({ userId }) => {
         setAnchorEl(null);
     };
 const handleDeleteOrder=()=>{}
-    const handleViewOrder = (order) => {
-        setSelectedOrder(order);
+    const handleViewOrder = async(order) => {
+   let response;
+	           try{  response = await api.get(`order/${order._id}`);}
+	           catch(r){}
+        setSelectedOrder(response.data||order);
         setDrawerOpen(true);
         handleMenuClose();
     };
@@ -76,13 +79,16 @@ const handleDeleteOrder=()=>{}
         setFilteredOrders(filtered);
     };
 
+const refetchPaymentStatus=async(e,id)=>{
+
+e.stopPropagation()
+await api.post(`https://ennore-delivery-api.onrender.com/ennore-delivery/redirect-payment/${id}`)
+}
+
     return (
         <Box sx={{ p: 2 }}>
             <Typography variant="h5">Orders</Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Showing orders from the past 10 days
-            </Typography>
-
+           
             <Grid container spacing={2}>
                 {loading ? (
                     <BikeLoader />
@@ -103,7 +109,7 @@ const handleDeleteOrder=()=>{}
 				    <Box sx={{ display: 'flex', alignItems: 'center' }}>
 
 					<img 
-					    src={storeImages[order.storename]} 
+					    src={storeImages[order.storename]||'app.png'} 
 					    alt={order.storename}
 					    style={{ 
 					    width: '40px', height: '40px', borderRadius: '50%',
@@ -136,18 +142,96 @@ const handleDeleteOrder=()=>{}
                                         <Typography variant="body2" sx={{ fontSize: '0.75rem',color:'blue' }}>...Show more</Typography>
                                     </Box>}
                                 <Divider sx={{ my: 1 }} />
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                   <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.7rem', flexGrow: 1 }}>
-		    Order placed on: {new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} <br />
-		    Status: {order.status === 'new' ? 'Placed' : order.status}
-		</Typography>
+                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography
+                variant="body2"
+                sx={{ color: 'text.secondary', fontSize: '0.7rem', flexGrow: 1 }}
+            >
+                Placed on: {new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} <br />
+                Status: {order.status === 'new' ? 'Placed' : order.status}
+            </Typography>
 
-                                    <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                                        ₹{order.total}
-                                    </Typography>
-                                    <ChevronRightOutlinedIcon onClick={() => handleViewOrder(order)}/>
-                                </Box>
-                               
+
+            
+
+            <Typography
+                variant="body2"
+                sx={{ fontSize: '0.75rem', fontWeight: 500 }}
+            >
+                ₹{order.total}
+            </Typography>
+
+            <ChevronRightOutlinedIcon onClick={() => handleViewOrder(order)} />
+        </Box>
+
+  <Box
+    sx={{
+      padding: 1,
+      mt:2,
+
+      borderColor: order.payment === 'paid' ? 'green' : 'red',
+      borderRadius: 1,
+    }}
+  >
+    {order.payment === 'paid' ? (
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'green',
+          fontSize: '0.75rem',
+          fontWeight: 'bold',
+          mr:2
+        }}
+        textAlign="right"
+      >
+        Paid
+      </Typography>
+    ) : (
+      <Box>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'red',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            mr:2
+          }}
+                  textAlign="right"
+        >
+          {order.payment === 'failed' ? 'Payment Failed' : 'Not Paid'}
+        </Typography>
+  {/* Disclaimer */}
+       <Box sx={{display:'flex',alignItems:'center',justifyContent:'space-between'}}> <Typography
+          variant="body2"
+          sx={{
+            fontSize: '0.75rem',
+            color: 'text.secondary',
+            marginTop: 1,
+          }}
+        >
+          If the amount was debited
+        </Typography>
+
+        {/* Refetch Button */}
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
+          sx={{
+          width:'120px',
+            fontSize: '0.55rem',
+            marginTop: 1
+          }}
+          onClick={(e)=>refetchPaymentStatus(e,order._id)}
+        >
+          Refetch Payment Status
+        </Button>
+            </Box>
+      </Box>
+    )}
+  </Box>
+                
+                
                             </Paper>
                         </Grid>
                     ))
@@ -175,7 +259,7 @@ const handleDeleteOrder=()=>{}
                     '& .MuiDrawer-paper': {
                         height: 'auto',
                         bottom: 0,
-                        borderRadius: '16px 16px 0 0',
+
                         overFlowY:'auto'
                     },
                 }}
@@ -184,26 +268,54 @@ const handleDeleteOrder=()=>{}
                         sx={{ 
                             display: 'flex', 
                             alignItems: 'center', 
-                            flexDirection: 'column',
+                            flexDirection: 'row',
                             position: 'sticky', 
                             top: 0, 
                             zIndex: 10, 
-                            backgroundColor: '#fff', 
-                            pt: 1, 
+                            backgroundColor: 'inherit', 
+                            
                         }}
                     >
              <IconButton onClick={() => setDrawerOpen(false)}>
                         <KeyboardArrowDownOutlinedIcon />
                     </IconButton>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center',flexDirection:'column' }}>
+                <Box sx={{ p: 2, display: 'flex',flexGrow:1, alignItems: 'center',flexDirection:'column' }}>
                 
                     <Typography variant="h6" align="left" sx={{ fontSize: '0.75rem' }}>{selectedOrder?.storename}</Typography>
                      <Typography variant="body2" sx={{ fontSize: '0.75rem',color: 'primary.main' }}>Ennore Delivery</Typography>
                     
                 </Box>
                                 </Box>
+                                                    <Typography variant="h6" align="left" sx={{ fontSize: '0.75rem', pl:2,pb:1}}>orderId : #{selectedOrder?._id}</Typography>
+                      {selectedOrder?.payment === 'paid' ? (
+                <Typography
+                    variant="body2"
+                    
+                    sx={{
+                    pl:2,
+                        color: 'green',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    Paid
+                </Typography>
+            ) : <Typography
+                    variant="body2"
+
+                    sx={{
+                    pl:2,
+                        color: 'red',
+                        fontSize: '0.55rem',
+                        
+                        fontWeight: 'bold',
+                    }}
+                >
+                    {selectedOrder?.payment ==="failed"? "Payment failed" :'Not Paid'}
+                </Typography>  }                              
                 <Divider />
                 
+
                     <Typography variant="h6" align="left" sx={{ fontSize: '0.75rem' ,p:2}}>Your order is {selectedOrder?.status}</Typography>
                     
                     <Stepper activeStep={getStatusIndex(selectedOrder?.status)} sx={{ mb: 3 }} alternativeLabel>
@@ -260,10 +372,10 @@ const handleDeleteOrder=()=>{}
                                 <Box sx={{height:'40px',width:'100%'}}>
                 <Chip label="Download Invoice" sx={{width:'100%'}}onClick={() => console.log('Download invoice')} variant="outlined" />
 </Box>
-  <Typography variant="subtitle2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2,p:2 }}>
+  <Typography variant="subtitle2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main', mb: 8,p:2 }}>
                 Thanks ,Ennore Delivery!!
             </Typography>
-                                <Box sx={{height:'80px'}}/>
+                                <Box sx={{height:'180px'}}/>
             </SwipeableDrawer>
         </Box>
     );

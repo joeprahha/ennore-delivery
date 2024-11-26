@@ -33,19 +33,41 @@ const ItemModal = ({ open, handleClose, order }) => {
         overflowX: 'hidden', // Hide horizontal scrolling if not needed
     }}
 >
-
+ <Button onClick={handleClose} variant="contained" sx={{ mt: 2 }}>
+          Close
+        </Button>
         <Typography variant="h6" component="h2" gutterBottom>
           Order Details #{orderId}
         </Typography>
 
         {/* Customer Name, Order ID, and Placed At */}
-        <Box mb={4}>
+        <Box mb={1}>
 
 
           <Typography variant="body1">Placed At: {placedAtIST}</Typography>
         </Box>
+	
+        
+        <Typography variant="body1">Payment Status : {order.payment}</Typography>
+     
 
-        {/* Items Table */}
+      <Box
+        sx={{
+        mt:1,
+          flex: 1,
+         width:"100%",
+          padding: 1,
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+          backgroundColor: "#f9f9f9",
+        }}
+      >
+        <Typography variant="h6" sx={{fontSize:'0.75rem'}} gutterBottom>
+          Instructions:
+        </Typography>
+        <Typography variant="body1">{order.instructions}</Typography>
+      </Box>
+      {/* Items Table */}
         {items && items.length > 0 ? (
           <TableContainer>
             <Table>
@@ -53,7 +75,7 @@ const ItemModal = ({ open, handleClose, order }) => {
                 <TableRow>
                   <TableCell><strong>Name</strong></TableCell>
                   <TableCell align="center"><strong>Quantity</strong></TableCell>
-                  <TableCell align="right"><strong>Price</strong></TableCell>
+
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -61,17 +83,10 @@ const ItemModal = ({ open, handleClose, order }) => {
                   <TableRow key={index}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell align="center">{item.count}</TableCell>
-                    <TableCell align="right">{item.price}</TableCell>
+
                   </TableRow>
                 ))}
-                <TableRow>
-                  <TableCell colSpan={2} align="right">
-                    <strong>Total</strong>
-                  </TableCell>
-                  <TableCell align="right">
-                    <strong>Rs. {total}</strong>
-                  </TableCell>
-                </TableRow>
+             
               </TableBody>
             </Table>
           </TableContainer>
@@ -79,9 +94,7 @@ const ItemModal = ({ open, handleClose, order }) => {
           <Typography>No items available</Typography>
         )}
 
-        <Button onClick={handleClose} variant="contained" sx={{ mt: 2 }}>
-          Close
-        </Button>
+       
       </Box>
     </Modal>
   );

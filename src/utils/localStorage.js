@@ -28,7 +28,7 @@ let user =localStorage.setItem('userInfo',JSON.stringify(data))
 export const isValidCustomerDetails=()=>{
 
 let user =localStorage.getItem('userInfo')
-let {address1,area,phone}=user ? JSON.parse(user):{}
- if(address1 && area && phone){ return true}
+let {address1,local,phone}=user ? JSON.parse(user):{}
+ if(address1 && phone){ return true}
 return false
 }

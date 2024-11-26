@@ -17,41 +17,65 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../../utils/api';
 
 const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
-
     const [newCategory, setNewCategory] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(Object.keys(menu)[0]);
-    const [newItem, setNewItem] = useState({ name: '', price: '', available: true, image: '' });
-    const [editedItem, setEditedItem] = useState(null);
-    const [imageUploading, setImageUploading] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(
+        Object.keys(menu)[0] || ''
+    );
+    const [newItem, setNewItem] = useState({
+        name: '',
+        price: '',
+        available: true,
+        image: '',
+    });
     const [save, setSave] = useState(false);
-    
+    const [imageUploading, setImageUploading] = useState(false);
+
     const handleAddCategory = () => {
         if (newCategory) {
-            setMenu((prevMenu) => ({ ...prevMenu, [newCategory]: [] }));
+            setMenu((prevMenu) => ({
+                ...prevMenu,
+                [newCategory]: { items: [], available: true },
+            }));
             setNewCategory('');
         }
     };
 
     const handleAddItem = (category) => {
-    console.log('ca',category||selectedCategory)
         const updatedMenu = { ...menu };
-        updatedMenu[category].push({ ...newItem, id: Date.now() }); // Generate a unique ID
+        updatedMenu[category].items.push({ ...newItem, id: Date.now() }); // Generate a unique ID
         setMenu(updatedMenu);
         setNewItem({ name: '', price: '', available: true, image: '' });
     };
 
     const handleUpdateItem = (id, category, field, value) => {
         const updatedMenu = { ...menu };
-        const itemIndex = updatedMenu[category].findIndex(item => item.id === id);
+        const itemIndex = updatedMenu[category].items.findIndex(
+            (item) => item.id === id
+        );
         if (itemIndex !== -1) {
-            updatedMenu[category][itemIndex] = { ...updatedMenu[category][itemIndex], [field]: value };
+            updatedMenu[category].items[itemIndex] = {
+                ...updatedMenu[category].items[itemIndex],
+                [field]: value,
+            };
+            setMenu(updatedMenu);
+        }
+    };
+
+    const handleUpdateCategory = (categoryName, field, value) => {
+        const updatedMenu = { ...menu };
+        console.log("df",menu)
+        if (updatedMenu[categoryName]) {
+            updatedMenu[categoryName][field] = value;
+                    console.log("df",updatedMenu)
             setMenu(updatedMenu);
         }
     };
 
     const handleDeleteItem = (id, category) => {
         const updatedMenu = { ...menu };
-        updatedMenu[category] = updatedMenu[category].filter(item => item.id !== id);
+        updatedMenu[category].items = updatedMenu[category].items.filter(
+            (item) => item.id !== id
+        );
         setMenu(updatedMenu);
     };
 
@@ -74,14 +98,16 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
     };
 
     const handleSaveMenu = async () => {
-        const formattedMenu = Object.entries(menu).map(([categoryName, items]) => ({
-            categoryName,
-            items,
-        }));
+        const formattedMenu = Object.entries(menu).map(
+            ([categoryName, { items, available }]) => ({
+                categoryName,
+                available,
+                items,
+            })
+        );
         setSave(true);
         try {
             await api.put(`menus/${selectedStore}`, { menu: formattedMenu });
-            alert('Menu saved successfully');
         } catch (error) {
             console.error('Error saving menu:', error);
             alert('Error saving menu');
@@ -89,17 +115,29 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
             setSave(false);
         }
     };
+    
+    console.log('menu[selectedCategory]0',menu[selectedCategory],selectedCategory,menu)
 
     return (
         <Box p={1}>
-            <Box display="flex" mb={2} sx={{ alignItems: 'center' }}>
+            <Box
+                display="flex"
+                mb={1}
+                sx={{ alignItems: 'center', justifyContent: 'center' }}
+            >
                 <TextField
                     label="Add New Category"
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    sx={{ height: '40px', m: 0 }}
+                    sx={{
+                        flexGrow: 1,
+                        marginRight: 1,
+                        mt: 1,
+                        '& .MuiInputBase-root': { height: '40px' },
+                    }}
+                    InputProps={{
+                        style: { fontSize: '0.75rem' },
+                    }}
                 />
                 {newCategory && (
                     <Button
@@ -107,11 +145,19 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                         color="primary"
                         size="small"
                         onClick={handleAddCategory}
-                        sx={{ ml: 2, height: '40px', alignSelf: 'stretch' }}
+                        sx={{ ml: 1, mt: 1, height: '38px', alignSelf: 'stretch' }}
                     >
                         Add
                     </Button>
                 )}
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={handleSaveMenu}
+                    sx={{ m: 1, width: '150px' }}
+                >
+                    {save ? <CircularProgress size="24px" /> : 'Save Menu'}
+                </Button>
             </Box>
 
             {loadingMenu ? (
@@ -119,27 +165,51 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
             ) : (
                 <Box>
                     <Tabs
-                        value={selectedCategory }
-                        onChange={(event, newValue) => setSelectedCategory(newValue)}
-                        variant="scrollable"
-                        scrollButtons="auto"
-                        allowScrollButtonsMobile
+    value={selectedCategory}
+    onChange={(event, newValue) => setSelectedCategory(newValue)}
+    variant="scrollable"
+    scrollButtons="auto"
+    allowScrollButtonsMobile
+>
+    {Object.entries(menu).map(([category, { available }]) => (
+        <Tab
+            key={category}
+            value={category}
+            label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography
+                        sx={{
+                            textDecoration: available ? 'none' : 'line-through', // Strike through if unavailable
+                        }}
                     >
-                        {Object.keys(menu).map((category) => (
-                            <Tab key={category} label={category} value={category} />
-                        ))}
-                    </Tabs>
+                        {category}
+                    </Typography>
+                    <Switch
+                        checked={available}
+                        size="small"
+                        onChange={(e) =>
+                            handleUpdateCategory(category, 'available', e.target.checked)
+                        }
+                        sx={{ marginLeft: 1 }}
+                    />
+                </Box>
+            }
+        />
+    ))}
+</Tabs>
+
 
                     <Box sx={{ mt: 2 }}>
+                     
                         <Grid container spacing={0.5}>
-                            {menu[selectedCategory]?.map((item) => (
+                            {menu[selectedCategory]?.items?.map((item) => (
                                 <Grid item key={item.id} xs={12}>
                                     <Paper
                                         sx={{
                                             display: 'flex',
                                             alignItems: 'center',
                                             padding: 1,
-                                            height:'30px'
+                                            height: '30px',
                                         }}
                                         elevation={0}
                                     >
@@ -149,60 +219,106 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                                             style={{ display: 'none' }}
                                             onChange={(e) => handleImageUpload(e, item)}
                                         />
-                                       <Box
-					    sx={{
-						cursor: 'pointer',
-						mr: 2,
-						width: '30px',
-						height: '30px',
-						overflow: 'hidden',
-						display: 'flex', // Add display flex to center the image
-						alignItems: 'center',
-						justifyContent: 'center',
-						border: '1px solid lightgrey', // Optional: add a border for better visibility
-						borderRadius: '4px', // Optional: round corners
-					    }}
-					    onClick={() => document.getElementById(`image-upload-${item.id}`).click()}
-					>
-					    {imageUploading ? (
-						<CircularProgress size="40px" />
-					    ) : (
-						<img
-						    src={item.image}
-						    alt={item.name}
-						    style={{
-							width: '100%', // Ensure the image takes full width
-							height: 'auto', // Maintain aspect ratio
-							objectFit: 'cover', // Crop image to fit
-						    }}
-						/>
-					    )}
-					</Box>
-					<TextField
-					    value={item.name}
-					    onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'name', e.target.value)}
-					    sx={{ flexGrow: 1, marginRight: 1, '& .MuiInputBase-root': { height: '30px' } }} // Adjust height
-					    InputProps={{
-						style: { fontSize: '0.75rem' }, // Set font size
-					    }}
-					/>
-					<TextField
-					    value={item.price}
-					    sx={{p:0}}
-					    type="number"
-					    onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'price', parseFloat(e.target.value))}
-					    sx={{ width: '70px', marginRight: 1, '& .MuiInputBase-root': { height: '30px' } }} // Adjust height
-					    InputProps={{
-						style: { fontSize: '0.75rem',p:0 }, // Set font size
-					    }}
-					/>
-
+                                        <Box
+                                            sx={{
+                                                cursor: 'pointer',
+                                                mr: 2,
+                                                width: '30px',
+                                                height: '30px',
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                border: '1px solid lightgrey',
+                                                borderRadius: '4px',
+                                            }}
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        `image-upload-${item.id}`
+                                                    )
+                                                    .click()
+                                            }
+                                        >
+                                            {imageUploading ? (
+                                                <CircularProgress size="40px" />
+                                            ) : (
+                                                <img
+                                                    src={item.image}
+                                                    alt={item.name}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: 'auto',
+                                                        objectFit: 'cover',
+                                                    }}
+                                                />
+                                            )}
+                                        </Box>
+                                        <TextField
+                                            value={item.name}
+                                            onChange={(e) =>
+                                                handleUpdateItem(
+                                                    item.id,
+                                                    selectedCategory,
+                                                    'name',
+                                                    e.target.value
+                                                )
+                                            }
+                                            sx={{
+                                                flexGrow: 1,
+                                                marginRight: 1,
+                                                '& .MuiInputBase-root': {
+                                                    height: '30px',
+                                                },
+                                            }}
+                                            InputProps={{
+                                                style: { fontSize: '0.75rem' },
+                                            }}
+                                        />
+                                        <TextField
+                                            value={item.price}
+                                            type="number"
+                                            onChange={(e) =>
+                                                handleUpdateItem(
+                                                    item.id,
+                                                    selectedCategory,
+                                                    'price',
+                                                    parseFloat(e.target.value)
+                                                )
+                                            }
+                                            sx={{
+                                                width: '70px',
+                                                marginRight: 1,
+                                                '& .MuiInputBase-root': {
+                                                    height: '30px',
+                                                },
+                                            }}
+                                            InputProps={{
+                                                style: { fontSize: '0.75rem' },
+                                            }}
+                                        />
                                         <Switch
                                             checked={item.available}
-                                            size="small" 
-                                            onChange={(e) => handleUpdateItem(item.id, selectedCategory, 'available', e.target.checked)}
+                                            size="small"
+                                            onChange={(e) =>
+                                                handleUpdateItem(
+                                                    item.id,
+                                                    selectedCategory,
+                                                    'available',
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
-                                        <IconButton onClick={() => handleDeleteItem(item.id, selectedCategory)} color="secondary" size="small">
+                                        <IconButton
+                                            onClick={() =>
+                                                handleDeleteItem(
+                                                    item.id,
+                                                    selectedCategory
+                                                )
+                                            }
+                                            color="secondary"
+                                            size="small"
+                                        >
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
                                     </Paper>
@@ -227,15 +343,6 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                             </Grid>
                         </Grid>
                     </Box>
-
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={handleSaveMenu}
-                        sx={{ mt: 2, width: "180px" }}
-                    >
-                        {save ? <CircularProgress size='24px' /> : "Save Menu"}
-                    </Button>
                 </Box>
             )}
         </Box>

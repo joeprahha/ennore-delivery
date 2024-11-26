@@ -25,7 +25,7 @@ import { baseUrl, api } from '../utils/api';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import GoogleIcon from '@mui/icons-material/Google';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-
+import { getCartFromLocalStorage ,isValidCustomerDetails} from '../utils/localStorage';
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
@@ -38,7 +38,7 @@ const SignIn = () => {
     const [isTermsAccepted, setIsTermsAccepted] = useState(true);
     const [isResendEnabled, setIsResendEnabled] = useState(false);
     const [timer, setTimer] = useState(180);
-    const [loginMethod, setLoginMethod] = useState('otp'); // otp or password
+    const [loginMethod, setLoginMethod] = useState('otp');
     const [isGoogle, setIsGoogle] = useState(false);
     const[googleLoader,setGoogleLoader]=useState(false)
     const [user, setUser] = useState(null);
@@ -48,6 +48,28 @@ const SignIn = () => {
       const [showPassword, setShowPassword] = useState(false); // Toggle visibility of password
     const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle visibility of confirm password
 
+  const [clickCount, setClickCount] = useState(0);
+
+    const [signLoader, setSignLoader] = useState(false); // 0 for Sign In, 1 for Sign Up
+
+
+const handleClick = () => {
+    setClickCount((prevCount) => {
+      const newCount = prevCount + 1;
+      if (newCount === 8) {
+        setLoginMethod('password'); // Trigger your action here
+      }
+      return newCount;
+    });
+  };
+ useEffect(() => {
+  async function fetchData() {
+  await api.get('health');
+  }
+  fetchData();
+
+                   
+    }, []);
 
     useEffect(() => {
         const token = getToken();
@@ -73,6 +95,9 @@ const SignIn = () => {
 
         return () => clearInterval(countdown);
     }, [showOtpInput, isResendEnabled]);
+
+
+
 
     const googleLogin = useGoogleLogin({
         onSuccess: (codeResponse) => setUser(codeResponse),
@@ -105,7 +130,10 @@ const response = await axios.get(`${baseUrl}users`, {
     'Content-Type': 'application/json',
   }
 })
-localStorage.setItem('userInfo', JSON.stringify(response.data));}
+localStorage.setItem('userInfo', JSON.stringify(response.data));
+
+
+}
 catch(err){}}
 
     const handleSendOtp = async () => {
@@ -132,18 +160,27 @@ catch(err){}}
 
     const handleVerifyOtp = async (googleEmail, isGoogle = false) => {
         try {
+                	setSignLoader(true)
             const userEmail = email || googleEmail;
             const response = await api.post('verify-otp', { email: userEmail, otp, isGoogle });
             const { token } = response.data;
             setToken(token);
             
             setIsGoogle(false);
+            //TODo
     await fetchUserInfo()
-        
-            redirectUser(navigate);
+        if( isValidCustomerDetails){
+        return navigate("/profile");
+}else{
+return redirectUser(navigate);
+}
+
         } catch (error) {
             setSnackbarMessage('Invalid OTP');
             setSnackbarOpen(true);
+        }
+         finally{
+                	setSignLoader(false)
         }
     };
 
@@ -155,6 +192,7 @@ catch(err){}}
         }
 
         try {
+        	setSignLoader(true)
             const response = await api.post('signin', { email, password });
             const { token } = response.data;
             setToken(token);
@@ -163,6 +201,9 @@ catch(err){}}
         } catch (error) {
             setSnackbarMessage('Invalid credentials');
             setSnackbarOpen(true);
+        }
+        finally{
+                	setSignLoader(false)
         }
     };
 
@@ -188,8 +229,10 @@ catch(err){}}
             setSnackbarOpen(true);
             return;
         }
+        
 
         try {
+                	setSignLoader(true)
             const response = await api.post('signup', { email, password });
             const { token } = response.data;
             setToken(token);
@@ -199,12 +242,43 @@ catch(err){}}
             setSnackbarMessage('Error during sign up');
             setSnackbarOpen(true);
         }
+         finally{
+                	setSignLoader(false)
+        }
     };
 
     return (
+    <>
+    
+    
+    
         <Box sx={{ p: 3 }}>
-            <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }} elevation={0}>
-                <Tabs
+         <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Typography 
+                variant="h4" 
+                sx={{ 
+                    color: 'primary.main', 
+                    fontWeight: 'bold',
+                    fontSize:'0.75rem' 
+                }}
+                onClick={handleClick}
+            >
+                Ennore Delivery!!
+            </Typography>
+            <Typography 
+                variant="body2" 
+                sx={{ 
+                    fontSize: '0.7rem', 
+
+                }}
+            >
+                Whatever you order in Ennore<br />
+                We will delivery in Ennore
+            </Typography>
+        </Box>
+        
+            <Paper sx={{ pl: 3,pr:3,pd:3, display: 'flex', flexDirection: 'column', alignItems: 'center' }} elevation={0}>
+             {/* <Tabs
                     value={activeTab}
                     onChange={(e, newTab) => setActiveTab(newTab)}
                     variant="fullWidth"
@@ -212,7 +286,7 @@ catch(err){}}
                 >
                     <Tab label="Sign In" />
                     <Tab label="Sign Up" />
-                </Tabs>
+                </Tabs> */}
                 
                 <Button
     variant="outlined"
@@ -304,8 +378,10 @@ catch(err){}}
         fullWidth
 
     >
-        Verify OTP
+        {signLoader ? <CircularProgress size={24} /> : 'Verify & Sign In'}
+       
     </Button>
+  
 </Grid>
 </>
             )}
@@ -330,13 +406,13 @@ catch(err){}}
             </Grid>
             <Grid item xs={12}>
                 <Button
-                    variant="contained"
-                    onClick={handlePasswordLogin}
-                    fullWidth
-
-                >
-                    Sign In
-                </Button>
+    variant="contained"
+    onClick={handlePasswordLogin}
+    fullWidth
+    disabled={signLoader} // Optionally disable the button while loading
+>
+    {signLoader ? <CircularProgress size={24} /> : 'Sign In'}
+</Button>
             </Grid>
         </Grid>
     </Box>
@@ -344,7 +420,7 @@ catch(err){}}
 
  
 <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
-    <Grid item>
+   {/* <Grid item>
         <Button
             variant="text"
             color="primary"
@@ -360,8 +436,9 @@ catch(err){}}
         >
             {loginMethod === 'otp' ? 'Sign in using Password' : 'Sign in using OTP'}
         </Button>
-    </Grid>
+    </Grid> */}
 </Grid>
+
 
 
 
@@ -373,14 +450,22 @@ catch(err){}}
                     <>
                         <Grid container spacing={1}>
                             <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Enter Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    margin="normal"
-                                />
-                            </Grid>
+                           <TextField
+        fullWidth
+        label="Enter Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        margin="normal"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Button onClick={handleSendOtp} variant="contained" color="primary">
+                Verify
+              </Button>
+            </InputAdornment>
+          ),
+        }}
+      />                   </Grid>
 
                            <Grid item xs={12}>
                 <TextField
@@ -461,12 +546,17 @@ catch(err){}}
                                     fullWidth
                                     disabled={!isTermsAccepted}
                                 >
-                                    Sign Up
+                                    {signLoader ? <CircularProgress size={24} /> : 'Sign Up'}
+
+                                    
                                 </Button>
+                                
                             </Grid>
                         </Grid>
                     </>
                 )}
+                
+               
             </Paper>
 
             {/* Snackbar */}
@@ -476,7 +566,25 @@ catch(err){}}
                 onClose={() => setSnackbarOpen(false)}
                 message={snackbarMessage}
             />
+           
         </Box>
+   <Box sx={{ textAlign: 'center', fontSize: '0.65rem', py: 1, bgcolor: 'white', mt: 2 }}>
+        <span>© {new Date().getFullYear()} Ennore Delivery | </span>
+        <span
+            onClick={() => navigate('/tc')}
+            style={{ color: 'blue', cursor: 'pointer' }}
+        >
+            Terms and Conditions
+        </span>
+        <span> | </span>
+        <span
+            onClick={() => navigate('/about')}
+            style={{ color: 'blue', cursor: 'pointer' }}
+        >
+            About
+        </span>
+    </Box>
+</>
     );
 };
 

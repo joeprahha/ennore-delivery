@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Switch, IconButton, Tooltip, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import React from 'react';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 
@@ -22,7 +22,7 @@ const OrderControls = ({ onRefresh}) => {
 
             {/* Refresh Icon Button */}
             <Tooltip title="Refresh Orders" placement="top">
-                <IconButton onClick={onRefresh} sx={{ ml: 2,fontSize:'1rem' }} color="primary">
+                <IconButton onClick={onRefresh} sx={{ fontSize:'0.7rem' }} color="primary">
                     Refresh <RefreshIcon />
                 </IconButton>
             </Tooltip>

@@ -14,8 +14,8 @@ import {
     List,
     ListItem,
     ListItemText,
-    Divider,
-    Button,
+    Divider,useTheme,
+        Button,
     Chip
 } from '@mui/material';
 import ItemCard from './Components/ItemCard'; // Adjust the import based on your file structure
@@ -35,6 +35,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import QuantityButton from './Components/QuantityButton'
 
 const StoreDetail = () => {
+  const theme = useTheme();
+
     const { storeId } = useParams();
     const [menuItems, setMenuItems] = useState({});
     const [loading, setLoading] = useState(true);
@@ -59,6 +61,13 @@ const StoreDetail = () => {
         const existingCart = JSON.parse(localStorage.getItem('cart'));
         
         if (!existingCart || existingCart.storeId !== storeId) {
+ const userConfirmed = window.confirm(
+        'You can create an order for one store at a time. Is that okay to clear the cart and add the new item?'
+    );
+    
+    if (!userConfirmed) {
+        return; // Exit if the user does not confirm
+    }
             const newCart = {
                 storeId,
                 storeName: storeInfo.name,
@@ -153,16 +162,18 @@ const StoreDetail = () => {
         }
     };
 
-    const filteredItems = searchTerm
-        ? Object.keys(menuItems).reduce((acc, category) => {
-            menuItems[category].forEach(item => {
+ const filteredItems = searchTerm
+    ? Object.entries(menuItems).reduce((acc, [category, { available, items }]) => {
+        if (available) {
+            items.forEach((item) => {
                 if (item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
                     acc.push(item);
                 }
             });
-            return acc;
-        }, [])
-        : (menuItems[Object.keys(menuItems)[activeTab]] || []);
+        }
+        return acc;
+    }, [])
+    : menuItems[Object.keys(menuItems)[activeTab]]?.available ? menuItems[Object.keys(menuItems)[activeTab]]?.items || [] : [];
 
     const toggleDrawer = (open) => () => {
         setDrawerOpen(open);
@@ -209,7 +220,7 @@ const StoreDetail = () => {
                 position: 'sticky',
                 top: 0,
                 zIndex: 10,
-                backgroundColor: '#fff',
+ backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#fff', 
                 pt: 1,
             }}
         >
@@ -229,6 +240,7 @@ const StoreDetail = () => {
                     >
                         <TextField
                             variant="outlined"
+                            autoFocus
                             size="small"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -291,7 +303,7 @@ const StoreDetail = () => {
                                 overflow: 'hidden', 
                             }}
                         >
-                            <IconButton sx={{ color: 'inherit', flexShrink: 0 }} onClick={toggleDrawer(true)}>
+                            <IconButton sx={{  flexShrink: 0 }} onClick={toggleDrawer(true)}>
                                 <MenuIcon />
                             </IconButton>
                             <Tabs
@@ -306,7 +318,7 @@ const StoreDetail = () => {
                                     minHeight: '48px', 
                                 }} 
                             >
-                                {Object.keys(menuItems).map((category, index) => (
+                                {Object.keys(menuItems).filter(c=>menuItems[c]?.available).map((category, index) => (
                                     <Tab label={category} key={index} />
                                 ))}
                             </Tabs>
@@ -317,40 +329,79 @@ const StoreDetail = () => {
    <>
    {
   !searchTerm ? (
-    Object.keys(menuItems).map((category, index) => (
+    Object.keys(menuItems).filter(c=>menuItems[c]?.available).map((category, index) => (
       <Box
         key={index}
         id={`category-${index}`}
-        sx={{ p: 1, mt: 2 }}
+        sx={{  mt: 2,width:'100%' }}
         ref={el => (categoryRefs.current[index] = el)}  // Ensure ref is assigned properly
       >
         <Box
           sx={{
             position: 'sticky',
             top: 96,
-            backgroundColor: 'white',
+ 	    backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#fff', 
             pt: 1,
             zIndex: 8,
+          
+            color:'inherit',
+            width:'100%'
           }}
         >
-          <Typography variant="subtitle2" align="left" sx={{ mb: 1, fontSize: '1rem' }}>
+          <Typography variant="subtitle2" align="left" sx={{ mb: 1, fontSize: '1rem', pl:1,
+           }}>
             {category}
           </Typography>
-          <Divider />
+          <Divider sx={{ width: '100%' }} />
         </Box>
         <Grid container spacing={2}>
-          {menuItems[category].filter(i=>i.available).map(item => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              cart={cart}
-              setCart={setCart}
-              addToCart={addToCart}
-              handleOpenModal={handleOpenModal}
-              storeStatus={storeInfo}
-            />
-          ))}
+        {menuItems[category].available && 
+  menuItems[category].items
+    .filter((item) => item.available)
+    .map((item) => (
+      <ItemCard
+        key={item.id}
+        item={item}
+        cart={cart}
+        setCart={setCart}
+        addToCart={addToCart}
+        handleOpenModal={handleOpenModal}
+        storeStatus={storeInfo}
+      />
+    ))}
+
         </Grid>
+        
+
+{!storeInfo?.fssai &&
+<Box sx={{ padding: 2 }}>
+  <Paper elevation={0} sx={{ padding: 2, fontSize: '0.75rem' ,backgroundColor:'rgba(95, 37, 159, 0.05)'}}>
+    {/* Store Name Section */}
+    <Box display="flex" flexDirection="column" marginBottom={1}>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary",fontSize: '0.75rem'  }}>
+        {storeInfo?.name || "Store Name"}
+      </Typography>
+    </Box>
+
+    {/* FSSAI Section */}
+    <Box display="flex" alignItems="center" marginBottom={1}>
+      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500,fontSize: '0.75rem'  }}>
+        FSSAI: {storeInfo?.fssai || "N/A"}
+      </Typography>
+    </Box>
+
+    {/* Phone Section */}
+    <Box display="flex" alignItems="center">
+      <Typography variant="body1" sx={{ color: "text.secondary", fontWeight: 500 ,fontSize: '0.75rem' }}>
+        Phone: {storeInfo?.phone || "N/A"}
+      </Typography>
+    </Box>
+
+    {/* Add other sections as needed */}
+  </Paper>
+</Box>}
+
+        
       </Box>
     ))
   ) : (
@@ -363,6 +414,8 @@ const StoreDetail = () => {
           setCart={setCart}
           addToCart={addToCart}
           handleOpenModal={handleOpenModal}
+          navigate={navigate}
+          storeStatus={storeInfo}
         />
       ))}
     </Grid>
@@ -372,7 +425,7 @@ const StoreDetail = () => {
    </>
 
 
-                    {false && (
+                    {
                         <ItemDetailModal
                             open={modalOpen}
                             onClose={handleCloseModal}
@@ -380,8 +433,9 @@ const StoreDetail = () => {
                             storeInfo={storeInfo}
                             cart={cart}
                             setCart={setCart}
+                            addToCart={addToCart}
                         />
-                    )}
+                    }
 
                     <SwipeableDrawer
                         anchor="bottom"
@@ -390,7 +444,7 @@ const StoreDetail = () => {
                         onOpen={toggleDrawer(true)}
                         sx={{
                             '& .MuiDrawer-paper': {
-                                height: '85%',
+                                height: '80%',
                                 bottom: 0,
                                 borderRadius: '16px 16px 0 0',
                             },
@@ -404,7 +458,7 @@ const StoreDetail = () => {
                                 <Typography variant="h6" sx={{ ml: 1 }}>Select Category</Typography>
                             </Box>
                             <List sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                                {Object.keys(menuItems).map((category, index) => (
+                                {Object.keys(menuItems).filter(c=>c.available).map((category, index) => (
                                     <React.Fragment key={index}>
                                         <ListItem button onClick={() => {
                                             handleTabChange(null, index);
@@ -416,11 +470,7 @@ const StoreDetail = () => {
                                     </React.Fragment>
                                 ))}
                             </List>
-                            <Box sx={{ mt: 'auto', mb: 2 }}>
-                                <Button fullWidth variant="contained" onClick={toggleDrawer(false)}>
-                                    DISMISS
-                                </Button>
-                            </Box>
+                          
                         </Box>
                     </SwipeableDrawer>
                 </>

@@ -22,8 +22,9 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { useNavigate } from 'react-router-dom';
 import { getToken, getUserFromToken, logout, decodeToken } from '../utils/auth';
+import { getUserInfo } from '../utils/localStorage';
 
-    const user = getUserFromToken(getToken());
+    const user = getUserInfo() || getUserFromToken(getToken());
 
 const obj = {
   customer: [
@@ -31,7 +32,7 @@ const obj = {
     { label: "My Orders", link: "/orders", icon: <HistoryIcon /> },
   ],
   owner: [
-    { label: "My Store", link: `/mystore/${user?.id}`, icon: <HomeIcon /> },
+    { label: "My Store", link: `/mystore`, icon: <HomeIcon /> },
     { label: "Report", link: `/reports`, icon: <HistoryIcon /> },
   ],
   deliveryPartner: [
@@ -65,7 +66,7 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
             onClose={onClose}
             sx={{
                 '& .MuiDrawer-paper': {
-                    width: '100%',
+                    width: '80%',
                 },
             }}
         >
@@ -76,12 +77,14 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
                     <CloseIcon />
                 </IconButton>
                 
-                <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-                    <img
+                
+               <Box sx={{  display: 'flex', justifyContent: 'center' }}>
+                     {/*<img
                         src="/img2.png" // Replace with the correct path to your logo image
                         alt="Logo"
                         style={{ height: '38px',marginRight:'15px', filter: !isDarkMode && 'invert(1)' }} // Adjust height as needed
-                    />
+                    />*/}
+                    Menu
                 </Box>
 
                 {/* Other icons can be added here, e.g., shopping cart, profile, etc. */}
@@ -91,64 +94,61 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
             <Divider sx={{ backgroundColor: '#A0AEC0', marginBottom: 2 }} />
 
             {/* Navigation List */}
-            <List>
-                {/* Profile item */}
-                <ListItem button component={Link} to={`/profile`} onClick={handleLinkClick}>
-                    <ListItemIcon>
-                        <PersonIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={user?.name} sx={{ color: '#2D3748' }} />
-                </ListItem>
-
-             {
-             
-  scope &&obj[scope]?.map((comps) => (
-    <ListItem button component={Link} to={comps.link} onClick={handleLinkClick} key={comps.label}>
-      <ListItemIcon>
-        {comps.icon}
-      </ListItemIcon>
-      <ListItemText primary={comps.label} sx={{ color: '#2D3748' }} />
+            <List sx={{}}>
+    {/* Profile item */}
+    <ListItem button component={Link} to={`/profile`} onClick={handleLinkClick}>
+        <ListItemIcon>
+            <PersonIcon />
+        </ListItemIcon>
+        <ListItemText primary={user?.name} sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
     </ListItem>
-  ))
-}
 
+    {
+        scope && obj[scope]?.map((comps) => (
+            <ListItem button component={Link} to={comps.link} onClick={handleLinkClick} key={comps.label}>
+                <ListItemIcon>
+                    {comps.icon}
+                </ListItemIcon>
+                <ListItemText primary={comps.label} sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
+            </ListItem>
+        ))
+    }
 
-              
-
-                {/* About link */}
-                <ListItem button component={Link} to="/about" onClick={handleLinkClick}>
-                    <ListItemIcon>
-                        <InfoIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="About" sx={{ color: '#2D3748' }} />
-                </ListItem>
+    {/* About link */}
+    <ListItem button component={Link} to="/about" onClick={handleLinkClick}>
+        <ListItemIcon>
+            <InfoIcon />
+        </ListItemIcon>
+        <ListItemText primary="About" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
+    </ListItem>
                 
-                 <ListItem button component={Link} to="/tc" onClick={handleLinkClick}>
-                    <ListItemIcon>
-                        <SummarizeIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Term & Condition" sx={{ color: '#2D3748' }} />
-                </ListItem>
+    <ListItem button component={Link} to="/tc" onClick={handleLinkClick}>
+        <ListItemIcon>
+            <SummarizeIcon />
+        </ListItemIcon>
+        <ListItemText primary="Term & Condition" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
+    </ListItem>
 
-                {/* Dark Mode/Light Mode Toggle */}
-                <ListItem button onClick={toggleTheme}>
-                    <ListItemIcon>
-                        {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                        sx={{ color: '#2D3748' }}
-                    />
-                </ListItem>
+    {/* Dark Mode/Light Mode Toggle */}
+    <ListItem button onClick={toggleTheme}>
+        <ListItemIcon>
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+        </ListItemIcon>
+        <ListItemText
+            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            sx={{ color: '#2D3748', fontSize: '0.75rem' }}
+        />
+    </ListItem>
 
-                {/* Sign Out */}
-                <ListItem button onClick={() => { logout(navigate); onClose(); }}>
-                    <ListItemIcon>
-                        <LogoutIcon sx={{ color: '#F44336' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Sign Out" sx={{ color: '#2D3748' }} />
-                </ListItem>
-            </List>
+    {/* Sign Out */}
+    <ListItem button onClick={() => { logout(navigate); onClose(); }}>
+        <ListItemIcon>
+            <LogoutIcon sx={{ color: '#F44336' }} />
+        </ListItemIcon>
+        <ListItemText primary="Sign Out" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
+    </ListItem>
+</List>
+
         </Drawer>
     );
 };

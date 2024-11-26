@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
-import { Box, Table, FormControl, Select, InputLabel, MenuItem, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Typography, Chip, TextField, InputAdornment } from '@mui/material';
+import { Box, Table, FormControl, Select, InputLabel, MenuItem, TableBody, SwipeableDrawer,TableCell, TableContainer, TableHead, TableRow, CircularProgress, Typography, Chip, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search'; // Import Search icon
 
 const Users = () => {
@@ -12,6 +12,9 @@ const Users = () => {
     const [selectedScope, setSelectedScope] = useState('');
     const [searchTerm, setSearchTerm] = useState(''); // State for search term
 
+const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+	
     const scopes = ['customer', 'owner', 'deliveryPartner', 'god'];
 
     useEffect(() => {
@@ -76,13 +79,26 @@ const Users = () => {
                 <Typography color="error">{error}</Typography>
             </Box>
         );
-    }
+     }
 
     // Count users by scope
     const userCountByScope = scopes.reduce((acc, scope) => {
         acc[scope] = users.filter(user => user.scope === scope).length;
         return acc;
     }, {});
+    
+     const handleRowClick = (order) => {
+    const a=order
+    a.items= JSON.parse(order?.items||'{}')
+    setSelectedOrder(a); // Set the selected order
+    
+    setDrawerOpen(true); // Open the drawer
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false); // Close the drawer
+    setSelectedOrder(null); // Clear the selected order
+  }; 
 
     return (
         <Box sx={{ padding: 1, overflowX: 'hidden' }}>
@@ -129,7 +145,7 @@ const Users = () => {
                     <TableBody>
                         {filteredUsers.map((user) => (
                             <TableRow key={user._id} sx={{ height: 30 }}>
-                                <TableCell sx={{ height: 30 }}>
+                                <TableCell sx={{ height: 30 }} onClick={(e)=>handleRowClick(user)}>
                                     <Typography sx={{ fontSize: '0.75rem' }}>{user.email}</Typography>
                                 </TableCell>
                                 <TableCell sx={{ height: 30 }}>
@@ -153,6 +169,24 @@ const Users = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <SwipeableDrawer
+        anchor="bottom"
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        onOpen={() => {}}
+      >
+        <Box sx={{ p: 2, maxHeight: "auto", overflowY: "auto" }}>
+          <Typography variant="h6" gutterBottom>
+            Order Details
+          </Typography>
+          <pre style={{ fontSize: "0.9rem", wordWrap: "break-word" }}>
+            {
+            
+            JSON.stringify(selectedOrder, null, 2)}
+          </pre>
+        </Box>
+      </SwipeableDrawer>  
+            
         </Box>
     );
 };

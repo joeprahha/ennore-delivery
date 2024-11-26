@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Typography } from '@mui/material';
 
-const QuantityButton = ({ item, cart, setCart,cartItem }) => {
-console.log("cartItem",cartItem)
+const QuantityButton = ({ item, cart, setCart,cartItem,height }) => {
+
 const count=cartItem?.count
     const incrementItemCount = (item) => {
         const existingItem = cart.items.find(cartItem => cartItem.id === item.id);
@@ -32,7 +32,7 @@ const count=cartItem?.count
             disableRipple
             sx={{
                 width: '100%',
-                height: '25px',
+                height: height||'25px',
                 fontSize: '0.65rem',
                 mb: 0.5,
                 display: 'flex',
@@ -59,8 +59,10 @@ const count=cartItem?.count
                     decrementItemCount(item);
                 }}
                 sx={{
-                    minWidth: '30px',
-                    maxHeight: '25px',
+                	
+                    minWidth:height|| '30px',
+                     height: height|| '25px',
+                    maxHeight: height||'25px',
                     fontSize: '0.65rem',
                     padding: 0,
                     boxShadow: '1',
@@ -90,8 +92,9 @@ const count=cartItem?.count
                     incrementItemCount(item);
                 }}
                 sx={{
-                    minWidth: '30px',
-                    maxHeight: '25px',
+                    minWidth: height ||'30px',
+                     height: height|| '25px',
+                    maxHeight: height|| '25px',
                     fontSize: '0.65rem',
                     padding: 0,
                     boxShadow: '1',
