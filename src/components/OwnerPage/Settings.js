@@ -9,9 +9,34 @@ import {
   Typography,
   Paper,
   Button,
-  Autocomplete,
+  Autocomplete,CircularProgress
 } from '@mui/material';
 import { api } from '../../utils/api';
+
+const categories = [
+    'Groceries',
+    'Fast Food',
+    'Pizza',
+    'Burger',
+    'Snacks',
+    'Bakery',
+    'Restaurant'
+]
+const locations = [
+    'Nettukuppam',
+    'Ennore Kuppam',
+    'Thazhankuppam',
+    'Mugathuvara Kuppam',
+    'Ulagnathapuram',
+    'SVM Nagar',
+    'Vallur Nagar',
+    'Kamaraj Nagar',
+    'High School Surroundings',
+    'Kaathukuppam',
+    'RS Road',
+    'Ennore Bus Depot Surroundings',
+];
+
 
 const Settings = ({selectedStore}) => {
   // State variables
@@ -25,9 +50,10 @@ const Settings = ({selectedStore}) => {
   const [storeLogoUrl, setStoreLogoUrl] = useState('');
   const [fssai, setFssai] = useState('');
   const [phone, setPhone] = useState('');
-
-  const categories = ['Grocery', 'Fast Food', 'Electronics', 'Clothing']; // Example categories
-  const locations = ['Location 1', 'Location 2', 'Location 3']; // Example locations
+  const[ready,setReady]= useState('');
+    const[ status,setStatus]= useState('');
+    const [imageUploading, setImageUploading] = useState(false);
+    
 
   const handleCategoryChange = (event) => {
     setStoreCategories(event.target.value);
@@ -52,6 +78,8 @@ const Settings = ({selectedStore}) => {
           setStoreLogoUrl(data.logo || '');
           setFssai(data.fssai || '');
           setPhone(data.phone || '');
+          setStatus(data.status || '')
+                    setReady(data.ready || '')
         })
         .catch((error) => {
           console.error('Error fetching store details:', error);
@@ -64,6 +92,8 @@ const handleUpdateStore = async () => {
   try {
     const response = await api.put(`stores/${selectedStore}`, {
       name: storeName,
+      image:storeImageUrl,
+      logo:storeLogoUrl,
       category: storeCategories.join(','),
       open_time: storeOpenTime,
       close_time: storeCloseTime,
@@ -71,7 +101,9 @@ const handleUpdateStore = async () => {
       local: storeLocalArea,
       fssai,
       phone,
-      storeId:selectedStore
+      storeId:selectedStore,
+      ready,
+      status
     });
 
     console.log('Store updated successfully:', response.data);
@@ -81,6 +113,26 @@ const handleUpdateStore = async () => {
 
   }
 };
+
+  const handleImageUpload = async (event, cat) => {
+  console.log('cat',cat)
+  //event.stopPropagation()
+        const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+        setImageUploading(true);
+        try {
+            const response = await api.post('/upload-image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            const imageUrl = response.data.url;
+	cat==="store" ?  setStoreImageUrl(imageUrl || ''): setStoreLogoUrl(imageUrl|| '');
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        } finally {
+            setImageUploading(false);
+        }
+    };
 
   return (
     <Box
@@ -92,6 +144,28 @@ const handleUpdateStore = async () => {
         margin: '0 auto',
       }}
     >
+    
+     <Box sx={{ display: 'flex', gap: 2 }}>
+        <TextField
+        label="Ready"
+        fullWidth
+        required
+        value={ready}
+        onChange={(e) => setReady(e.target.value)}
+        margin="normal"
+      />
+     
+      
+         <TextField
+        label="Open Status"
+        fullWidth
+        required
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        margin="normal"
+      />
+      </Box>
+
     
       <TextField
         label="Store Name"
@@ -184,69 +258,106 @@ const handleUpdateStore = async () => {
       />
 
       {/* Image Upload for Store Image */}
-      <Paper
-        sx={{
-          width: '100%',
-          height: 150,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px dashed grey',
-          cursor: 'pointer',
-          mt: 2,
-        }}
-        onClick={() => document.getElementById('store-image-upload').click()}
-      >
-        {storeImageUrl ? (
-          <img
-            src={storeImageUrl}
-            alt="Store Image"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <Typography variant="body2">+ Add Image</Typography>
-        )}
-      </Paper>
-      <input
-        id="store-image-upload"
+     <Paper
+    sx={{
+        width: '100%',
+        height: 150,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px dashed grey',
+        cursor: 'pointer',
+        mt: 4,
+        mb: 4,
+    }}
+    onClick={() => document.getElementById('store-image-upload').click()}
+>
+    <input
         type="file"
-        accept="image/*"
+        id="store-image-upload"
         style={{ display: 'none' }}
+        accept="image/*"
+        onChange={(e) => handleImageUpload(e, 'store')}
+    />
+    {imageUploading ? (
+        <CircularProgress size="40px" />
+    ) : storeImageUrl ? (
+        <img
+            src={storeImageUrl}
+            alt="Store image"
+            style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+            }}
+        />
+    ) : (
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <span>Upload Store Image</span>
+        </Box>
+    )}
+</Paper>
 
-      />
+      
 
       {/* Image Upload for Store Logo */}
-      <Paper
-        sx={{
-          width: '100%',
-          height: 100,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px dashed grey',
-          cursor: 'pointer',
-          mt: 2,
-        }}
 
-      >
-        {storeLogoUrl ? (
-          <img
-            src={storeLogoUrl}
-            alt="Store Logo"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <Typography variant="body2">+ Add Logo</Typography>
-        )}
-      </Paper>
-      <input
-        id="store-logo-upload"
+<Paper
+    sx={{
+        width: '100%',
+        height: 150,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px dashed grey',
+        cursor: 'pointer',
+        mt: 2,
+    }}
+    onClick={() => document.getElementById('logo-image-upload').click()}
+>
+    <input
         type="file"
-        accept="image/*"
+        id="logo-image-upload"
         style={{ display: 'none' }}
+        accept="image/*"
+        onChange={(e) => handleImageUpload(e, 'logo')}
+    />
+    {imageUploading ? (
+        <CircularProgress size="40px" />
+    ) : storeLogoUrl ? (
+        <img
+            src={storeLogoUrl}
+            alt="Logo image"
+            style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+            }}
+        />
+    ) : (
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <span>Upload Logo</span>
+        </Box>
+    )}
+</Paper>
 
-      />
-
+    
       <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleUpdateStore}>
         Update Store
       </Button>

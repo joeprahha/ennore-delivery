@@ -5,7 +5,7 @@ import "@fontsource/poppins"; // Importing a Google Font
 import "@fontsource/pacifico"; // Optional decorative font
 
 const DynamicTextAnimation = () => {
-  const messages = ["Skip the queue", "Save the time", "Just Order it!!","Will Deliver You"];
+  const messages = ["Just Order it!!","Will Deliver You","Skip the queue", "Save the time", ];
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [fade, setFade] = useState(true);
 

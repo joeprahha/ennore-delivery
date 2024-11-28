@@ -484,7 +484,7 @@ const assignToMe = async () => {
                         <img src={item.image} alt={item.name} style={{ width: 50, height: 50, marginRight: 10 }} />
                         <Box>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                                <strong>{item.name}</strong>
+                              <strong>{item.count}</strong>  X <strong>{item.name}</strong>
                             </Typography>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
                                 Price: ₹{item.price}

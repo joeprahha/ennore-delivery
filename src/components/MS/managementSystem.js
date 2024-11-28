@@ -15,6 +15,7 @@ import Reports from './Components/Reports'; // Import Reports component
 import QRCodeManager from './Components/Qr.js'
 import Agreement from './Components/Agreement.js'
 
+
 const MS = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(0);
@@ -84,7 +85,7 @@ const MS = () => {
                         {activeTab === 2 && <Stores />}
                         {activeTab === 3 && <Reports />}
                         {activeTab === 4 && <QRCodeManager />}
-                                                {activeTab === 5 && <Agreement />}
+                         {activeTab === 5 && <Agreement />}
                         
                        
                     </Box>

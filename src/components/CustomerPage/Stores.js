@@ -205,11 +205,12 @@ const isTimeOpen = closeMinutes > openMinutes
     : currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
 
 				const isOpen= isTimeOpen && store.status==='open';
+				const isReady= store?.ready
                             return (
                                 <Paper
                                     key={store._id}
                                     elevation={1}
-                                    onClick={isOpen ? () => handleStoreClick(store._id) : null}
+                                    onClick={(isOpen && isReady)  ? () => handleStoreClick(store._id) : null}
                                     sx={{
                                         mb: 1,
                                         width: '100%',
@@ -245,7 +246,7 @@ borderTopRightRadius: '6px',
                                             {store.address1}
                                         </Typography>
                                     </Box>
-                                    {!isOpen && (
+                                    {(!isOpen || !isReady) && (
                                         <Box
                                             sx={{
                                                 position: 'absolute',
@@ -264,13 +265,18 @@ borderTopRightRadius: '6px',
                                                 textAlign: 'center',
                                             }}
                                         >
-                                            <Typography variant="subtitle2" color="white" display="flex" alignItems="center">
+                                         { isReady &&  <Typography variant="subtitle2" color="white" display="flex" alignItems="center">
 					    Store Closed
 					    <BedtimeIcon sx={{ marginLeft: 0.5 }} />
-					</Typography>
-                                            {!isTimeOpen && (
+					</Typography> }
+                                            {(isReady && !isTimeOpen) && (
                                                 <Typography variant="subtitle2" color="white">
                                                     opens at: {store.open_time}
+                                                </Typography>
+                                            )}
+                                            {!isReady && (
+                                                <Typography variant="subtitle2" color="white">
+                                                   Coming Soon...
                                                 </Typography>
                                             )}
                                         </Box>

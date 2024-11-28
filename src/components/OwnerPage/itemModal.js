@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { SwipeableDrawer, Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
 const ItemModal = ({ open, handleClose, order }) => {
   // Parse the items and handle cases where items may not be available
@@ -16,24 +16,21 @@ const ItemModal = ({ open, handleClose, order }) => {
 
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Box
-    sx={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '80%',
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
-        borderRadius: 2,
-        height: '70vh',
-        overflowY: 'auto', // Enable vertical scrolling
-        overflowX: 'hidden', // Hide horizontal scrolling if not needed
-    }}
->
- <Button onClick={handleClose} variant="contained" sx={{ mt: 2 }}>
+     <SwipeableDrawer
+      anchor="bottom"
+      open={open}
+      onClose={handleClose}
+      sx={{
+        "& .MuiDrawer-paper": {
+          height: "83%",
+          bottom: 0,
+          borderRadius: "16px 16px 0 0",
+          overflowY: "auto",
+          p:2
+        },
+      }}
+    >
+ <Button onClick={handleClose} variant="contained" sx={{ }}>
           Close
         </Button>
         <Typography variant="h6" component="h2" gutterBottom>
@@ -51,7 +48,7 @@ const ItemModal = ({ open, handleClose, order }) => {
         <Typography variant="body1">Payment Status : {order.payment}</Typography>
      
 
-      <Box
+   { order?.instructions && <Box
         sx={{
         mt:1,
           flex: 1,
@@ -66,37 +63,43 @@ const ItemModal = ({ open, handleClose, order }) => {
           Instructions:
         </Typography>
         <Typography variant="body1">{order.instructions}</Typography>
-      </Box>
+      </Box> }
       {/* Items Table */}
         {items && items.length > 0 ? (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>Name</strong></TableCell>
-                  <TableCell align="center"><strong>Quantity</strong></TableCell>
-
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell align="center">{item.count}</TableCell>
-
-                  </TableRow>
-                ))}
-             
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <TableContainer
+      component={Paper}
+      sx={{
+	mt:1,
+        width:'auto',
+        height: '350px', // Adjust the height as needed
+        overflowY: 'auto', // Enable vertical scrolling
+        border: '1px solid #ddd', // Add a border
+        boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)', // Optional shadow
+      }}
+    >
+      <Table stickyHeader> {/* Sticky header for better visibility */}
+        <TableHead>
+          <TableRow>
+            <TableCell><strong>Name</strong></TableCell>
+            <TableCell align="center"><strong>Quantity</strong></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {items.map((item, index) => (
+            <TableRow key={index}>
+              <TableCell>{item.name}</TableCell>
+              <TableCell align="center">{item.count}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
         ) : (
           <Typography>No items available</Typography>
         )}
 
        
-      </Box>
-    </Modal>
+         </SwipeableDrawer>
   );
 };
 

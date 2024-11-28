@@ -31,7 +31,7 @@ console.log("a",cartItem)
       onClose={onClose}
       sx={{
         "& .MuiDrawer-paper": {
-          height: "auto",
+          height: "83%",
           bottom: 0,
           borderRadius: "16px 16px 0 0",
           overflowY: "auto",

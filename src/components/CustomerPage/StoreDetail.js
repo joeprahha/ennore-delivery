@@ -47,6 +47,7 @@ const StoreDetail = () => {
     const [activeTab, setActiveTab] = useState(0);
     const [isSearching, setIsSearching] = useState(false);
 
+
     const handleSearchFocus = () => {
         setIsSearching(true);
     };
@@ -364,7 +365,7 @@ const StoreDetail = () => {
           </Typography>
           <Divider sx={{ width: '100%' }} />
         </Box>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{p:1}}>
         {menuItems[category].available && 
   menuItems[category].items
     .filter((item) => item.available)
@@ -428,7 +429,7 @@ const StoreDetail = () => {
                         onOpen={toggleDrawer(true)}
                         sx={{
                             '& .MuiDrawer-paper': {
-                                height: '80%',
+                                height: '83%',
                                 bottom: 0,
                                 borderRadius: '16px 16px 0 0',
                             },
@@ -461,7 +462,7 @@ const StoreDetail = () => {
             )}
                                 {goToCartButton ? <GoToOrdersButton cart={cart} /> : null}
                                 
-                                {!storeInfo?.fssai &&
+                                {storeInfo?.fssai &&
 <Box sx={{ padding: 2 }}>
   <Paper elevation={0} sx={{ padding: 2, fontSize: '0.75rem' ,backgroundColor:'rgba(95, 37, 159, 0.05)'}}>
     {/* Store Name Section */}

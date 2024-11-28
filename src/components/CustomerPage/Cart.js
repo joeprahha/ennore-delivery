@@ -148,8 +148,9 @@ const Cart = () => {
     const navigate=useNavigate()
      const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState('');
-
-    
+  const [coupon, setCoupon] = useState('');
+   const[couponOffer,setCouponOffer]=useState('')
+   
     const subtotal = cart.items.reduce((total, item) => total + item.price * item.count, 0);
     const platformFee = 2;
     const deliveryFee = 7.5;
@@ -220,6 +221,7 @@ const Cart = () => {
 	}
         // Create orderData object
         const orderData = {
+            userId:getUserInfo()?._id,
             storeId: cart.storeId,
             storename: cart.storeName,
             createduser: getUserInfo().name,
@@ -275,6 +277,19 @@ catch(err){
         }
 	
     };
+    
+    
+    const handleCoupon=async(e)=>{
+    
+    setCoupon(e.target.value)
+   const response= await api.get(`coupon/${e.target.value}`);
+   if(response.data.valid){
+   	setCouponOffer(`Hurray! You gor Coupon Applied ${response.data.offer}`)
+   }
+   else{
+   alert('Not valid Coupon')
+   }
+    }
 
     return (
     
@@ -340,6 +355,10 @@ catch(err){
                     </Box>
                 ))}
                 <Typography variant="subtitle2" sx={{ textAlign: 'right' }}>Subtotal: Rs. {subtotal}</Typography>
+                
+          
+
+      
  <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }} onClick={() => handleDrawer('charges')}>
                     <ReceiptLongOutlinedIcon />
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
@@ -359,6 +378,67 @@ catch(err){
                         <KeyboardArrowRightOutlinedIcon />
                     </IconButton>
                 </Box>
+                
+           <Box
+  sx={{
+    mt: 2,
+    borderRadius: '8px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1,
+  }}
+>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <TextField
+      fullWidth
+      variant="outlined"
+      placeholder="Enter Coupon"
+      value={coupon}
+      onChange={(e) => handleCoupon(e)}
+      sx={{
+        backgroundColor: '#fff',
+        borderRadius: '4px',
+        fontSize: '0.75rem',
+        height: '30px',
+        '& .MuiInputBase-root': {
+          height: '30px',
+        },
+      }}
+    />
+    <Button
+      variant="contained"
+      sx={{
+        height: '30px',
+        whiteSpace: 'nowrap',
+        fontSize: '0.75rem',
+      }}
+    >
+      Apply
+    </Button>
+  </Box>
+  {couponOffer && (
+    <Box
+      sx={{
+        mt: 1,
+        p: 1,
+        borderRadius: '8px',
+        backgroundColor: '#e8f5e9',
+        color: '#2e7d32',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+      }}
+    >
+      <span role="img" aria-label="Hurray">
+        🎉
+      </span>
+      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+        {couponOffer}
+      </Typography>
+    </Box>
+  )}
+</Box>
+
                  <Box
         sx={{
           p: 0,
@@ -373,7 +453,7 @@ catch(err){
           multiline
           rows={2}
           variant="outlined"
-          label="Add Instructions"
+
           placeholder="Enter your instructions here..."
           value={instructions}
           onChange={(e)=>setInstruction(e.target.value)}
@@ -389,11 +469,11 @@ catch(err){
 
             {/* Delivery Details */}
             <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+             {/*    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <DeliveryDiningOutlinedIcon />
                     <Typography variant="body1" sx={{ marginLeft: 1 }}>Delivery in 47 mins</Typography>
                 </Box>
-                <Divider />
+                <Divider /> */}
                 <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }} onClick={() => handleDrawer('deliver')}>
                     <VillaOutlinedIcon />
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

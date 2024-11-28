@@ -36,7 +36,7 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,
                 <Box
                     sx={{
                         width: '100%',
-                        height: '80px',
+                        height: '110px',
                         overflow: 'hidden',
                         borderRadius: '4px',
                         backgroundColor: item.image ? 'transparent' : '#f0f0f0',

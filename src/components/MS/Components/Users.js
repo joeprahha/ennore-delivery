@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
-import { Box, Table, FormControl, Select, InputLabel, MenuItem, TableBody, SwipeableDrawer,TableCell, TableContainer, TableHead, TableRow, CircularProgress, Typography, Chip, TextField, InputAdornment } from '@mui/material';
+import { Box, Table, FormControl, Select, InputLabel, MenuItem, TableBody, SwipeableDrawer,TableCell, TableContainer, TableHead, TableRow, CircularProgress, Typography, Chip, TextField, InputAdornment,IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search'; // Import Search icon
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -45,7 +45,7 @@ const [drawerOpen, setDrawerOpen] = useState(false);
     const handleScopeChange = async (userId, newScope) => {
         setIsUpdating(true);
         try {
-            await api.put(`/users/${userId}/scope`, { scope: newScope });
+            await api.put(`/user/${userId}/scope`, { scope: newScope });
             setUsers(prevUsers =>
                 prevUsers.map(user =>
                     user.id === userId ? { ...user, scope: newScope } : user
@@ -60,7 +60,7 @@ const [drawerOpen, setDrawerOpen] = useState(false);
 const handleDelete = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
         try {
-                        const response = await api.delete(`users/${userId}`);
+                        const response = await api.delete(`user/${userId}`);
 
             if (response.status === 200) {
 
@@ -186,9 +186,9 @@ const handleDelete = async (userId) => {
                                 </TableCell>
 <TableCell
     sx={{ height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    onClick={() => handleDelete(user._id)}
+   
 >
-    <DeleteIcon sx={{ color: 'red' }} />
+  <IconButton  onClick={() => handleDelete(user._id)}>  <DeleteOutlinedIcon sx={{  }} /> </IconButton>
 </TableCell>
                             </TableRow>
                         ))}

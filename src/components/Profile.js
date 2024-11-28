@@ -31,7 +31,7 @@ const locations = [
 
 const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(true);
-    const [userInfo, setUserInfo] = useState(getUserInfo() || { address1: '', area: '', phone: '' });
+    const [userInfo, setUserInfo] = useState(getUserInfo() || {name:'', address1: '', area: '', phone: '' });
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -115,9 +115,9 @@ const ProfilePage = () => {
 
     return (
     <>
-     <IconButton onClick={()=>navigate(-1)} sx={{pl:2}}>
+       {getUserInfo().phone && <IconButton onClick={()=>navigate(-1)} sx={{pl:2}}>
                                     <ArrowBackIosNewOutlinedIcon />
-                                </IconButton>
+                                </IconButton>}
         <Box sx={{ padding: 3, textAlign: 'center' }}>
         
             {/* Profile Avatar */}
@@ -196,7 +196,7 @@ const ProfilePage = () => {
                 <Box sx={{ mt: 3 }}>
                     {isEditing ? (
                         <Button variant="contained" color="primary" onClick={handleSave}>
-                            Save
+                            Save and Go Home
                         </Button>
                     ) : (
                         <Button variant="outlined" color="primary" onClick={handleEdit}>

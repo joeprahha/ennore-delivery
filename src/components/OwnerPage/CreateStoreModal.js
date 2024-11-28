@@ -38,11 +38,13 @@ const locations = [
     'Ennore Bus Depot Surroundings',
 ];
 const categories = [
-    'groceries',
-    'fast food',
-    'pizza',
-    'burger',
-    'bakery',
+    'Groceries',
+    'Fast Food',
+    'Pizza',
+    'Burger',
+    'Snacks',
+    'Bakery',
+    'Restaurant'
 ];
 
 const CreateStoreDialog = ({ storeDialogOpen, setStoreDialogOpen, fetchStores }) => {

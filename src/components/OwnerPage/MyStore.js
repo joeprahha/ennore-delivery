@@ -105,7 +105,8 @@ const MyStore = ({onMenuClick}) => {
     const [selectedOrder, setSelectedOrder] = useState({});
  const [from, setFrom] = useState(today); // Default to today
     const [to, setTo] = useState(today); // Default to today
-    
+    const [previousOrderCount, setPreviousOrderCount] = useState(0);  // Keep track of the previous order count
+
       const location = useLocation();
     const tabNames = ["orders", "completed-orders", "menu", "reports","settings"];
 
@@ -137,21 +138,67 @@ const queryParams = new URLSearchParams(location.search);
     };
 
 
-    const fetchOrders = async (selectedStore) => {
-        try {
-            const response = await api.get(`mystore/${selectedStore}/orders?from=${from}&to=${to}`, {
-                headers: {
-                    Authorization: `Bearer ${getToken()}`,
-                },
-            });
-            setOrders(response.data);
-            setFilteredOrders(response.data.filter(o=>o.status!=='delivered'))
-        } catch (error) {
-            console.error('Error fetching orders:', error);
-        } finally {
-            setLoadingOrders(false);
+  
+  
+const fetchOrders = async (selectedStore) => {
+    try {
+        const response = await api.get(`mystore/${selectedStore}/orders?from=${from}&to=${to}`, {
+            headers: {
+                Authorization: `Bearer ${getToken()}`,
+            },
+        });
+
+        setOrders(response.data);
+        setFilteredOrders(response.data.filter(o => o.status !== 'delivered'));
+
+        // Check if any order has 'new' status
+        const newOrder = response.data.find(o => o.status === 'new');
+        if (newOrder) {
+            // New order came in, play the sound
+            playNewOrderSound();
         }
-    };
+
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+    } finally {
+        setLoadingOrders(false);
+    }
+};
+
+const playNewOrderSound = () => {
+    const phrases = [
+        'Ennore Delivery',
+        'New order',
+        'New order',
+        'New order'
+    ];
+    
+    let delay = 0;
+
+    phrases.forEach((phrase, index) => {
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(phrase);
+            utterance.volume = 1;  // Full volume
+            utterance.rate = 1;  // Slow down the speech
+            window.speechSynthesis.speak(utterance);
+        }, delay);
+
+        delay += 100;  // Add a 1-second delay between each phrase
+    });
+};
+
+// Poll every 2 minutes (120,000 milliseconds)
+useEffect(() => {
+    const intervalId = setInterval(() => {
+        // Assuming selectedStore is available in the scope
+        fetchOrders(selectedStore);
+    }, 30000);  // Poll every 2 minutes
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+}, [selectedStore]);
+
+
 
     const fetchStores = async (fetchOrdersFlag = true) => {
 
@@ -495,7 +542,7 @@ const relativeTime = getRelativeTimeFromIST(placedAtIST);
                    sx={{backgroundColor: order.status === "new" ? "rgba(255, 0, 0, 0.1)" : "inherit",}}
 
                >
-                    <TableCell sx={{ height: 30 }} onClick={(e) => showItems(e, order)}>{order._id.slice(-4)}</TableCell>
+                    <TableCell sx={{ height: 30 }} onClick={(e) => showItems(e, order)}>{order.customer_details?.name} :: {order._id.slice(-4)} </TableCell>
                     <TableCell sx={{ height: 30 }} onClick={(e) => showItems(e, order)}>{relativeTime}</TableCell>
                 
                   { value===0 ? <TableCell sx={{ height: 30 }}>

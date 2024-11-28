@@ -120,11 +120,24 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
 
     return (
         <Box p={1}>
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column',
+                position: 'sticky',
+                top: 130,
+                zIndex: 10,
+ 	backgroundColor:'#fff', 
+               mb:1
+            }}
+        >
             <Box
                 display="flex"
                 mb={1}
                 sx={{ alignItems: 'center', justifyContent: 'center' }}
             >
+            
                 <TextField
                     label="Add New Category"
                     value={newCategory}
@@ -159,7 +172,7 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                     {save ? <CircularProgress size="24px" /> : 'Save Menu'}
                 </Button>
             </Box>
-
+            </Box>
             {loadingMenu ? (
                 <CircularProgress />
             ) : (

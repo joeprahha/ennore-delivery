@@ -102,6 +102,7 @@ const handleClick = () => {
     const googleLogin = useGoogleLogin({
         onSuccess: (codeResponse) => setUser(codeResponse),
         onError: (error) => console.log('Login Failed:', error),
+
     });
  useEffect(() => {
         if (user) {
@@ -115,6 +116,7 @@ const handleClick = () => {
                 })
                 .then((res) => {
                     setProfile(res.data);
+                    console.log('prof',res.data)
                     handleVerifyOtp(res.data.email, true);
                     setGoogleLoader(true)
                 })

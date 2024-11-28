@@ -5,58 +5,72 @@ import {
     ListItem,
     ListItemText,
     IconButton,
-    Typography,
     Box,
     Divider,
-    ListItemIcon,AppBar,Toolbar
+    ListItemIcon,
+    AppBar,
+    Toolbar,Typography
 } from '@mui/material';
+import {
+    Share as ShareIcon,
+    Close as CloseIcon,
+    Summarize as SummarizeIcon,
+    Person as PersonIcon,
+    Home as HomeIcon,
+    History as HistoryIcon,
+    Info as InfoIcon,
+    Logout as LogoutIcon,
+    LightMode as LightModeIcon,
+    DarkMode as DarkModeIcon,
+} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import CloseIcon from '@mui/icons-material/Close';
-import SummarizeIcon from '@mui/icons-material/Summarize';
-import PersonIcon from '@mui/icons-material/Person';
-import HomeIcon from '@mui/icons-material/Home';
-import HistoryIcon from '@mui/icons-material/History';
-import InfoIcon from '@mui/icons-material/Info';
-import LogoutIcon from '@mui/icons-material/Logout';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { useNavigate } from 'react-router-dom';
 import { getToken, getUserFromToken, logout, decodeToken } from '../utils/auth';
 import { getUserInfo } from '../utils/localStorage';
 
-    const user = getUserInfo() || getUserFromToken(getToken());
-
-const obj = {
-  customer: [
-    { label: "Home", link: "/stores", icon: <HomeIcon /> },
-    { label: "My Orders", link: "/orders", icon: <HistoryIcon /> },
-  ],
-  owner: [
-    { label: "My Store", link: `/mystore`, icon: <HomeIcon /> },
-    { label: "Report", link: `/reports`, icon: <HistoryIcon /> },
-  ],
-  deliveryPartner: [
-    { label: "Deliveries", link: "/deliveries", icon: <HistoryIcon /> },
-  ],
-  god: []
-};
-
-
-obj.god = [
-    { label: "Management System", link: "/ms", icon: <HistoryIcon /> },	
-  ...obj.customer,
-  ...obj.owner,
-  ...obj.deliveryPartner,
-];
-
-
 const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
     const navigate = useNavigate();
-
+    const user = getUserInfo() || getUserFromToken(getToken());
     const { scope } = decodeToken();
 
-    const handleLinkClick = () => {
-        onClose();
+    // Sidebar menu items based on user scope
+    const menuItems = {
+        customer: [
+            { label: 'Home', link: '/stores', icon: <HomeIcon /> },
+            { label: 'My Orders', link: '/orders', icon: <HistoryIcon /> },
+        ],
+        owner: [
+            { label: 'My Store', link: '/mystore', icon: <HomeIcon /> },
+            { label: 'Report', link: '/reports', icon: <HistoryIcon /> },
+        ],
+        deliveryPartner: [
+            { label: 'Deliveries', link: '/deliveries', icon: <HistoryIcon /> },
+        ],
+        god: [],
+    };
+
+    // Extend god's menu items
+    menuItems.god = [
+        { label: 'Management System', link: '/ms', icon: <HistoryIcon /> },
+        ...menuItems.customer,
+        ...menuItems.owner,
+        ...menuItems.deliveryPartner,
+    ];
+
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'Ennore Delivery',
+                    text: 'Check out Ennore Delivery!',
+                    url: 'https://ennore-delivery.netlify.app',
+                });
+            } else {
+                alert('Sharing is not supported on this device.');
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
     };
 
     return (
@@ -70,85 +84,99 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
                 },
             }}
         >
-      
-          <AppBar position="static">
-            <Toolbar>
-                <IconButton edge="start" color="inherit" aria-label="close" onClick={onClose}>
-                    <CloseIcon />
-                </IconButton>
-                
-                
-               <Box sx={{  display: 'flex', justifyContent: 'center' }}>
-                     {/*<img
-                        src="/img2.png" // Replace with the correct path to your logo image
-                        alt="Logo"
-                        style={{ height: '38px',marginRight:'15px', filter: !isDarkMode && 'invert(1)' }} // Adjust height as needed
-                    />*/}
-                    Menu
-                </Box>
-
-                {/* Other icons can be added here, e.g., shopping cart, profile, etc. */}
-            </Toolbar>
-        </AppBar>
+            <AppBar position="static">
+                <Toolbar>
+                    <IconButton edge="start" color="inherit" aria-label="close" onClick={onClose}>
+                        <CloseIcon />
+                    </IconButton>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
+                        <Typography variant="h6" noWrap>
+                            Menu
+                        </Typography>
+                    </Box>
+                </Toolbar>
+            </AppBar>
 
             <Divider sx={{ backgroundColor: '#A0AEC0', marginBottom: 2 }} />
 
-            {/* Navigation List */}
-            <List sx={{}}>
-    {/* Profile item */}
-    <ListItem button component={Link} to={`/profile`} onClick={handleLinkClick}>
-        <ListItemIcon>
-            <PersonIcon />
-        </ListItemIcon>
-        <ListItemText primary={user?.name} sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
-    </ListItem>
+            <List>
+                {/* Profile */}
+                <ListItem button component={Link} to="/profile" onClick={onClose}>
+                    <ListItemIcon>
+                        <PersonIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={user?.name} sx={{ color: '#2D3748' }} />
+                </ListItem>
 
-    {
-        scope && obj[scope]?.map((comps) => (
-            <ListItem button component={Link} to={comps.link} onClick={handleLinkClick} key={comps.label}>
-                <ListItemIcon>
-                    {comps.icon}
-                </ListItemIcon>
-                <ListItemText primary={comps.label} sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
-            </ListItem>
-        ))
-    }
+                {/* Dynamic menu items based on user scope */}
+                {scope &&
+                    menuItems[scope]?.map((item) => (
+                        <ListItem
+                            button
+                            component={Link}
+                            to={item.link}
+                            onClick={onClose}
+                            key={item.label}
+                        >
+                            <ListItemIcon>{item.icon}</ListItemIcon>
+                            <ListItemText primary={item.label} sx={{ color: '#2D3748' }} />
+                        </ListItem>
+                    ))}
 
-    {/* About link */}
-    <ListItem button component={Link} to="/about" onClick={handleLinkClick}>
-        <ListItemIcon>
-            <InfoIcon />
-        </ListItemIcon>
-        <ListItemText primary="About" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
-    </ListItem>
-                
-    <ListItem button component={Link} to="/tc" onClick={handleLinkClick}>
-        <ListItemIcon>
-            <SummarizeIcon />
-        </ListItemIcon>
-        <ListItemText primary="Term & Condition" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
-    </ListItem>
+                {/* Static Links */}
+                <ListItem button component={Link} to="/about" onClick={onClose}>
+                    <ListItemIcon>
+                        <InfoIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="About" sx={{ color: '#2D3748' }} />
+                </ListItem>
 
-    {/* Dark Mode/Light Mode Toggle */}
-    <ListItem button onClick={toggleTheme}>
-        <ListItemIcon>
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-        </ListItemIcon>
-        <ListItemText
-            primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            sx={{ color: '#2D3748', fontSize: '0.75rem' }}
-        />
-    </ListItem>
+                <ListItem button component={Link} to="/tc" onClick={onClose}>
+                    <ListItemIcon>
+                        <SummarizeIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Terms & Conditions" sx={{ color: '#2D3748' }} />
+                </ListItem>
 
-    {/* Sign Out */}
-    <ListItem button onClick={() => { logout(navigate); onClose(); }}>
-        <ListItemIcon>
-            <LogoutIcon sx={{ color: '#F44336' }} />
-        </ListItemIcon>
-        <ListItemText primary="Sign Out" sx={{ color: '#2D3748', fontSize: '0.75rem' }} />
-    </ListItem>
-</List>
+                {/* Theme Toggle */}
+                <ListItem button onClick={toggleTheme}>
+                    <ListItemIcon>
+                        {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                    </ListItemIcon>
+                    <ListItemText
+                        primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                        sx={{ color: '#2D3748' }}
+                    />
+                </ListItem>
 
+                {/* Share Button */}
+                <ListItem
+                    button
+                    onClick={() => {
+                        handleShare();
+                        onClose();
+                    }}
+                >
+                    <ListItemIcon>
+                        <ShareIcon sx={{ color: 'primary.main' }}/>
+                    </ListItemIcon>
+                    <ListItemText primary="Share" sx={{fontweight:500, color: 'primary.main' }} />
+                </ListItem>
+
+                {/* Sign Out */}
+                <ListItem
+                    button
+                    onClick={() => {
+                        logout(navigate);
+                        onClose();
+                    }}
+                >
+                    <ListItemIcon>
+                        <LogoutIcon sx={{ color: '#F44336' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Sign Out" sx={{ color: '#2D3748' }} />
+                </ListItem>
+            </List>
         </Drawer>
     );
 };
