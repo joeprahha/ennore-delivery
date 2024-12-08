@@ -41,7 +41,8 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
         ],
         owner: [
             { label: 'My Store', link: '/mystore', icon: <HomeIcon /> },
-            { label: 'Report', link: '/reports', icon: <HistoryIcon /> },
+            { label: 'Home', link: '/stores', icon: <HomeIcon /> }
+
         ],
         deliveryPartner: [
             { label: 'Deliveries', link: '/deliveries', icon: <HistoryIcon /> },

@@ -198,7 +198,7 @@ await api.post(`https://ennore-delivery-api.onrender.com/ennore-delivery/redirec
           }}
                   textAlign="right"
         >
-          {order.payment === 'failed' ? 'Payment Failed' : 'Not Paid'}
+          {order.payment === 'failed' ? 'Payment Failed' : order.payment}
         </Typography>
   {/* Disclaimer */}
        <Box sx={{display:'flex',alignItems:'center',justifyContent:'space-between'}}> <Typography
@@ -311,7 +311,7 @@ await api.post(`https://ennore-delivery-api.onrender.com/ennore-delivery/redirec
                         fontWeight: 'bold',
                     }}
                 >
-                    {selectedOrder?.payment ==="failed"? "Payment failed" :'Not Paid'}
+                    {selectedOrder?.payment ==="failed"? "Payment failed" :selectedOrder?.payment}
                 </Typography>  }                              
                 <Divider />
                 

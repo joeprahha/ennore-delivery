@@ -15,12 +15,16 @@ import {
     ListItem,
     ListItemText,
     Divider,useTheme,
-        Button,
+        Button,  Accordion,
+  AccordionSummary,
+  AccordionDetails,
     Chip
 } from '@mui/material';
-import ItemCard from './Components/ItemCard'; // Adjust the import based on your file structure
+import ItemCardV2 from './Components/ItemCardV2'; // Adjust the import based on your file structure
+import ItemCard from './Components/ItemCard';
 import ClearIcon from '@mui/icons-material/Clear';
-
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { GoToOrdersButton } from './Components/GoToOrdersButton';
 import BikeLoader from '../../loader/BikeLoader';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -63,7 +67,7 @@ const StoreDetail = () => {
         
         if (!existingCart || existingCart.storeId !== storeId) {
  const userConfirmed = window.confirm(
-        'You can create an order for one store at a time. Is that okay to clear the cart and add the new item?'
+        'Create a new cart , You can create cart from one store at a time'
     );
     
     if (!userConfirmed) {
@@ -126,20 +130,67 @@ const StoreDetail = () => {
         setModalOpen(false);
         setSelectedItem(null);
     };
+const fetchMenu = async () => {
+    const menuCacheKey = `menus-${storeId}`;
+    const storeCacheKey = `stores-${storeId}`;
 
-    const fetchMenu = async () => {
-        try {
-            const response = await api.get(`menus/${storeId}`);
-            setMenuItems(response.data);
-            const storeResponse = await api.get(`stores/${storeId}`);
+    // Check and validate cached menu data
+    const cachedMenu = sessionStorage.getItem(menuCacheKey);
+    const cachedStore = sessionStorage.getItem(storeCacheKey);
 
-            setStoreInfo(storeResponse.data);
-        } catch (error) {
-            console.error('Error fetching menu items:', error);
-        } finally {
-            setLoading(false);
+    const currentTime = Date.now();
+
+    let menuData = null;
+    let storeData = null;
+
+    if (cachedMenu) {
+        const { menuData: cachedMenuData, timestamp } = JSON.parse(cachedMenu);
+        if (currentTime - timestamp < 5 * 60 * 1000) {
+            menuData = cachedMenuData; // Use cached menu data
         }
-    };
+    }
+
+    if (cachedStore) {
+        const { storeData: cachedStoreData, timestamp } = JSON.parse(cachedStore);
+        if (currentTime - timestamp < 5 * 60 * 1000) {
+            storeData = cachedStoreData; // Use cached store data
+        }
+    }
+
+    // Fetch data if not in cache or cache expired
+    if (!menuData || !storeData) {
+        try {
+            const [menuResponse, storeResponse] = await Promise.all([
+                api.get(`menus/${storeId}`),
+                api.get(`stores/${storeId}`),
+            ]);
+
+            menuData = menuResponse.data;
+            storeData = storeResponse.data;
+
+            // Cache the results
+            sessionStorage.setItem(
+                menuCacheKey,
+                JSON.stringify({ menuData, timestamp: currentTime })
+            );
+            sessionStorage.setItem(
+                storeCacheKey,
+                JSON.stringify({ storeData, timestamp: currentTime })
+            );
+        } catch (error) {
+            console.error('Error fetching menu or store data:', error);
+            throw new Error('Failed to fetch data.');
+        }
+   
+    }
+
+            setLoading(false);
+        
+
+setMenuItems(menuData);
+setStoreInfo(storeData);
+
+};
 
     useEffect(() => {
         if (!isTokenValid()) {
@@ -290,7 +341,7 @@ const StoreDetail = () => {
                 )}
             </Box>
         
-                       {searchTerm?
+                       {searchTerm &&
                        
                        <Box 
                             sx={{ 
@@ -305,90 +356,54 @@ const StoreDetail = () => {
 			  </Typography>
 			</Box>
                        
-                       
-                       :<Box 
-                            sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                width: '100%', 
-                                overflow: 'hidden', 
-                            }}
-                        >
-                            <IconButton sx={{  flexShrink: 0 }} onClick={toggleDrawer(true)}>
-                                <MenuIcon />
-                            </IconButton>
-                            <Tabs
-                                value={activeTab}
-                                onChange={handleTabChange}
-                                variant="scrollable"
-                                scrollButtons="auto"
-                                sx={{ 
-                                    overflowX: 'auto', 
-                                    flexGrow: 1, 
-                                    flexShrink: 1, 
-                                    minHeight: '48px', 
-                                }} 
-                            >
-                                {Object.keys(menuItems).filter(c=>menuItems[c]?.available).map((category, index) => (
-                                    <Tab label={category} key={index} />
-                                ))}
-                            </Tabs>
-
-                        </Box>}
+                     }
                     </Box>
 
-   <>
+   <Box sx={{p:0.2}}>
    {
   !searchTerm ? (
-    Object.keys(menuItems).filter(c=>menuItems[c]?.available).map((category, index) => (
-      <Box
-        key={index}
-        id={`category-${index}`}
-        sx={{  mt: 2,width:'100%' }}
-        ref={el => (categoryRefs.current[index] = el)}  // Ensure ref is assigned properly
-      >
-        <Box
+  Object.keys(menuItems)
+    .filter((c) => menuItems[c]?.available)
+    .map((category, index) => (
+      <Accordion key={index} sx={{ mt:0.5 , width: "100%" }} elevation={0}>
+        {/* Accordion Summary */}
+        <AccordionSummary
+          expandIcon={<ArrowDropDownIcon fontSize='large'sx={{color:'black'}}/>}
+          aria-controls={`panel-${index}-content`}
+          id={`panel-${index}-header`}
           sx={{
-            position: 'sticky',
-            top: 96,
- 	    backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#fff', 
-            pt: 1,
-            zIndex: 8,
-          
-            color:'inherit',
-            width:'100%'
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark" ? "#333" : "#fff",
           }}
         >
-          <Typography variant="subtitle2" align="left" sx={{ mb: 1, fontSize: '1rem', pl:1,
-           }}>
+          <Typography variant="subtitle2" sx={{ fontSize: "1rem" }}>
             {category}
           </Typography>
-          <Divider sx={{ width: '100%' }} />
-        </Box>
-        <Grid container spacing={2} sx={{p:1}}>
-        {menuItems[category].available && 
-  menuItems[category].items
-    .filter((item) => item.available)
-    .map((item) => (
-      <ItemCard
-        key={item.id}
-        item={item}
-        cart={cart}
-        setCart={setCart}
-        addToCart={addToCart}
-        handleOpenModal={handleOpenModal}
-        storeStatus={storeInfo}
-      />
-    ))}
+        </AccordionSummary>
 
-        </Grid>
-        
+        {/* Accordion Details */}
+        <AccordionDetails sx={{p:0}}>
 
+          <Grid container spacing={1} sx={{  }}>
+            {menuItems[category].items
+              .filter((item) => item.available)
+              .map((item) => (
+               <Box sx={{width:'100%'}}>
+                <ItemCardV2
+                  key={item.id}
+                  item={item}
+                  cart={cart}
+                  setCart={setCart}
+                  addToCart={addToCart}
+                  handleOpenModal={handleOpenModal}
+                  storeStatus={storeInfo}
+                />    <Divider />
+                </Box>
 
-
-        
-      </Box>
-    ))
+              ))}
+          </Grid>
+        </AccordionDetails>
+      </Accordion> ))
   ) : (
     <Grid container spacing={2}>
       {filteredItems.map(item => (
@@ -407,7 +422,7 @@ const StoreDetail = () => {
   )
 }
 
-   </>
+   </Box>
 
 
                     {

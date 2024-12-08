@@ -26,9 +26,10 @@ import { lightTheme, darkTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import NavBar from './components/NavBar';
 import MS from './components/MS/managementSystem';
+import BulkMenu from './components/MS/Components/BulkMenu';
 import Account from './components/Account';
 import CircularLoader from './loader/loader';  // Import the new CircularLoader
-import SplashScreen from './loader/SplashScreen';  // Import the new CircularLoader
+
 // Import ToastContainer and toast from react-toastify
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -58,7 +59,7 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
     ];
 
     const ownerRoutes = [
-        "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', "/tc"
+    "/bulkmenu", "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', "/tc","/profile", "/stores/:storeId","/stores"
     ];
 
     const deliveryPartnerRoutes = [
@@ -116,6 +117,7 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/account" element={<Account toggleTheme={toggleTheme} isDarkMode={isDarkMode} />} />
                 <Route path="/ms" element={<MS />} />
+                                <Route path="/bulkmenu" element={<BulkMenu />} />
             </Routes>
 
             {showBottomNav && <BottomNav />}
@@ -138,7 +140,7 @@ const App = () => {
     });
 
     const [loading, setLoading] = useState(false);
-const[splashLoading,setSplashLoading]=useState(false);
+
 const [isHealthReady,SetIsHealthReady]=useState(false)
 
     const handleMenuClick = () => {
@@ -163,45 +165,13 @@ const [isHealthReady,SetIsHealthReady]=useState(false)
     }, [isDarkMode]);
 
 
- useEffect(() => {
-  const checkHealth = async () => {
-    try {
-      const response = await api.get("/health"); // Call the health API
-      if (response.status === 200) {
-        // Set the new expiration time to 20 minutes from now
-        const expirationTime = Date.now() + 20 * 60 * 1000; // 20 minutes in milliseconds
-        sessionStorage.setItem("expirationTime", expirationTime);
-        setSplashLoading(false); // Proceed to the app
-      } else {
-        setSplashLoading(false); // Proceed even if health API fails
-      }
-    } catch (error) {
-      console.error("Health check failed:", error);
-      setSplashLoading(false); // Proceed even if there's an error
-    }
-  };
 
-  const handleSplashLogic = () => {
-    const expirationTime = sessionStorage.getItem("expirationTime");
-    if (expirationTime && Date.now() < parseInt(expirationTime, 10)) {
-      // If the current time is before expiration, skip the splash
-      setSplashLoading(false);
-    } else {
-      // If expired or no expiration set, show the splash and fetch health
-      setSplashLoading(true);
-      checkHealth();
-    }
-  };
-
-  handleSplashLogic();
-}, []);
-
-    // Axios Interceptor to show loading and display toasts
     useEffect(() => {
-    if(!splashLoading){
+  
         const handleRequestStart = () => setLoading(true);
         const handleRequestEnd = () => setLoading(false);
-        const handleRequestError = () => {
+        const handleRequestError = (response) => {
+        console.log("res",response)
             setLoading(false);
             toast.error('Something went wrong. Please try again.');
         };
@@ -236,29 +206,14 @@ const [isHealthReady,SetIsHealthReady]=useState(false)
         return () => {
             api.interceptors.request.eject(handleRequestStart);
             api.interceptors.response.eject(handleResponseSuccess);
-        };}
+        };
     }, []);
-    
-     useEffect(() => {
-
-    if (splashLoading) {
-      setSplashLoading(true);
-    } else {
-      const timer = setTimeout(() => {
-        setSplashLoading(false);
-      }, 5000); 
-
-      // Cleanup timer when the component unmounts or splashLoading changes
-      return () => clearTimeout(timer);
-    }
-  }, [splashLoading]);
-    
 
     return (
         <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
             <AuthProvider>
                 <Router>
-                     {splashLoading && <SplashScreen onComplete={() => setLoading(false)} splashLoading setSplashLoading />}
+
 
                     <AppContent 
                         handleMenuClick={handleMenuClick}

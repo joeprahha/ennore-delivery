@@ -69,4 +69,73 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Any other custom service worker logic can go here.
+const CACHE_NAME = 'menu-cache-v1'; 
+
+// Install Event: Cache static assets and initial resources
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/', // Cache the homepage or any base assets
+        '/styles.css', // Example static CSS file
+        '/offline.html', // Optional fallback page for offline mode
+        '/app.png',
+        '/img2.png'
+        // Default image for offline scenarios
+      ]);
+    })
+  );
+});
+
+// Fetch Event: Serve requests from the cache, then fallback to network
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse; // Return cached response if available
+      }
+      return fetch(event.request).then((networkResponse) => {
+        // Dynamically cache API or image responses
+        if (event.request.url.includes('/api/menu') || event.request.url.includes('.jpg') || event.request.url.includes('.png')) {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone()); // Cache the fetched resource
+            return networkResponse;
+          });
+        }
+        return networkResponse;
+      });
+    }).catch(() => {
+      // Fallback for offline scenarios
+      if (event.request.url.includes('.jpg') || event.request.url.includes('.png')) {
+        return caches.match('/default-image.jpg');
+      }
+      return caches.match('/offline.html');
+    })
+  );
+});
+
+// Activate Event: Clean up old caches
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+
+self.addEventListener("push", (event) => {
+  const data = event.data.json();
+  self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: "/logo512.png", // Replace with your icon URL
+  });
+});
+

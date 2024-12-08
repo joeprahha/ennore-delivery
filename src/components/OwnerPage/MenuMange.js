@@ -8,13 +8,18 @@ import {
     Grid,
     Switch,
     IconButton,
-    CircularProgress,
-    Tabs,
-    Tab,
+    CircularProgress,Tab,  Accordion,
+  AccordionSummary,
+  AccordionDetails,Fab,
+    Tabs, Dialog, DialogActions, DialogContent, DialogTitle,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../../utils/api';
+import { ContentPaste as PasteIcon } from '@mui/icons-material';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InputAdornment from '@mui/material/InputAdornment';
+
 
 const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
     const [newCategory, setNewCategory] = useState('');
@@ -29,7 +34,15 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
     });
     const [save, setSave] = useState(false);
     const [imageUploading, setImageUploading] = useState(false);
+ const [open, setOpen] = useState(false);  // State to control modal visibility
 
+  const handleOpen = () => {
+    setOpen(true); // Open modal
+  };
+
+  const handleClose = () => {
+    setOpen(false); // Close modal
+  };
     const handleAddCategory = () => {
         if (newCategory) {
             setMenu((prevMenu) => ({
@@ -38,6 +51,7 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
             }));
             setNewCategory('');
         }
+        handleClose()
     };
 
     const handleAddItem = (category) => {
@@ -89,14 +103,13 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             const imageUrl = response.data.url;
-            handleUpdateItem(item.id, selectedCategory, 'image', imageUrl);
+           handleUpdateItem(item.id, selectedCategory, 'image', imageUrl);
         } catch (error) {
             console.error('Error uploading image:', error);
         } finally {
             setImageUploading(false);
         }
     };
-
     const handleSaveMenu = async () => {
         const formattedMenu = Object.entries(menu).map(
             ([categoryName, { items, available }]) => ({
@@ -116,29 +129,28 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
         }
     };
     
-    console.log('menu[selectedCategory]0',menu[selectedCategory],selectedCategory,menu)
+    
 
     return (
         <Box p={1}>
-        <Box
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                flexDirection: 'column',
-                position: 'sticky',
-                top: 130,
-                zIndex: 10,
- 	backgroundColor:'#fff', 
-               mb:1
-            }}
-        >
-            <Box
-                display="flex"
-                mb={1}
-                sx={{ alignItems: 'center', justifyContent: 'center' }}
-            >
-            
-                <TextField
+         <Fab
+  color="success"
+  onClick={handleSaveMenu}
+  sx={{
+    position: 'fixed',
+    bottom: 16,
+    right: 16,
+    m: 1,
+    boxShadow: '0px 3px 5px rgba(0,0,0,0.2)',
+  }}
+>
+  {save ? <CircularProgress size="24px" color="inherit" /> : 'Save'}
+</Fab>
+        <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Add Category</DialogTitle>
+        <DialogContent>
+        
+        <TextField
                     label="Add New Category"
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
@@ -146,44 +158,73 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                         flexGrow: 1,
                         marginRight: 1,
                         mt: 1,
-                        '& .MuiInputBase-root': { height: '40px' },
+
                     }}
                     InputProps={{
                         style: { fontSize: '0.75rem' },
                     }}
                 />
-                {newCategory && (
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={handleAddCategory}
-                        sx={{ ml: 1, mt: 1, height: '38px', alignSelf: 'stretch' }}
+                
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Close
+          </Button>
+           <Button
+                color="primary"
+                size="small"
+                onClick={handleAddCategory}
                     >
                         Add
                     </Button>
-                )}
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={handleSaveMenu}
-                    sx={{ m: 1, width: '150px' }}
-                >
-                    {save ? <CircularProgress size="24px" /> : 'Save Menu'}
-                </Button>
-            </Box>
-            </Box>
+        </DialogActions>
+      </Dialog>
+        
             {loadingMenu ? (
                 <CircularProgress />
             ) : (
-                <Box>
-                    <Tabs
-    value={selectedCategory}
-    onChange={(event, newValue) => setSelectedCategory(newValue)}
-    variant="scrollable"
-    scrollButtons="auto"
-    allowScrollButtonsMobile
+                <Box >
+                      <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column',
+                position: 'sticky',
+                top: 128,
+                zIndex: 10,
+ backgroundColor: '#fff', 
+                pt: 1,
+            }}
+               >  
+               <Box 
+                            sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                width: '100%', 
+                                overflow: 'hidden', 
+                            }}
+                        >
+                  <Tabs
+		value={selectedCategory}
+		onChange={(event, newValue) => setSelectedCategory(newValue)}
+		variant="scrollable"
+		scrollButtons="auto"
+		sx={{ 
+		overflowX: 'auto', 
+		flexGrow: 1, 
+		flexShrink: 1, 
+		minHeight: '48px', 
+		}} 
 >
+<Tab
+        value={'+New Category'}
+        onClick={handleOpen}
+        label={
+          <Typography sx={{ fontWeight: 'bold' }}>
+            +New Category
+          </Typography>
+        }
+      />
     {Object.entries(menu).map(([category, { available }]) => (
         <Tab
             key={category}
@@ -199,6 +240,7 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
                     </Typography>
                     <Switch
                         checked={available}
+                        color="secondary"
                         size="small"
                         onChange={(e) =>
                             handleUpdateCategory(category, 'available', e.target.checked)
@@ -209,151 +251,196 @@ const MenuManagement = ({ menu, setMenu, loadingMenu, selectedStore }) => {
             }
         />
     ))}
-</Tabs>
+</Tabs> </Box>
+                </Box>
 
-
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: 2 ,backgroundColor: 'rgba(95, 37, 159, 0.05)'}}>
                      
-                        <Grid container spacing={0.5}>
+                        <Grid container spacing={1}>
                             {menu[selectedCategory]?.items?.map((item) => (
-                                <Grid item key={item.id} xs={12}>
-                                    <Paper
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            padding: 1,
-                                            height: '30px',
-                                        }}
-                                        elevation={0}
-                                    >
-                                        <input
-                                            type="file"
-                                            id={`image-upload-${item.id}`}
-                                            style={{ display: 'none' }}
-                                            onChange={(e) => handleImageUpload(e, item)}
-                                        />
-                                        <Box
-                                            sx={{
-                                                cursor: 'pointer',
-                                                mr: 2,
-                                                width: '30px',
-                                                height: '30px',
-                                                overflow: 'hidden',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                border: '1px solid lightgrey',
-                                                borderRadius: '4px',
-                                            }}
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        `image-upload-${item.id}`
-                                                    )
-                                                    .click()
-                                            }
-                                        >
-                                            {imageUploading ? (
-                                                <CircularProgress size="40px" />
-                                            ) : (
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    style={{
-                                                        width: '100%',
-                                                        height: 'auto',
-                                                        objectFit: 'cover',
-                                                    }}
-                                                />
-                                            )}
-                                        </Box>
-                                        <TextField
-                                            value={item.name}
-                                            onChange={(e) =>
-                                                handleUpdateItem(
-                                                    item.id,
-                                                    selectedCategory,
-                                                    'name',
-                                                    e.target.value
-                                                )
-                                            }
-                                            sx={{
-                                                flexGrow: 1,
-                                                marginRight: 1,
-                                                '& .MuiInputBase-root': {
-                                                    height: '30px',
-                                                },
-                                            }}
-                                            InputProps={{
-                                                style: { fontSize: '0.75rem' },
-                                            }}
-                                        />
-                                        <TextField
-                                            value={item.price}
-                                            type="number"
-                                            onChange={(e) =>
-                                                handleUpdateItem(
-                                                    item.id,
-                                                    selectedCategory,
-                                                    'price',
-                                                    parseFloat(e.target.value)
-                                                )
-                                            }
-                                            sx={{
-                                                width: '70px',
-                                                marginRight: 1,
-                                                '& .MuiInputBase-root': {
-                                                    height: '30px',
-                                                },
-                                            }}
-                                            InputProps={{
-                                                style: { fontSize: '0.75rem' },
-                                            }}
-                                        />
-                                        <Switch
-                                            checked={item.available}
-                                            size="small"
-                                            onChange={(e) =>
-                                                handleUpdateItem(
-                                                    item.id,
-                                                    selectedCategory,
-                                                    'available',
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
-                                        <IconButton
-                                            onClick={() =>
-                                                handleDeleteItem(
-                                                    item.id,
-                                                    selectedCategory
-                                                )
-                                            }
-                                            color="secondary"
-                                            size="small"
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Paper>
-                                </Grid>
-                            ))}
+  <Grid item xs={12} key={item.id}>
+    <Accordion  key={item.id} defaultExpanded>
+      {/* Accordion Summary */}
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls={`panel-${item.id}-content`}
+        id={`panel-${item.id}-header`}
+      >
+        <Typography>{item.name}</Typography>
+      </AccordionSummary>
 
-                            <Grid item>
-                                <Paper
-                                    sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        cursor: 'pointer',
-                                        width: '100%',
-                                        height: 50,
-                                    }}
-                                    elevation={3}
-                                    onClick={() => handleAddItem(selectedCategory)}
-                                >
-                                    <AddIcon fontSize="large" />
-                                </Paper>
-                            </Grid>
+      {/* Accordion Details */}
+      <AccordionDetails>
+        <Paper
+          sx={{
+            display: "flex",
+            alignItems: "center",
+		
+            height: "auto",
+
+          }}
+          elevation={0}
+        >
+          {/* Image Upload */}
+          <input
+            type="file"
+            id={`image-upload-${item.id}`}
+            style={{ display: "none" }}
+            onChange={(e) => handleImageUpload(e, item)}
+          />
+          <Box
+            sx={{
+              cursor: "pointer",
+              mr: 1,
+              width: "70px",
+              height: "70px",
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid lightgrey",
+              borderRadius: "4px",
+            }}
+            onClick={() =>
+              document.getElementById(`image-upload-${item.id}`).click()
+            }
+          >
+            {imageUploading ? (
+              <CircularProgress size="40px" />
+            ) : (
+              <img
+                src={item.image}
+                alt={item.name}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "cover",
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Item Details */}
+          <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: 1,
+              }}
+            >
+              {/* Item Name */}
+              <TextField
+                variant="standard"
+                value={item.name}
+                onChange={(e) =>
+                  handleUpdateItem(item.id, selectedCategory, "name", e.target.value)
+                }
+                sx={{
+                  flexGrow: 1,
+                  marginRight: 1,
+                  "& .MuiInputBase-root": {
+                    height: "30px",
+                  },
+                }}
+                InputProps={{
+                  style: { fontSize: "0.75rem" },
+                }}
+              />
+
+              {/* Item Price */}
+              <TextField
+                value={item.price}
+                type="number"
+                onChange={(e) =>
+                  handleUpdateItem(
+                    item.id,
+                    selectedCategory,
+                    "price",
+                    parseFloat(e.target.value)
+                  )
+                }
+                sx={{
+                  width: "70px",
+                  marginRight: 1,
+                  "& .MuiInputBase-root": {
+                    height: "30px",
+                  },
+                }}
+                InputProps={{
+                  style: { fontSize: "0.75rem" },
+                }}
+              />
+
+              {/* Availability Toggle */}
+              <Switch
+                checked={item.available}
+                size="small"
+                onChange={(e) =>
+                  handleUpdateItem(
+                    item.id,
+                    selectedCategory,
+                    "available",
+                    e.target.checked
+                  )
+                }
+              />
+            </Box>
+
+            {/* Item Image URL */}
+            <TextField
+              variant="standard"
+              fullWidth
+              value={item.image}
+              onChange={(e) =>
+                handleUpdateItem(item.id, selectedCategory, "image", e.target.value)
+              }
+              sx={{
+                "& .MuiInputBase-root": {
+                  height: "30px",
+                },
+              }}
+              InputProps={{
+                style: { fontSize: "0.75rem" },
+                endAdornment: (
+                  <IconButton
+                    onClick={() => {
+                      navigator.clipboard
+                        .readText()
+                        .then((text) => {
+                          handleUpdateItem(item.id, selectedCategory, "image", text);
+                        })
+                        .catch((err) => {
+                          console.error("Failed to read clipboard contents: ", err);
+                        });
+                    }}
+                    sx={{ padding: 0, marginLeft: 1 }}
+                  >
+                    <PasteIcon fontSize="small" />
+                  </IconButton>
+                ),
+              }}
+            />
+          </Box>
+        </Paper>
+      </AccordionDetails>
+    </Accordion>
+  </Grid>
+))}
+		                    <Grid item>
+		                       <Grid item>
+  <Button
+    variant="outlined" // Use Material UI's contained button style
+    color="secondary" // Set the button color to secondary
+		                            onClick={() => handleAddItem(selectedCategory)}
+    sx={{ m: 1 }} // Adds margin around the button
+  >
+    + New Item
+  </Button>
+</Grid>
+
+		                    </Grid>
                         </Grid>
                     </Box>
                 </Box>

@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.ennore_delivery.twa",
+        "sha256_cert_fingerprints": ["01:C6:CA:73:0A:BC:0F:18:71:92:BD:91:08:FD:70:5A:C4:E9:54:03:65:B0:FE:77:38:4A:B8:02:57:FC:9A:0D"]
+      }
+    }]

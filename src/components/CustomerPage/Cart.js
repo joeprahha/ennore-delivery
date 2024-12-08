@@ -13,9 +13,9 @@ import {
     Divider,
     Drawer,
     Snackbar,
-    CircularProgress,
-    TextField,
-    Autocomplete,
+    CircularProgress,FormControlLabel,
+    TextField,Radio,
+    Autocomplete,RadioGroup,
     Chip,SwipeableDrawer
 } from '@mui/material';
 import TipAndDonationSection from './Components/TipAndDonationSection'; // Adjust the import path as needed
@@ -62,74 +62,126 @@ const locations = [
 
 
 
-const PaymentDrawer = ({ redirectUrl, open, onClose, onOpen }) => {
+
+const PaymentDrawer = ({orderId, redirectUrl, open, onClose, onOpen,cart,initiatePhonePePayment }) => {
+  const [paymentMethod, setPaymentMethod] = useState(null); // Track selected payment method
+  const [isProcessing, setIsProcessing] = useState(false); // Show processing state
+
+  const [storeAllowsCOD, setStoreAllowsCOD] = useState(false); // Track if the store allows COD
+
+  useEffect(() => {
+    const fetchStoreData = async () => {
+      try {
+        const response = await api.get(`/stores/${cart.storeId}`); // Replace with your actual store API endpoint
+        setStoreAllowsCOD(true)//(response.data?.cod);
+      } catch (error) {
+        console.error("Error fetching store data:", error);
+      }
+    };
+
+    fetchStoreData();
+  }, []);
+
+  const handlePaymentProceed = async () => {
+    setIsProcessing(true);
+    try {
+      if (paymentMethod === "cod") {
+        await api.post(`/cod/${orderId}`);
+      } else if (paymentMethod === "online") {
+	await initiatePhonePePayment(orderId)
+      }
+    } catch (error) {
+      console.error("Payment API error:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+
   return (
     <SwipeableDrawer
-  anchor="bottom"
-  open={open}
-  onClose={onClose}
-  onOpen={onOpen}
-  sx={{
-    '& .MuiDrawer-paper': {
-      height: '100vh',
-      bottom: 20,
-     // borderRadius: '16px 16px 0 0',
-      overflowX: 'hidden',
-      width: '100%',
-      maxWidth: '500px',
-      margin: '0 auto',
-    },
-  }}
->
-<Box sx={{}}>
-
-<Box
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                position: 'sticky',
-                top: 0,
-	
-                zIndex: 10,
-                backgroundColor: '#fff',
-                pl:1,
-              pr:1,pt:2            }}
-        >
-   <ArrowBackIosNewOutlinedIcon onClick={onClose}/>
-    
-    <h2>Payment</h2>
-   
-    
-  
- </Box>
-    {/* Content */}
-{redirectUrl ? (
-        <iframe
-          src={redirectUrl}
-          style={{
-            width: '100%',
-            height: '100vh',
-            border: 'none',
-            overflowX: 'hidden',
+      anchor="bottom"
+      open={open}
+      onClose={onClose}
+      onOpen={onOpen}
+      sx={{
+        "& .MuiDrawer-paper": {
+          height: "100vh",
+          bottom: 20,
+          overflowX: "hidden",
+          width: "100%",
+          maxWidth: "500px",
+          margin: "0 auto",
+        },
+      }}
+    >
+      <Box>
+        {/* Drawer Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            backgroundColor: "#fff",
+            pl: 1,
+            pr: 1,
+            pt: 2,
           }}
-          title="Payment Page"
+        >
+          <ArrowBackIosNewOutlinedIcon onClick={onClose} />
+          <h2 style={{ marginLeft: "10px" }}>Payment</h2>
+        </Box>
+
+        {/* Payment Options */}
+        {redirectUrl ? (
+          <iframe
+            src={redirectUrl}
+            style={{
+              width: "100%",
+              height: "100vh",
+              border: "none",
+              overflowX: "hidden",
+            }}
+            title="Payment Page"
+          />
+        ) : (
+         <Box sx={{ padding: "20px" }}>
+      <Typography variant="h6" style={{ marginBottom: "20px" }}>
+        Select Payment Method
+      </Typography>
+      <RadioGroup
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
+        <FormControlLabel
+          value="cod"
+          control={<Radio />}
+          label="Cash on Delivery"
+          disabled={!storeAllowsCOD} // Disable if store doesn't allow COD
         />
-      ) : (
-        <>
-          <Typography variant="h6" style={{ marginBottom: '20px' }}>
-            Your order is being processed...
-          </Typography>
-          <Typography variant="body1">
-            Redirecting to payment page shortly...
-          </Typography>
-          <div style={{ marginTop: '20px' }}>
-            <CircularProgress />
-          </div>
-        </>
-      )}
-      <Box sx={{height:'40px'}}/>
-</Box>
-</SwipeableDrawer>
+        <FormControlLabel
+          value="online"
+          control={<Radio />}
+          label="Online Payment"
+        />
+      </RadioGroup>
+      <Box sx={{ marginTop: "20px", textAlign: "center" }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handlePaymentProceed}
+          disabled={!paymentMethod || isProcessing}
+        >
+          {isProcessing ? <CircularProgress size={24} /> : "Proceed"}
+        </Button>
+      </Box>
+    </Box>
+        )}
+        <Box sx={{ height: "40px" }} />
+      </Box>
+    </SwipeableDrawer>
   );
 };
 
@@ -150,6 +202,7 @@ const Cart = () => {
   const [redirectUrl, setRedirectUrl] = useState('');
   const [coupon, setCoupon] = useState('');
    const[couponOffer,setCouponOffer]=useState('')
+   const [createdOrderId,setCreatedOrderId]=useState('')
    
     const subtotal = cart.items.reduce((total, item) => total + item.price * item.count, 0);
     const platformFee = 2;
@@ -180,20 +233,16 @@ const Cart = () => {
       
 
       if (response.data.success) {
-        // Redirect to the payment URL
-              //setRedirectUrl(response.data.redirectUrl); // Set the redirect URL from API response
-
+        
       window.location.href = response.data.redirectUrl;
       } else {
       setLoading(false);
-    setIsDrawerOpen(false);
-
-        console.error("Payment initiation failed:", response.data.message);
+      setIsDrawerOpen(false);
+      console.error("Payment initiation failed:", response.data.message);
       }
     } catch (error) {
     setLoading(false);
     setIsDrawerOpen(false);
-
       console.error("Error initiating payment:", error);
     }
   
@@ -255,25 +304,27 @@ try
 {
            response = await api.post('orders', orderData);
 }
-catch(err){
- setLoading(false);
+catch (err) {
+  setLoading(false);
+  console.log(err);
+
+  if (err.response && err.response.data && err.response.data.message) {
+    alert(err.response.data.message); // Show the error message
+  } else {
+    alert('An unexpected error occurred'); // Fallback for other errors
+  }
 }
+
 	if(response?.data?.order?._id){
 	let orderId=response.data.order._id
 	if(orderId){
-		        setIsDrawerOpen(true);
-		await initiatePhonePePayment(orderId)
-
-	 
+		setIsDrawerOpen(true);
+		setCreatedOrderId(orderId)
 	}
 	else{
 	 setLoading(false);
 		 alert('Error in creating order')
 	}
-	
-
- 
-
         }
 	
     };
@@ -299,12 +350,15 @@ catch(err){
         open={isDrawerOpen}
         onClose={closeDrawer}
         onOpen={() => setIsDrawerOpen(true)}
+        orderId={createdOrderId}
+        cart={cart}
+        initiatePhonePePayment={initiatePhonePePayment}
       />
  <Box 
                         sx={{ 
                             display: 'flex', 
                             position: 'sticky', 
-				alignItems:'center',
+			alignItems:'center',
                             top: 0, 
                             zIndex: 10, 
                             backgroundColor: 'inherit', 

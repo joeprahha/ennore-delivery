@@ -1,10 +1,17 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { Grid, Paper, Box, Typography, Button } from '@mui/material';
 import QuantityButton from './QuantityButton'; // Adjust the import based on your file structure
 import { isTokenValid, logout } from '../../../utils/auth';
 
+ const getOptimizedImageUrl = (imageUrl) => {
+ const [base ,imgUrl]=imageUrl.split('/upload/')
+    return `${base}/upload/w_300,h_300,c_fill,f_webp/${imgUrl}`;
+  };
 
 const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,navigate }) => {
+
+
+
 
     const cartItem = cart.items.find(cartItem => cartItem.id === item.id);
 
@@ -46,13 +53,14 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,
                     }}
                 >
                     <img
-                        src={item.image}
+                        src={getOptimizedImageUrl(item.image)}
                         alt={item.name}
                         style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
                         }}
+                        loading="lazy"
                     />
                 </Box>
 

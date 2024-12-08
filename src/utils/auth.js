@@ -1,9 +1,5 @@
-import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';  // Keep this at 
 
-import axios from 'axios';
-
-import { setUserInfo } from './localStorage';
 // Utility to check authentication before loading any page
 export const requireAuth = (navigate) => {
     if (!isTokenValid()) {

@@ -116,7 +116,7 @@ const handleClick = () => {
                 })
                 .then((res) => {
                     setProfile(res.data);
-                    console.log('prof',res.data)
+
                     handleVerifyOtp(res.data.email, true);
                     setGoogleLoader(true)
                 })

@@ -55,7 +55,7 @@ console.log("a",cartItem)
         {/* Image section */}
         <Box
           component="img"
-          src={item?.image || storeInfo.logo}
+          src={item?.image || storeInfo?.logo}
           alt={item?.name}
           sx={{
             width: "100%",

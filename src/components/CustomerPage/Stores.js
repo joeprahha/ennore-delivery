@@ -4,7 +4,7 @@ import {
     TextField,
     Typography,
     Paper,
-
+CircularProgress,
     InputAdornment,
 
     IconButton,
@@ -68,8 +68,19 @@ const Stores = () => {
         const fetchStores = async () => {
             setLoading(true);
             try {
+               const cachedStores = sessionStorage.getItem(`stores`);
+		   if (cachedStores) {
+			const { stores, timestamp } = JSON.parse(cachedStores);
+			const isCacheValid = Date.now() - timestamp < 2 * 60 * 1000; 
+
+			if (isCacheValid) {
+			   setStores(stores);
+			return	
+			}
+		    }
                 const response = await api.get('stores');
                 setStores(response.data);
+                sessionStorage.setItem(`stores`, JSON.stringify({stores:response.data,timestamp: Date.now()}));
             } catch (error) {
                 console.error('Error fetching stores:', error);
             } finally {
@@ -229,10 +240,11 @@ const isTimeOpen = closeMinutes > openMinutes
 					    height: '180px',
 					    objectFit: 'cover',
 					    objectPosition: 'center',
-borderTopLeftRadius: '6px',
-borderTopRightRadius: '6px',
+						borderTopLeftRadius: '6px',
+						borderTopRightRadius: '6px',
 
 					  }}
+					  loading="lazy"
 					/>
                                     <Box sx={{ display: "flex", flexDirection: "column", p:0.5,pl:2 }}>
                                         <Typography variant="subtitle2" align='left' sx={{ fontSize: '1rem', fontWeight: 500 }}>
@@ -254,7 +266,7 @@ borderTopRightRadius: '6px',
                                                 left: 0,
                                                 width: '100%',
                                                 height: '180px',
-					    backgroundColor: !isOpen ? 'rgba(0, 0, 0, 0.5)' : 'inherit',  // Add a comma here
+					    backgroundColor: (!isOpen || !isReady) ? 'rgba(0, 0, 0, 0.5)' : 'inherit',  // Add a comma here
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',

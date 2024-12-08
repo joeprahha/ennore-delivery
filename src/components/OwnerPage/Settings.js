@@ -50,6 +50,11 @@ const Settings = ({selectedStore}) => {
   const [storeLogoUrl, setStoreLogoUrl] = useState('');
   const [fssai, setFssai] = useState('');
   const [phone, setPhone] = useState('');
+    const [phone1, setPhone1] = useState('');
+    
+    const [email, setEmail] = useState([]);
+        const [email1, setEmail1] = useState([]);
+        
   const[ready,setReady]= useState('');
     const[ status,setStatus]= useState('');
     const [imageUploading, setImageUploading] = useState(false);
@@ -77,9 +82,13 @@ const Settings = ({selectedStore}) => {
           setStoreImageUrl(data.image || '');
           setStoreLogoUrl(data.logo || '');
           setFssai(data.fssai || '');
-          setPhone(data.phone || '');
+          setPhone(data.phone[0] || '');
+          setEmail(data.email[0] || '')
+          setPhone1(data.phone[1] || '');
+          setEmail1(data.email[1] || '')
           setStatus(data.status || '')
-                    setReady(data.ready || '')
+           setReady(data.ready || '')
+
         })
         .catch((error) => {
           console.error('Error fetching store details:', error);
@@ -100,7 +109,8 @@ const handleUpdateStore = async () => {
       address1: storeAddress1,
       local: storeLocalArea,
       fssai,
-      phone,
+      phone:[phone,phone1],
+      email:[email,email1],
       storeId:selectedStore,
       ready,
       status
@@ -148,6 +158,7 @@ const handleUpdateStore = async () => {
      <Box sx={{ display: 'flex', gap: 2 }}>
         <TextField
         label="Ready"
+        size="small"
         fullWidth
         required
         value={ready}
@@ -158,6 +169,7 @@ const handleUpdateStore = async () => {
       
          <TextField
         label="Open Status"
+                size="small"
         fullWidth
         required
         value={status}
@@ -169,6 +181,7 @@ const handleUpdateStore = async () => {
     
       <TextField
         label="Store Name"
+                size="small"
         fullWidth
         required
         value={storeName}
@@ -202,6 +215,7 @@ const handleUpdateStore = async () => {
       <Box sx={{ display: 'flex', gap: 2 }}>
         <TextField
           label="Open Time"
+                  size="small"
           type="time"
           fullWidth
           required
@@ -212,6 +226,7 @@ const handleUpdateStore = async () => {
 
         <TextField
           label="Close Time"
+                  size="small"
           type="time"
           fullWidth
           required
@@ -223,6 +238,7 @@ const handleUpdateStore = async () => {
 
       <TextField
         label="Address Line"
+                size="small"
         fullWidth
         required
         value={storeAddress1}
@@ -241,6 +257,7 @@ const handleUpdateStore = async () => {
       />
 
       <TextField
+              size="small"
         label="FSSAI"
         fullWidth
         value={fssai}
@@ -248,12 +265,40 @@ const handleUpdateStore = async () => {
         margin="normal"
       />
 
+
       <TextField
-        label="Phone"
+        size="small"
+        label="Email 1"
+        fullWidth
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        margin="normal"
+      />
+       <TextField
+              size="small"
+        label="Email 2"
+        fullWidth
+        value={email1}
+        onChange={(e) => setEmail1(e.target.value)}
+        margin="normal"
+      />
+
+      <TextField
+        label="Phone 1"
+           size="small"
         type="number"
         fullWidth
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
+        margin="normal"
+      />
+      <TextField
+        label="Phone 2"
+           size="small"
+        type="number"
+        fullWidth
+        value={phone1}
+        onChange={(e) => setPhone1(e.target.value)}
         margin="normal"
       />
 
@@ -270,7 +315,7 @@ const handleUpdateStore = async () => {
         mt: 4,
         mb: 4,
     }}
-    onClick={() => document.getElementById('store-image-upload').click()}
+
 >
     <input
         type="file"
@@ -300,6 +345,7 @@ const handleUpdateStore = async () => {
                 alignItems: 'center',
                 justifyContent: 'center',
             }}
+                onClick={() => document.getElementById('store-image-upload').click()}
         >
             <span>Upload Store Image</span>
         </Box>
@@ -321,7 +367,7 @@ const handleUpdateStore = async () => {
         cursor: 'pointer',
         mt: 2,
     }}
-    onClick={() => document.getElementById('logo-image-upload').click()}
+
 >
     <input
         type="file"
@@ -351,6 +397,7 @@ const handleUpdateStore = async () => {
                 alignItems: 'center',
                 justifyContent: 'center',
             }}
+                onClick={() => document.getElementById('logo-image-upload').click()}
         >
             <span>Upload Logo</span>
         </Box>

@@ -246,13 +246,7 @@ setFilteredOrders([])
        
     }, [value]);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (selectedStore) fetchOrders(selectedStore);
-            
-        }, 300000); // Fetch orders every 5 minutes
-        return () => clearInterval(interval);
-    }, [selectedStore]);
+  
 
     const handleStoreChange = (event) => {
         const storeId = event.target.value;

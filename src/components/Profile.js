@@ -6,7 +6,7 @@ import {
     Avatar,
     Autocomplete,
     Snackbar,
-    Alert,IconButton
+    Alert,IconButton,SwipeableDrawer,InputAdornment,Typography
 } from '@mui/material';
 import { api } from '../utils/api';
 import { getUserInfo,setUserInfo } from '../utils/localStorage';
@@ -14,6 +14,8 @@ import { isTokenValid } from '../utils/auth';
 import { logout,redirectUser } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
+import CloseIcon from "@mui/icons-material/Close";
+
 const locations = [
     'Nettukuppam',
     'Ennore Kuppam',
@@ -35,6 +37,9 @@ const ProfilePage = () => {
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+      const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [otp, setOtp] = useState("");
+
     const navigate = useNavigate();
 
     const handleEdit = () => {
@@ -112,6 +117,26 @@ const ProfilePage = () => {
             console.error('Error updating user details:', error);
         }
     };
+      const handleVerifyPhone = async () => {
+    try {
+      // Call verify-phone API
+        setIsDrawerOpen(true); // Open drawer for OTP input
+    } catch (error) {
+      setErrors({ ...errors, phone: "Failed to verify phone number." });
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    try {
+      // Call verify-phone-otp API
+      setIsDrawerOpen(false); // Close drawer on success
+
+    } catch (error) {
+      alert("Invalid OTP. Please try again.");
+    }
+  };
+
+    
 
     return (
     <>
@@ -141,19 +166,17 @@ const ProfilePage = () => {
                         readOnly: !isEditing,
                     }}
                 />
-                <TextField
-                    name="phone"
-                    label="Phone Number"
-                    value={userInfo.phone}
-                    onChange={handleChange}
-                    fullWidth
-                    sx={{ mt: 1, mb: 2 }}
-                    error={!!errors.phone}
-                    helperText={errors.phone}
-                    InputProps={{
-                        readOnly: !isEditing,
-                    }}
-                />
+                  <TextField
+        name="phone"
+        label="Phone Number"
+        value={userInfo.phone}
+        onChange={handleChange}
+        fullWidth
+        sx={{ mt: 1, mb: 2 }}
+        error={!!errors.phone}
+        helperText={errors.phone}
+       
+      />
                 <TextField
                     name="address1"
                     label="Address Line"
@@ -210,6 +233,44 @@ const ProfilePage = () => {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+            
+            
+             <SwipeableDrawer
+        anchor="bottom"
+        open={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+
+        onOpen={() => setIsDrawerOpen(true)}
+        sx={{
+        "& .MuiDrawer-paper": {
+          height: "100%",
+          bottom: 0,
+          overflowY: "auto",
+        },
+      }}
+      >
+        <Box p={3}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Enter OTP</Typography>
+           
+          </Box>
+          <TextField
+            label="OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            fullWidth
+            sx={{ mt: 2, mb: 2 }}
+          />
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleVerifyOtp}
+            disabled={!otp || otp.length < 4}
+          >
+            Verify OTP
+          </Button>
+        </Box>
+      </SwipeableDrawer>
         </Box>
         </>
     );

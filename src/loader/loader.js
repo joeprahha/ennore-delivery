@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, LinearProgress, Typography, Button } from '@mui/material';
+import { Box, LinearProgress, Typography, Button } from '@mui/material';
 
 const CircularLoader = () => {
   const [showLoader, setShowLoader] = useState(true);

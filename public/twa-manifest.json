@@ -20,8 +20,8 @@
     "path": "/home/prabha/Documents/ennoreDelivery/frontend/ennore-delivery/public/android.keystore",
     "alias": "key0"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "4.0.0",
+  "appVersionCode": 104,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "http://localhost:3000/manifest.json",
