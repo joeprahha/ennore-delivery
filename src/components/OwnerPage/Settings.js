@@ -51,6 +51,8 @@ const Settings = ({selectedStore}) => {
   const [fssai, setFssai] = useState('');
   const [phone, setPhone] = useState('');
     const [phone1, setPhone1] = useState('');
+    const [cod, setCod] = useState('');
+
     
     const [email, setEmail] = useState([]);
         const [email1, setEmail1] = useState([]);
@@ -88,7 +90,7 @@ const Settings = ({selectedStore}) => {
           setEmail1(data.email[1] || '')
           setStatus(data.status || '')
            setReady(data.ready || '')
-
+          setCod(data.cod|| '')
         })
         .catch((error) => {
           console.error('Error fetching store details:', error);
@@ -113,7 +115,8 @@ const handleUpdateStore = async () => {
       email:[email,email1],
       storeId:selectedStore,
       ready,
-      status
+      status,
+      cod
     });
 
     console.log('Store updated successfully:', response.data);
@@ -177,6 +180,15 @@ const handleUpdateStore = async () => {
         margin="normal"
       />
       </Box>
+      <TextField
+        label="COD"
+         size="small"
+        fullWidth
+        required
+        value={cod}
+        onChange={(e) => setCod(e.target.value)}
+        margin="normal"
+      />
 
     
       <TextField
