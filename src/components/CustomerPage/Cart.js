@@ -16,11 +16,9 @@ import {
   Radio,
   Autocomplete,
   RadioGroup,
-  Chip,
   SwipeableDrawer
 } from "@mui/material";
 import TipAndDonationSection from "./Components/TipAndDonationSection"; // Adjust the import path as needed
-import CryptoJS from "crypto-js";
 
 import CheckoutButton from "./Components/CheckoutButton"; // Adjust the import path as needed
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
@@ -30,19 +28,13 @@ import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRig
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import DeliveryDiningOutlinedIcon from "@mui/icons-material/DeliveryDiningOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
-import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import { api, baseUrl } from "../../utils/api";
 
-import {
-  getCartFromLocalStorage,
-  setCartToLocalStorage,
-  getUserInfo
-} from "../../utils/localStorage";
+import { getCartFromLocalStorage, getUserInfo } from "../../utils/localStorage";
 import QuantityButton from "./Components/QuantityButton";
 
 const locations = [
@@ -252,8 +244,9 @@ const Cart = () => {
         console.error("Error fetching store data:", error);
       }
     };
-
-    fetchStoreData();
+    if (cart?.storeId) {
+      fetchStoreData();
+    }
   }, []);
 
   const handleCheckout = async () => {

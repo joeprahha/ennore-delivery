@@ -7,11 +7,11 @@
 // You can also remove this file if you'd prefer not to use a
 // service worker, and the Workbox build step will be skipped.
 
-import { clientsClaim } from 'workbox-core';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+import { clientsClaim } from "workbox-core";
+import { ExpirationPlugin } from "workbox-expiration";
+import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
+import { registerRoute } from "workbox-routing";
+import { StaleWhileRevalidate } from "workbox-strategies";
 
 clientsClaim();
 
@@ -24,16 +24,16 @@ precacheAndRoute(self.__WB_MANIFEST);
 // Set up App Shell-style routing, so that all navigation requests
 // are fulfilled with your index.html shell. Learn more at
 // https://developers.google.com/web/fundamentals/architecture/app-shell
-const fileExtensionRegexp = new RegExp('/[^/?]+\\.[^/]+$');
+const fileExtensionRegexp = new RegExp("/[^/?]+\\.[^/]+$");
 registerRoute(
   // Return false to exempt requests from being fulfilled by index.html.
   ({ request, url }) => {
     // If this isn't a navigation, skip.
-    if (request.mode !== 'navigate') {
+    if (request.mode !== "navigate") {
       return false;
     } // If this is a URL that starts with /_, skip.
 
-    if (url.pathname.startsWith('/_')) {
+    if (url.pathname.startsWith("/_")) {
       return false;
     } // If this looks like a URL for a resource, because it contains // a file extension, skip.
 
@@ -43,44 +43,45 @@ registerRoute(
 
     return true;
   },
-  createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
+  createHandlerBoundToURL(process.env.PUBLIC_URL + "/index.html")
 );
 
 // An example runtime caching route for requests that aren't handled by the
 // precache, in this case same-origin .png requests like those from in public/
 registerRoute(
   // Add in any other file extensions or routing criteria as needed.
-  ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.png'), // Customize this strategy as needed, e.g., by changing to CacheFirst.
+  ({ url }) =>
+    url.origin === self.location.origin && url.pathname.endsWith(".png"), // Customize this strategy as needed, e.g., by changing to CacheFirst.
   new StaleWhileRevalidate({
-    cacheName: 'images',
+    cacheName: "images",
     plugins: [
       // Ensure that once this runtime cache reaches a maximum size the
       // least-recently used images are removed.
-      new ExpirationPlugin({ maxEntries: 50 }),
-    ],
+      new ExpirationPlugin({ maxEntries: 50 })
+    ]
   })
 );
 
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-const CACHE_NAME = 'menu-cache-v1'; 
+const CACHE_NAME = "menu-cache-v1";
 
 // Install Event: Cache static assets and initial resources
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/', // Cache the homepage or any base assets
-        '/styles.css', // Example static CSS file
-        '/offline.html', // Optional fallback page for offline mode
-        '/app.png',
-        '/img2.png'
+        "/", // Cache the homepage or any base assets
+        "/styles.css", // Example static CSS file
+        "/offline.html", // Optional fallback page for offline mode
+        "/app.png",
+        "/img2.png"
         // Default image for offline scenarios
       ]);
     })
@@ -88,34 +89,44 @@ self.addEventListener('install', (event) => {
 });
 
 // Fetch Event: Serve requests from the cache, then fallback to network
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse; // Return cached response if available
-      }
-      return fetch(event.request).then((networkResponse) => {
-        // Dynamically cache API or image responses
-        if (event.request.url.includes('/api/menu') || event.request.url.includes('.jpg') || event.request.url.includes('.png')) {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone()); // Cache the fetched resource
-            return networkResponse;
-          });
+    caches
+      .match(event.request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse; // Return cached response if available
         }
-        return networkResponse;
-      });
-    }).catch(() => {
-      // Fallback for offline scenarios
-      if (event.request.url.includes('.jpg') || event.request.url.includes('.png')) {
-        return caches.match('/default-image.jpg');
-      }
-      return caches.match('/offline.html');
-    })
+        return fetch(event.request).then((networkResponse) => {
+          // Dynamically cache API or image responses
+          if (
+            event.request.url.includes("/api/menu") ||
+            event.request.url.includes(".jpg") ||
+            event.request.url.includes(".png")
+          ) {
+            return caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse.clone()); // Cache the fetched resource
+              return networkResponse;
+            });
+          }
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // Fallback for offline scenarios
+        if (
+          event.request.url.includes(".jpg") ||
+          event.request.url.includes(".png")
+        ) {
+          return caches.match("/default-image.jpg");
+        }
+        return caches.match("/offline.html");
+      })
   );
 });
 
 // Activate Event: Clean up old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -130,12 +141,10 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-
 self.addEventListener("push", (event) => {
   const data = event.data.json();
   self.registration.showNotification(data.title, {
     body: data.body,
-    icon: "/logo512.png", // Replace with your icon URL
+    icon: "/logo512.png" // Replace with your icon URL
   });
 });
-
