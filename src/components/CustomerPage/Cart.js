@@ -64,12 +64,19 @@ const PaymentDrawer = ({
 }) => {
   const [paymentMethod, setPaymentMethod] = useState(null); // Track selected payment method
   const [isProcessing, setIsProcessing] = useState(false); // Show processing state
+  const navigate = useNavigate();
 
   const handlePaymentProceed = async () => {
     setIsProcessing(true);
     try {
       if (paymentMethod === "cod") {
-        await api.post(`/cod/${orderId}`);
+        try {
+          await api.put(`/cod/${orderId}`);
+          navigate(`/ordersuccess/${orderId}?status=success`);
+        } catch (err) {
+          alert("Order Failed");
+          navigate("/cart");
+        }
       } else if (paymentMethod === "online") {
         await initiatePhonePePayment(orderId);
       }

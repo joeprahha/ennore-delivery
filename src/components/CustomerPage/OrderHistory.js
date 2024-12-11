@@ -282,39 +282,41 @@ const OrderHistory = ({ userId }) => {
                           : order.payment}
                       </Typography>
                       {/* Disclaimer */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between"
-                        }}
-                      >
-                        {" "}
-                        <Typography
-                          variant="body2"
+                      {order.payment !== "cash on delivery" && (
+                        <Box
                           sx={{
-                            fontSize: "0.75rem",
-                            color: "text.secondary",
-                            marginTop: 1
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between"
                           }}
                         >
-                          If the amount was debited
-                        </Typography>
-                        {/* Refetch Button */}
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          sx={{
-                            width: "120px",
-                            fontSize: "0.55rem",
-                            marginTop: 1
-                          }}
-                          onClick={(e) => refetchPaymentStatus(e, order._id)}
-                        >
-                          Refetch Payment Status
-                        </Button>
-                      </Box>
+                          {" "}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.secondary",
+                              marginTop: 1
+                            }}
+                          >
+                            If the amount was debited
+                          </Typography>
+                          {/* Refetch Button */}
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            sx={{
+                              width: "120px",
+                              fontSize: "0.55rem",
+                              marginTop: 1
+                            }}
+                            onClick={(e) => refetchPaymentStatus(e, order._id)}
+                          >
+                            Refetch Payment Status
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
                   )}
                 </Box>
