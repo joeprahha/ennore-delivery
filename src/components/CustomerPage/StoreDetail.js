@@ -417,9 +417,28 @@ const StoreDetail = () => {
                           theme.palette.mode === "dark" ? "#333" : "#fff"
                       }}
                     >
-                      <Typography variant="subtitle2" sx={{ fontSize: "1rem" }}>
-                        {category}
-                      </Typography>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {true && (
+                          <img
+                            src={
+                              "https://res.cloudinary.com/dq6e1ggmv/image/upload/w_300,h_300,c_fill,f_webp/v1732717278/nozvhexm318zbfskmmfm.jpg"
+                            }
+                            alt={category}
+                            style={{
+                              width: 50,
+                              height: 50,
+                              marginRight: 8,
+                              borderRadius: "50%"
+                            }}
+                          />
+                        )}
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ fontSize: "1rem" }}
+                        >
+                          {category}
+                        </Typography>
+                      </Box>
                     </AccordionSummary>
 
                     {/* Accordion Details */}
