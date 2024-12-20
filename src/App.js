@@ -33,6 +33,7 @@ import CircularLoader from './loader/loader';  // Import the new CircularLoader
 // Import ToastContainer and toast from react-toastify
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AssignDriver from './components/assignDriver';
 
 const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme, isDarkMode, cart, setCart, count, setCount, handleCartCount, loading }) => {
     const location = useLocation();
@@ -55,19 +56,21 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
 
 
     const customerRoutes = [
-        "/signin", "/stores", "/about", "/profile", "/stores/:storeId", "/cart", "/orders", "/ordersuccess/:orderid", "/tc", '/account', "/ordersuccess/:orderid", "/payment"
+       '/assign-driver', "/signin", "/stores", "/about", "/profile", "/stores/:storeId", "/cart", "/orders", "/ordersuccess/:orderid", "/tc", '/account', "/ordersuccess/:orderid", "/payment"
     ];
 
     const ownerRoutes = [
-    "/bulkmenu", "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', "/tc","/profile", "/stores/:storeId","/stores"
+   '/assign-driver', "/bulkmenu", "/signin", "/mystore", "/mystore/:storeId", "/reports", '/stores', "/tc","/profile", "/stores/:storeId","/stores"
     ];
 
+    
+
     const deliveryPartnerRoutes = [
-        "/signin", "/deliveries", "/orders", "/tc"
+        "/signin", "/deliveries", "/orders", "/tc",'/profile'
     ];
     
     const godRoutes = [
-        "/ms", "/tc", ...customerRoutes, ...ownerRoutes, ...deliveryPartnerRoutes, "/reports"
+        '/assign-driver',"/ms", "/tc", ...customerRoutes, ...ownerRoutes, ...deliveryPartnerRoutes, "/reports"
     ];
 
     const isRouteAllowed = (routeList) => {
@@ -117,7 +120,10 @@ const AppContent = ({ handleMenuClick, sidebarOpen, setSidebarOpen, toggleTheme,
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/account" element={<Account toggleTheme={toggleTheme} isDarkMode={isDarkMode} />} />
                 <Route path="/ms" element={<MS />} />
-                                <Route path="/bulkmenu" element={<BulkMenu />} />
+             <Route path="/bulkmenu" element={<BulkMenu />} />
+             <Route path='/assign-driver' element={<AssignDriver />} />
+
+             
             </Routes>
 
             {showBottomNav && <BottomNav />}

@@ -144,7 +144,7 @@ const StoreDetail = () => {
 
     // Check and validate cached menu data
     const cachedMenu = sessionStorage.getItem(menuCacheKey);
-    const cachedStore = sessionStorage.getItem(storeCacheKey);
+    const cachedStore = false; //sessionStorage.getItem(storeCacheKey);
 
     const currentTime = Date.now();
 
@@ -418,11 +418,9 @@ const StoreDetail = () => {
                       }}
                     >
                       <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {true && (
+                        {menuItems[category]?.image && (
                           <img
-                            src={
-                              "https://res.cloudinary.com/dq6e1ggmv/image/upload/w_300,h_300,c_fill,f_webp/v1732717278/nozvhexm318zbfskmmfm.jpg"
-                            }
+                            src={menuItems[category]?.image}
                             alt={category}
                             style={{
                               width: 50,

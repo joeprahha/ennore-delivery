@@ -258,8 +258,8 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     setLoading(true);
-    if (subtotal < 100) {
-      alert("Minimum order value is 100 rs");
+    if (subtotal < 200) {
+      alert("Minimum order value is 200 rs");
       setLoading(false);
       return;
     }

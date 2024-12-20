@@ -36,13 +36,21 @@ const ItemModal = ({ open, handleClose, order }) => {
         <Typography variant="h6" component="h2" gutterBottom>
           Order Details #{orderId}
         </Typography>
-
-        {/* Customer Name, Order ID, and Placed At */}
+        <Typography variant="body1">Placed At: {placedAtIST}</Typography>
         <Box mb={1}>
+      {/* Display Customer Name */}
+      <Typography variant="body1">Name: {order?.customer_details?.name}</Typography>
 
+      {/* Display Phone Number */}
+      <Typography variant="body1">Phone: {order?.customer_details?.phone}</Typography>
 
-          <Typography variant="body1">Placed At: {placedAtIST}</Typography>
-        </Box>
+      {/* Display Address */}
+      <Typography variant="body1">
+        Address: {order.customer_details?.address?.address1}, {order?.customer_details?.address?.local}
+      </Typography>
+    </Box>
+      
+      
 	
         
         <Typography variant="body1">Payment Status : {order.payment}</Typography>
@@ -52,7 +60,7 @@ const ItemModal = ({ open, handleClose, order }) => {
         sx={{
         mt:1,
           flex: 1,
-         width:"100%",
+         width:"auto",
           padding: 1,
           border: "1px solid #ccc",
           borderRadius: "8px",
@@ -80,15 +88,16 @@ const ItemModal = ({ open, handleClose, order }) => {
       <Table stickyHeader> {/* Sticky header for better visibility */}
         <TableHead>
           <TableRow>
-            <TableCell><strong>Name</strong></TableCell>
             <TableCell align="center"><strong>Quantity</strong></TableCell>
+            <TableCell><strong>Name</strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {items.map((item, index) => (
             <TableRow key={index}>
+               <TableCell align="center">{item.count}</TableCell>
               <TableCell>{item.name}</TableCell>
-              <TableCell align="center">{item.count}</TableCell>
+             
             </TableRow>
           ))}
         </TableBody>

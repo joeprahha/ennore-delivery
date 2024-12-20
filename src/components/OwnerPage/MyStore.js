@@ -552,7 +552,10 @@ const relativeTime = getRelativeTimeFromIST(placedAtIST);
                                 <MenuItem value="new">New</MenuItem>
                                 <MenuItem value="accepted">Accepted</MenuItem>
                                 <MenuItem value="ready">Ready</MenuItem>
+
                                 <MenuItem value="delivered">Delivered</MenuItem>
+                                <MenuItem value="cancelled">Cancel</MenuItem>
+
                             </Select>
                         </FormControl>
                     </TableCell>: 

@@ -53,7 +53,7 @@ const Stores = () => {
     const fetchStores = async () => {
       setLoading(true);
       try {
-        const cachedStores = sessionStorage.getItem(`stores`);
+        const cachedStores = false; //sessionStorage.getItem(`stores`);
         if (cachedStores) {
           const { stores, timestamp } = JSON.parse(cachedStores);
           const isCacheValid = Date.now() - timestamp < 2 * 60 * 1000;

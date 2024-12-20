@@ -277,7 +277,7 @@ const OrderHistory = ({ userId }) => {
                         }}
                         textAlign="right"
                       >
-                        {order.payment === "failed"
+                        {order.status==='cancelled'?'Order Cancelled':order.payment === "failed"
                           ? "Payment Failed"
                           : order.payment}
                       </Typography>

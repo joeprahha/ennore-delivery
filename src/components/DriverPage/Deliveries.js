@@ -118,13 +118,34 @@ const Deliveries = () => {
       setLoadingNew(true);
       const response = await api.get("/orders");
       setOrders(response.data);
-      setNewOrders(response.data.filter((o) => o.status !== "delivered"));
+      setNewOrders(
+        response.data.filter(
+          (o) => o.status !== "delivered" || o.status !== "cancelled"
+        )
+      );
       setError(null); // Clear any previous error on success
     } catch (error) {
       setError("Error fetching new orders");
       console.error("Error fetching new orders:", error);
     } finally {
       setLoadingNew(false);
+    }
+  };
+
+  const fetchDriverAssignments = async () => {
+    try {
+      //setLoadingAssignments(true); // Set loading state to true before the request
+      const response = await api.get(
+        `/assign-driver?driverId=${getUserInfo()._id}`
+      ); // Make the GET request to fetch assignments
+      //  setAssignments(response.data); // Set the state with the fetched assignments
+      //setUnassignedAssignments(response.data.filter((a) => a.status !== "completed")); // Filter the unassigned or incomplete assignments
+      setError(null); // Clear any previous errors on success
+    } catch (error) {
+      setError("Error fetching driver assignments"); // Set an error message if the request fails
+      console.error("Error fetching driver assignments:", error); // Log the error for debugging
+    } finally {
+      // setLoadingAssignments(false); // Set loading state to false after the request finishes (whether successful or not)
     }
   };
 
@@ -325,7 +346,8 @@ const Deliveries = () => {
                       .filter(
                         (order) =>
                           order?.deliver_by === getUserInfo().name &&
-                          order.status !== "delivered"
+                          (order.status !== "delivered" ||
+                            order.status !== "cancelled")
                       )
                       .map((order) => (
                         <TableRow
@@ -370,7 +392,10 @@ const Deliveries = () => {
                 <TableBody>
                   {completedOrders.length > 0 ? (
                     completedOrders
-                      .filter((co) => co.status === "delivered")
+                      .filter(
+                        (co) =>
+                          co.status === "delivered" || co.status !== "cancelled"
+                      )
                       .map((order) => (
                         <TableRow
                           key={order.id}
@@ -428,7 +453,8 @@ const Deliveries = () => {
             Order Details
           </Typography>
 
-          {selectedOrder?.status !== "delivered" ? (
+          {selectedOrder?.status !== "delivered" ||
+          selectedOrder.status !== "cancelled" ? (
             <Button
               onClick={assignToMe}
               sx={{

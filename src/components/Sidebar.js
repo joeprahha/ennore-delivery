@@ -23,6 +23,7 @@ import {
     LightMode as LightModeIcon,
     DarkMode as DarkModeIcon,
 } from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getToken, getUserFromToken, logout, decodeToken } from '../utils/auth';
@@ -41,7 +42,9 @@ const Sidebar = ({ open, onClose, toggleTheme, isDarkMode }) => {
         ],
         owner: [
             { label: 'My Store', link: '/mystore', icon: <HomeIcon /> },
-            { label: 'Home', link: '/stores', icon: <HomeIcon /> }
+            { label: 'Home', link: '/stores', icon: <HomeIcon /> },
+            { label: 'Assign Driver', link: '/assign-driver', icon: <AddIcon /> },
+
 
         ],
         deliveryPartner: [
