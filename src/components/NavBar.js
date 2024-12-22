@@ -5,7 +5,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
-
+import ElectricMopedIcon from '@mui/icons-material/ElectricMoped';
 const NavBar = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -78,6 +78,18 @@ const NavBar = () => {
                                      mb:1
                 }}
             />
+             <BottomNavigationAction
+      label="Deliver"
+      icon={<ElectricMopedIcon sx={{ fontSize: '1.2rem' }}/>}
+      value="/assign-driver"
+      onClick={() => setValue('/assign-driver')}
+      sx={{
+        color: value === '/assign-driver' ? 'primary.main' : 'text.secondary',
+        typography: 'caption',
+        fontSize: '0.55rem',
+        mb: 1,
+      }}
+    />
             <BottomNavigationAction
                 label="Cart"
                 icon={<ShoppingCartIcon sx={{ fontSize: '1.2rem' }}/>}

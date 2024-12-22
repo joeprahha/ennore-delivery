@@ -137,8 +137,8 @@ const Deliveries = () => {
       //setLoadingAssignments(true); // Set loading state to true before the request
       const response = await api.get(
         `/assign-driver?driverId=${getUserInfo()._id}`
-      ); // Make the GET request to fetch assignments
-      //  setAssignments(response.data); // Set the state with the fetched assignments
+      );
+       setAssignedOrders(response.data); // Set the state with the fetched assignments
       //setUnassignedAssignments(response.data.filter((a) => a.status !== "completed")); // Filter the unassigned or incomplete assignments
       setError(null); // Clear any previous errors on success
     } catch (error) {
@@ -197,14 +197,15 @@ const Deliveries = () => {
   };
 
   // Handle tab change
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange =async(vent, newValue) => {
     setValue(newValue);
     if (newValue === 0) {
-      fetchNewOrders();
+      await fetchNewOrders();
     } else if (newValue === 1) {
-      fetchNewOrders();
+      await fetchDriverAssignments()
+      //fetchNewOrders();
     } else {
-      fetchCompletedOrders();
+    await  fetchCompletedOrders();
     }
   };
 
@@ -342,10 +343,10 @@ const Deliveries = () => {
                 </TableHead>
                 <TableBody>
                   {newOrders.length > 0 ? (
-                    newOrders
+                    [...newOrders,...assignedOrders]
                       .filter(
                         (order) =>
-                          order?.deliver_by === getUserInfo().name &&
+                          (order?.deliver_by === getUserInfo().name||order?.diverName === getUserInfo().name) &&
                           (order.status !== "delivered" ||
                             order.status !== "cancelled")
                       )
