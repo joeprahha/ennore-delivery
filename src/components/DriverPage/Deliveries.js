@@ -24,6 +24,7 @@ import {
 import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
 import { api } from "../../utils/api";
 import { getUserInfo } from "../../utils/localStorage";
+import ElectricMopedIcon from "@mui/icons-material/ElectricMoped";
 
 const steps = ["Placed", "Accepted", "Ready", "Driver Picked", "Delivered"];
 const collectionSteps = ["Placed", "Accepted", "Ready"];
@@ -110,7 +111,7 @@ const Deliveries = () => {
   const [loadingCompleted, setLoadingCompleted] = useState(false);
   const [error, setError] = useState(null); // For error handling
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState({});
 
   // Fetch new orders
   const fetchNewOrders = async () => {
@@ -131,15 +132,15 @@ const Deliveries = () => {
       setLoadingNew(false);
     }
   };
-
   const fetchDriverAssignments = async () => {
     try {
       //setLoadingAssignments(true); // Set loading state to true before the request
       const response = await api.get(
         `/assign-driver?driverId=${getUserInfo()._id}`
       );
-       setAssignedOrders(response.data); // Set the state with the fetched assignments
-      //setUnassignedAssignments(response.data.filter((a) => a.status !== "completed")); // Filter the unassigned or incomplete assignments
+
+      setAssignedOrders(response.data.assignments); //Set the state with the fetched assignments
+      //setUnassignedAssignments(response.sdata.filter((a) => a.status !== "completed")); // Filter the unassigned or incomplete assignments
       setError(null); // Clear any previous errors on success
     } catch (error) {
       setError("Error fetching driver assignments"); // Set an error message if the request fails
@@ -197,15 +198,15 @@ const Deliveries = () => {
   };
 
   // Handle tab change
-  const handleTabChange =async(vent, newValue) => {
+  const handleTabChange = async (event, newValue) => {
     setValue(newValue);
     if (newValue === 0) {
       await fetchNewOrders();
     } else if (newValue === 1) {
-      await fetchDriverAssignments()
+      await fetchDriverAssignments();
       //fetchNewOrders();
     } else {
-    await  fetchCompletedOrders();
+      await fetchCompletedOrders();
     }
   };
 
@@ -342,24 +343,40 @@ const Deliveries = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {newOrders.length > 0 ? (
-                    [...newOrders,...assignedOrders]
-                      .filter(
-                        (order) =>
-                          (order?.deliver_by === getUserInfo().name||order?.diverName === getUserInfo().name) &&
-                          (order.status !== "delivered" ||
-                            order.status !== "cancelled")
+                  {[...newOrders, ...assignedOrders].length > 0 ? (
+                    [...newOrders, ...assignedOrders]
+                      .filter((order) => {
+                        return (
+                          (order?.deliver_by === getUserInfo().name &&
+                            (order.status !== "delivered" ||
+                              order.status !== "cancelled")) ||
+                          order?.assignmentId
+                        );
+                      })
+                      .map((order) =>
+                        !order.assignmentId ? (
+                          <TableRow
+                            key={order.id}
+                            onClick={() => handleRowClick(order)}
+                          >
+                            <TableCell>{order.createduser}</TableCell>
+                            <TableCell>{order.total}</TableCell>
+                            <TableCell>{order.status}</TableCell>
+                          </TableRow>
+                        ) : (
+                          <TableRow
+                            key={order.id}
+                            onClick={() => handleRowClick(order)}
+                          >
+                            <TableCell>
+                              {<ElectricMopedIcon sx={{ color: "red" }} />}
+                            </TableCell>
+                            <TableCell>Rs.10</TableCell>{" "}
+                            {/* Show Rs.10 when there's no assignmentId */}
+                            <TableCell>{order.status}</TableCell>
+                          </TableRow>
+                        )
                       )
-                      .map((order) => (
-                        <TableRow
-                          key={order.id}
-                          onClick={() => handleRowClick(order)}
-                        >
-                          <TableCell>{order.createduser}</TableCell>
-                          <TableCell>{order.total}</TableCell>
-                          <TableCell>{order.status}</TableCell>
-                        </TableRow>
-                      ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} align="center">
@@ -453,35 +470,51 @@ const Deliveries = () => {
           <Typography variant="h6" sx={{ fontSize: "1rem" }}>
             Order Details
           </Typography>
+          {
+  (
+    <Button
+      onClick={assignToMe}
+      sx={{
+        backgroundColor: "inherit",
+        color: "white",
+        "&:hover": {
+          backgroundColor: "#c62828"
+        }
+      }}
+    >
+      {selectedOrder?.status === 'new' ? 'New' : selectedOrder?.status === 'picked' ? 'Delivered' : 'Delivered'}
+    </Button>
+  )
+}
 
-          {selectedOrder?.status !== "delivered" ||
-          selectedOrder.status !== "cancelled" ? (
-            <Button
-              onClick={assignToMe}
-              sx={{
-                backgroundColor: DriverStatus[selectedOrder?.status]
-                  ? "red"
-                  : selectedOrder?.deliver_by
-                  ? "inherit"
-                  : "red",
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "#c62828"
-                }
-              }}
-              disabled={!DriverStatus[selectedOrder?.status]}
-            >
-              {selectedOrder?.deliver_by
-                ? DriverStatus[selectedOrder?.status] ||
-                  selectedOrder?.deliver_by
-                : "Assign to Me"}
-            </Button>
-          ) : (
-            <Button sx={{ backgroundColor: "green" }}>Delivered</Button>
-          )}
+      
         </Box>
 
-        {selectedOrder && (
+        {selectedOrder?.assignmentId ? (
+          <>
+            <Paper elevation={3} sx={{ borderRadius: 2, padding: 1, mb: 2 }}>
+              <Box sx={{ display: "flex",flexDirection:'column', alignItems: "start",justifyContent:'center', my: 1 }}>
+                <Typography variant="body1" sx={{ fontSize: "0.75rem", mr: 2 }}>
+                  <strong>Assignment ID:</strong> {selectedOrder?._id}
+                </Typography>
+
+                <Typography variant="h6" sx={{ fontSize: "0.9rem" }}>
+                  Pickup Address:{selectedOrder?.fromAddress}
+                </Typography>
+                <Typography variant="h6" sx={{ fontSize: "0.9rem" }}>
+                  Pickup Contact:{selectedOrder?.senderPhone}
+                </Typography> 
+                <Typography variant="h6" sx={{ fontSize: "0.9rem" }}>
+                  Drop Address:{selectedOrder?.toAddress}
+                </Typography>
+                 <Typography variant="h6" sx={{ fontSize: "0.9rem" }}>
+                  Drop Contact:{selectedOrder?.reciverPhone}
+                </Typography>
+
+              </Box>
+            </Paper>
+          </>
+        ) : (
           <Box sx={{ padding: 2 }}>
             <Stepper
               activeStep={getStatusIndex(selectedOrder?.status)}
@@ -502,7 +535,7 @@ const Deliveries = () => {
             <Paper elevation={3} sx={{ borderRadius: 2, padding: 1, mb: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem", mr: 2 }}>
-                  <strong>Order ID:</strong> {selectedOrder._id}
+                  <strong>Order ID:</strong> {selectedOrder?._id}
                 </Typography>
                 {selectedOrder.payment === "paid" ? (
                   <Typography
@@ -559,21 +592,21 @@ const Deliveries = () => {
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
-                  <strong>Name:</strong> {selectedOrder.customer_details.name}
+                  <strong>Name:</strong> {selectedOrder.customer_details?.name}
                 </Typography>
               </Box>
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
-                  <strong>Phone:</strong> {selectedOrder.customer_details.phone}
+                  <strong>Phone:</strong> {selectedOrder.customer_details?.phone}
                 </Typography>
               </Box>
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
                   <strong>Address:</strong>{" "}
-                  {selectedOrder.customer_details.address?.address1},{" "}
-                  {selectedOrder.customer_details.address?.local}
+                  {selectedOrder.customer_details?.address?.address1},{" "}
+                  {selectedOrder.customer_details?.address?.local}
                 </Typography>
               </Box>
             </Paper>
@@ -583,7 +616,7 @@ const Deliveries = () => {
               <Typography variant="h6" sx={{ fontSize: "0.75rem" }}>
                 Items
               </Typography>
-              {JSON.parse(selectedOrder.items).map((item) => (
+              {JSON.parse(selectedOrder.items||'[]')||[].map((item) => (
                 <>
                   <Box
                     key={item.id}

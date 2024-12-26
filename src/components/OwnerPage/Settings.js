@@ -9,7 +9,10 @@ import {
   Typography,
   Paper,
   Button,
-  Autocomplete,CircularProgress
+  Autocomplete,CircularProgress,
+  FormControlLabel,
+  Switch,
+  Grid
 } from '@mui/material';
 import { api } from '../../utils/api';
 
@@ -52,8 +55,9 @@ const Settings = ({selectedStore}) => {
   const [phone, setPhone] = useState('');
     const [phone1, setPhone1] = useState('');
     const [cod, setCod] = useState('');
+    const [minimumOrderValue, setMinOrderValue] = useState('');
+    const [onlyOrderByPhone, setOnlyyOrderByPhone] = useState('');
 
-    
     const [email, setEmail] = useState([]);
         const [email1, setEmail1] = useState([]);
         
@@ -91,6 +95,8 @@ const Settings = ({selectedStore}) => {
           setStatus(data.status || '')
            setReady(data.ready || '')
           setCod(data.cod|| '')
+          setMinOrderValue(data.minimumOrderValue||'')
+          setOnlyyOrderByPhone(data.onlyOrderByPhone|'')
         })
         .catch((error) => {
           console.error('Error fetching store details:', error);
@@ -157,40 +163,76 @@ const handleUpdateStore = async () => {
         margin: '0 auto',
       }}
     >
-    
-     <Box sx={{ display: 'flex', gap: 2 }}>
-        <TextField
+      <Box sx={{ flexGrow: 1 }}>
+  <Grid container spacing={2}>
+    <Grid item xs={6}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={ready}
+            onChange={(e) => setReady(e.target.checked)}
+            color="primary"
+          />
+        }
         label="Ready"
-        size="small"
-        fullWidth
-        required
-        value={ready}
-        onChange={(e) => setReady(e.target.value)}
-        margin="normal"
+        labelPlacement="start"
       />
-     
-      
+    </Grid>
+
+    <Grid item xs={6}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={status}
+            onChange={(e) => setStatus(e.target.checked)}
+            color="primary"
+          />
+        }
+        label="Open"
+        labelPlacement="start"
+      />
+    </Grid>
+
+    <Grid item xs={6}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={cod}
+            onChange={(e) => setCod(e.target.checked)}
+            color="primary"
+          />
+        }
+        label="COD"
+        labelPlacement="start"
+      />
+    </Grid>
+
+    <Grid item xs={6}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={onlyOrderByPhone}
+            onChange={(e) => setOnlyyOrderByPhone(e.target.checked)}
+            color="primary"
+          />
+        }
+        label="Only Phone Order"
+        labelPlacement="start"
+      />
+    </Grid>
+  </Grid>
+</Box>
+    
+   
          <TextField
-        label="Open Status"
+        label="Minimum Order VAlue"
                 size="small"
         fullWidth
         required
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
+        value={minimumOrderValue}
+        onChange={(e) => setMinOrderValue(e.target.value)}
         margin="normal"
       />
-      </Box>
-      <TextField
-        label="COD"
-         size="small"
-        fullWidth
-        required
-        value={cod}
-        onChange={(e) => setCod(e.target.value)}
-        margin="normal"
-      />
-
-    
       <TextField
         label="Store Name"
                 size="small"

@@ -21,7 +21,7 @@ import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDown
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import { api } from "../utils/api";
 import { getUserInfo } from "../utils/localStorage";
-import HistoryIcon from '@mui/icons-material/History';
+import HistoryIcon from "@mui/icons-material/History";
 const steps = ["Placed", "Driver Picked", "Delivered"];
 const statusMapping = {
   new: 0,
@@ -50,7 +50,7 @@ const AssignDriver = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     customerId: getUserInfo()._id, // Add customerId
-    fromAddress: getUserInfo().address1+', '+getUserInfo().local,
+    fromAddress: getUserInfo().address1 + ", " + getUserInfo().local,
     toAddress: "",
     senderPhone: getUserInfo().phone,
     receiverPhone: ""
@@ -110,7 +110,10 @@ const AssignDriver = () => {
         <Typography variant="h6" sx={{ fontSize: "0.75rem" }} gutterBottom>
           See and Track Assigned History*
         </Typography>
-        <Button  onClick={handleClick}><HistoryIcon/>History</Button>
+        <Button onClick={handleClick}>
+          <HistoryIcon />
+          History
+        </Button>
       </Box>
 
       <Box
@@ -126,9 +129,11 @@ const AssignDriver = () => {
           borderRadius: "8px"
         }}
       >
-        <Typography variant="h6" fontSize={'1rem'}>Assign a Driver for your Delivery</Typography>
+        <Typography variant="h6" fontSize={"1rem"}>
+          Assign a Driver for your Delivery
+        </Typography>
 
-        <Typography variant="subtitle"  fontSize={'0.85rem'}>
+        <Typography variant="subtitle" fontSize={"0.85rem"}>
           *Note: Only inside Ennore area
         </Typography>
         <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -196,7 +201,16 @@ const AssignDriver = () => {
           </Grid>
         </Grid>
 
-        <Box mt={2}>
+        <Box
+          mt={2}
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography variant="body1" component="span">
+            Total Rs.10
+          </Typography>
+
           <Button
             variant="contained"
             color="primary"
