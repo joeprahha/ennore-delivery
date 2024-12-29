@@ -5,7 +5,8 @@ import {
   Typography,
   Paper,
   InputAdornment,
-  IconButton
+  IconButton,
+  Divider
 } from "@mui/material";
 import BedtimeIcon from "@mui/icons-material/Bedtime";
 import { useNavigate } from "react-router-dom";
@@ -43,7 +44,13 @@ const Stores = () => {
     setIsSearching(false);
   };
 
-  const categories = ["Groceries", "Fast Food", "Pizza", "Burger", "Bakery"];
+  const allowedCategories = [
+    "Restaurant",
+    "Groceries",
+    "Bakes",
+    "Meat",
+    "Other Service"
+  ];
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -78,7 +85,7 @@ const Stores = () => {
 
     fetchStores();
   }, [navigate]);
-
+  console.log("go;", filteredStores);
   useEffect(() => {
     const newFilteredStores = stores.filter((store) => {
       const matchesSearch = store.name
@@ -93,6 +100,32 @@ const Stores = () => {
   const handleStoreClick = (storeId) => {
     navigate(`/stores/${storeId}`);
   };
+
+  const groupStoresByCategory = (stores) => {
+    const groupedStores = {};
+
+    stores.forEach((store) => {
+      const categories = store.category.split(",");
+      categories.forEach((category) => {
+        category = category.trim();
+        if (
+          allowedCategories.some((allowedCategory) =>
+            category.includes(allowedCategory)
+          )
+        ) {
+          if (!groupedStores[category]) {
+            groupedStores[category] = [];
+          }
+          groupedStores[category].push(store);
+        }
+      });
+    });
+
+    return groupedStores;
+  };
+
+  // Group stores by category
+  const groupedStores = groupStoresByCategory(filteredStores);
 
   return (
     <Box
@@ -210,155 +243,187 @@ const Stores = () => {
           <Box
             sx={{ display: "flex", flexDirection: "column", gap: 2, p: 1.5 }}
           >
-            {filteredStores
+            {Object.keys(groupedStores)
               .sort((a, b) => {
-                // If a.rank is missing, treat it as a high rank (last in the list)
-                if (a.rank == null) return 1; // a goes to the end
-                // If b.rank is missing, treat it as a high rank (last in the list)
-                if (b.rank == null) return -1; // b goes to the end
+                const firstLetterA = a[0].toLowerCase(); // Get the first letter of 'a' (in lowercase)
+                const firstLetterB = b[0].toLowerCase(); // Get the first letter of 'b' (in lowercase)
 
-                // Otherwise, compare the ranks in ascending order
-                return a.rank - b.rank;
+                // Compare the first letters of 'a' and 'b'
+                if (firstLetterA < firstLetterB) return -1; // If 'a' comes first alphabetically, return -1
+                if (firstLetterA > firstLetterB) return 1; // If 'b' comes first alphabetically, return 1
+                return 0; // If both are the same, return 0 (no change in order)
               })
-              .map((store) => {
-                const now = new Date();
-                const currentTimeString = `${now
-                  .getHours()
-                  .toString()
-                  .padStart(2, "0")}:${now
-                  .getMinutes()
-                  .toString()
-                  .padStart(2, "0")}`;
-
-                const currentMinutes = convertToMinutes(currentTimeString);
-                const openMinutes = convertToMinutes(store.open_time);
-                const closeMinutes = convertToMinutes(store.close_time);
-                const isTimeOpen =
-                  closeMinutes > openMinutes
-                    ? currentMinutes >= openMinutes &&
-                      currentMinutes <= closeMinutes
-                    : currentMinutes >= openMinutes ||
-                      currentMinutes <= closeMinutes;
-
-                const isOpen = isTimeOpen && store.status === "open";
-                const isReady = store?.ready;
-                return (
-                  <Paper
-                    key={store._id}
-                    elevation={1}
-                    onClick={
-                      isOpen && isReady
-                        ? () => handleStoreClick(store._id)
-                        : null
-                    }
+              .map((category) => (
+                <>
+                  <Box
                     sx={{
-                      mb: 1,
-                      width: "100%",
-                      textAlign: "center",
-                      cursor: "pointer",
-                      position: "relative",
-                      overflow: "hidden",
-                      borderRadius: "6px"
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center"
                     }}
                   >
-                    <img
-                      src={store?.image || "/app.png"}
-                      alt="store"
-                      style={{
-                        width: "100%",
-                        height: "180px",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                        borderTopLeftRadius: "6px",
-                        borderTopRightRadius: "6px"
-                      }}
-                      loading="lazy"
-                    />
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        p: 0.5,
-                        pl: 2
-                      }}
+                    <Typography
+                      variant="h6"
+                      color="text.secondary"
+                      sx={{ fontSize: "0.75rem" }}
                     >
-                      <Typography
-                        variant="subtitle2"
-                        align="left"
-                        sx={{ fontSize: "1rem", fontWeight: 500 }}
-                      >
-                        {store.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        align="left"
-                        sx={{ mb: 1, fontSize: "0.75rem", color: "#555" }}
-                      >
-                        {store.address1}
-                      </Typography>
-                      {store?.cod && (
-                        <Typography
-                          variant="body1"
-                          textAlign={"left"}
+                      {category}
+                    </Typography>
+                    <Divider sx={{ flexGrow: 1, mt: 0.5 }} />
+                  </Box>
+
+                  {groupedStores[category]
+                    .sort((a, b) => {
+                      // If a.rank is missing, treat it as a high rank (last in the list)
+                      if (a.rank == null) return 1; // a goes to the end
+                      // If b.rank is missing, treat it as a high rank (last in the list)
+                      if (b.rank == null) return -1; // b goes to the end
+
+                      // Otherwise, compare the ranks in ascending order
+                      return a.rank - b.rank;
+                    })
+                    .map((store) => {
+                      const now = new Date();
+                      const currentTimeString = `${now
+                        .getHours()
+                        .toString()
+                        .padStart(2, "0")}:${now
+                        .getMinutes()
+                        .toString()
+                        .padStart(2, "0")}`;
+
+                      const currentMinutes =
+                        convertToMinutes(currentTimeString);
+                      const openMinutes = convertToMinutes(store.open_time);
+                      const closeMinutes = convertToMinutes(store.close_time);
+                      const isTimeOpen =
+                        closeMinutes > openMinutes
+                          ? currentMinutes >= openMinutes &&
+                            currentMinutes <= closeMinutes
+                          : currentMinutes >= openMinutes ||
+                            currentMinutes <= closeMinutes;
+
+                      const isOpen = isTimeOpen && store.status === "open";
+                      const isReady = store?.ready;
+                      return (
+                        <Paper
+                          key={store._id}
+                          elevation={1}
+                          onClick={
+                            isOpen && isReady
+                              ? () => handleStoreClick(store._id)
+                              : null
+                          }
                           sx={{
                             mb: 1,
-                            fontSize: "0.75rem",
-                            color: "success.main",
-                            fontWeight: "500"
+                            width: "100%",
+                            textAlign: "center",
+                            cursor: "pointer",
+                            position: "relative",
+                            overflow: "hidden",
+                            borderRadius: "6px"
                           }}
                         >
-                          Cash on Delivery is available
-                        </Typography>
-                      )}
-                    </Box>
-                    {(!isOpen || !isReady) && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "180px",
-                          backgroundColor:
-                            !isOpen || !isReady
-                              ? "rgba(0, 0, 0, 0.5)"
-                              : "inherit", // Add a comma here
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderTopLeftRadius: "6px",
-                          borderTopRightRadius: "6px",
-                          zIndex: 1,
-                          textAlign: "center"
-                        }}
-                      >
-                        {isReady && (
-                          <Typography
-                            variant="subtitle2"
-                            color="white"
-                            display="flex"
-                            alignItems="center"
+                          <img
+                            src={store?.image || "/app.png"}
+                            alt="store"
+                            style={{
+                              width: "100%",
+                              height: "180px",
+                              objectFit: "cover",
+                              objectPosition: "center",
+                              borderTopLeftRadius: "6px",
+                              borderTopRightRadius: "6px"
+                            }}
+                            loading="lazy"
+                          />
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              p: 0.5,
+                              pl: 2
+                            }}
                           >
-                            Store Closed
-                            <BedtimeIcon sx={{ marginLeft: 0.5 }} />
-                          </Typography>
-                        )}
-                        {isReady && !isTimeOpen && (
-                          <Typography variant="subtitle2" color="white">
-                            opens at: {store.open_time}
-                          </Typography>
-                        )}
-                        {!isReady && (
-                          <Typography variant="subtitle2" color="white">
-                            Coming Soon...
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
-                  </Paper>
-                );
-              })}
+                            <Typography
+                              variant="subtitle2"
+                              align="left"
+                              sx={{ fontSize: "1rem", fontWeight: 500 }}
+                            >
+                              {store.name}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              align="left"
+                              sx={{ mb: 1, fontSize: "0.75rem", color: "#555" }}
+                            >
+                              {store.address1}
+                            </Typography>
+                            {store?.cod && (
+                              <Typography
+                                variant="body1"
+                                textAlign={"left"}
+                                sx={{
+                                  mb: 1,
+                                  fontSize: "0.75rem",
+                                  color: "success.main",
+                                  fontWeight: "500"
+                                }}
+                              >
+                                Cash on Delivery is available
+                              </Typography>
+                            )}
+                          </Box>
+                          {(!isOpen || !isReady) && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "180px",
+                                backgroundColor:
+                                  !isOpen || !isReady
+                                    ? "rgba(0, 0, 0, 0.5)"
+                                    : "inherit", // Add a comma here
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderTopLeftRadius: "6px",
+                                borderTopRightRadius: "6px",
+                                zIndex: 1,
+                                textAlign: "center"
+                              }}
+                            >
+                              {isReady && (
+                                <Typography
+                                  variant="subtitle2"
+                                  color="white"
+                                  display="flex"
+                                  alignItems="center"
+                                >
+                                  Store Closed
+                                  <BedtimeIcon sx={{ marginLeft: 0.5 }} />
+                                </Typography>
+                              )}
+                              {isReady && !isTimeOpen && (
+                                <Typography variant="subtitle2" color="white">
+                                  opens at: {store.open_time}
+                                </Typography>
+                              )}
+                              {!isReady && (
+                                <Typography variant="subtitle2" color="white">
+                                  Coming Soon...
+                                </Typography>
+                              )}
+                            </Box>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                </>
+              ))}
           </Box>
         </>
       )}

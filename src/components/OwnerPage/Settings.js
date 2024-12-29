@@ -54,14 +54,14 @@ const Settings = ({selectedStore}) => {
   const [fssai, setFssai] = useState('');
   const [phone, setPhone] = useState('');
     const [phone1, setPhone1] = useState('');
-    const [cod, setCod] = useState('');
-    const [minimumOrderValue, setMinOrderValue] = useState('');
-    const [onlyOrderByPhone, setOnlyyOrderByPhone] = useState('');
+    const [cod, setCod] = useState(false);
+    const [minimumOrderValue, setMinOrderValue] = useState(100);
+    const [onlyOrderByPhone, setOnlyyOrderByPhone] = useState(false);
 
     const [email, setEmail] = useState([]);
         const [email1, setEmail1] = useState([]);
         
-  const[ready,setReady]= useState('');
+  const[ready,setReady]= useState(false);
     const[ status,setStatus]= useState('');
     const [imageUploading, setImageUploading] = useState(false);
     
@@ -93,10 +93,10 @@ const Settings = ({selectedStore}) => {
           setPhone1(data.phone[1] || '');
           setEmail1(data.email[1] || '')
           setStatus(data.status || '')
-           setReady(data.ready || '')
-          setCod(data.cod|| '')
-          setMinOrderValue(data.minimumOrderValue||'')
-          setOnlyyOrderByPhone(data.onlyOrderByPhone|'')
+           setReady(data.ready || false)
+          setCod(data.cod|| false)
+          setMinOrderValue(data.minimumOrderValue||100)
+          setOnlyyOrderByPhone(data.onlyOrderByPhone||false)
         })
         .catch((error) => {
           console.error('Error fetching store details:', error);
@@ -122,7 +122,9 @@ const handleUpdateStore = async () => {
       storeId:selectedStore,
       ready,
       status,
-      cod
+      cod,
+      minimumOrderValue,
+      onlyOrderByPhone
     });
 
     console.log('Store updated successfully:', response.data);

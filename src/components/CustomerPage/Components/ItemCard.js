@@ -43,7 +43,7 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,
                 <Box
                     sx={{
                         width: '100%',
-                        height: '110px',
+                        height: '120px',
                         overflow: 'hidden',
                         borderRadius: '4px',
                         backgroundColor: item.image ? 'transparent' : '#f0f0f0',
@@ -71,10 +71,8 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,
                         fontWeight: 500, 
                         overflow: 'hidden', 
                         textOverflow: 'ellipsis', 
-                        display: '-webkit-box', 
-                        WebkitLineClamp: 3, 
-                        WebkitBoxOrient: 'vertical', 
-                        height: '4rem', 
+                       
+                        height: '2.5rem', 
                         width: '100%',
                         mt: 0.5,
                     }}
@@ -85,7 +83,7 @@ const ItemCard = ({ item, cart, setCart, addToCart, handleOpenModal,storeStatus,
                 <Typography 
                     variant="body2" 
                     sx={{ 
-                        mb: 1, 
+                        mb: 0.5, 
                         fontSize: '0.75rem', 
                         color: '#555',
                         overflow: 'hidden', 

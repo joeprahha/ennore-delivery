@@ -193,7 +193,7 @@ const Cart = () => {
   const [couponOffer, setCouponOffer] = useState("");
   const [createdOrderId, setCreatedOrderId] = useState("");
   const [storeAllowsCOD, setStoreAllowsCOD] = useState(false); // Track if the store allows COD
-  const [storeDetail, setStoreDetails] = useState({});
+  const [storeDetail, setStoreDetails] = useState({ status: "open",minOrderValue:100 });
 
   const subtotal = cart.items.reduce(
     (total, item) => total + item.price * item.count,
@@ -259,9 +259,11 @@ const Cart = () => {
   }, []);
 
   const handleCheckout = async () => {
+    console.log(storeDetail.minOrderValue);
+    let minOrderValue = storeDetail.minOrderValue || 100;
     setLoading(true);
-    if (subtotal < 200) {
-      alert("Minimum order value is 200 rs");
+    if (minOrderValue > subtotal) {
+      alert("Minimum order value is Rs." + minOrderValue);
       setLoading(false);
       return;
     }
@@ -687,7 +689,8 @@ const Cart = () => {
             total={total}
             loading={loading}
             handleCheckout={handleCheckout}
-            storeOpen={storeDetail?.status === "open"}
+            storeOpen={storeDetail ? storeDetail?.status === "open" : true}
+            storeDetail={storeDetail}
           />
 
           {/* Drawer for Address */}

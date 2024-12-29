@@ -160,9 +160,9 @@ const AssignDriver = () => {
               inputProps={{
                 maxLength: 10 // Limit input to 10 characters
               }}
-              error={formData.senderPhone.length !== 10} // Show error if phone number is not 10 digits
+              error={formData.senderPhone?.length !== 10} // Show error if phone number is not 10 digits
               helperText={
-                formData.senderPhone.length !== 10
+                formData.senderPhone?.length !== 10
                   ? "Phone number must be 10 digits"
                   : ""
               }
@@ -191,9 +191,9 @@ const AssignDriver = () => {
               inputProps={{
                 maxLength: 10 // Limit input to 10 characters
               }}
-              error={formData.receiverPhone.length !== 10} // Show error if phone number is not 10 digits
+              error={formData.receiverPhone?.length !== 10} // Show error if phone number is not 10 digits
               helperText={
-                formData.receiverPhone.length !== 10
+                formData.receiverPhone?.length !== 10
                   ? "Phone number must be 10 digits"
                   : ""
               }
@@ -217,8 +217,8 @@ const AssignDriver = () => {
             onClick={handleSubmit}
             disabled={
               !formData.fromAddress ||
-              formData.senderPhone.length !== 10 ||
-              formData.receiverPhone.length !== 10
+              formData.senderPhone?.length !== 10 ||
+              formData.receiverPhone?.length !== 10
             } // Disable button if required fields are empty or phone numbers are invalid
           >
             Assign Driver
@@ -269,7 +269,7 @@ const AssignDriver = () => {
         </Box>
 
         {/* Conditional rendering for assignments */}
-        {assignmentData.length > 0 ? (
+        {assignmentData?.length > 0 ? (
           assignmentData.map((assignment, index) => (
             <Paper key={index} sx={{ width: "auto", padding: 1, m: 1 }}>
               <Box

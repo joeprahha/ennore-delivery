@@ -7,30 +7,21 @@ import {
   Paper,
   InputAdornment,
   Grid,
-  SwipeableDrawer,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  useTheme,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
+  useTheme
 } from "@mui/material";
-import ItemCardV2 from "./Components/ItemCardV2"; // Adjust the import based on your file structure
 import ItemCard from "./Components/ItemCard";
 import ClearIcon from "@mui/icons-material/Clear";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { GoToOrdersButton } from "./Components/GoToOrdersButton";
 import BikeLoader from "../../loader/BikeLoader";
 import { useParams, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
-import CloseIcon from "@mui/icons-material/Close";
 import { isTokenValid, logout } from "../../utils/auth";
 import { api } from "../../utils/api";
 import ItemDetailModal from "./Components/ItemModal";
 import { getCartFromLocalStorage } from "../../utils/localStorage";
+import AccordionMenu from "./Components/AccordionMenu";
+import TabMenu from "./Components/TabMenu";
 
 const StoreDetail = () => {
   const theme = useTheme();
@@ -40,6 +31,9 @@ const StoreDetail = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [storeInfo, setStoreInfo] = useState(null);
+  const [isGrocery, setIsGrocery] = useState(false);
+  const [isServices, setIsServices] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -93,34 +87,6 @@ const StoreDetail = () => {
         setCart({ ...existingCart });
         localStorage.setItem("cart", JSON.stringify(existingCart));
       }
-    }
-  };
-
-  const incrementItemCount = (item) => {
-    const existingItem = cart.items.find((cartItem) => cartItem.id === item.id);
-    if (existingItem) {
-      existingItem.count += 1;
-      setCart({ ...cart, items: [...cart.items] });
-      localStorage.setItem(
-        "cart",
-        JSON.stringify({ ...cart, items: [...cart.items] })
-      );
-    }
-  };
-
-  const decrementItemCount = (item) => {
-    const existingItem = cart.items.find((cartItem) => cartItem.id === item.id);
-    if (existingItem) {
-      if (existingItem.count > 1) {
-        existingItem.count -= 1;
-      } else {
-        cart.items = cart.items.filter((cartItem) => cartItem.id !== item.id);
-      }
-      setCart({ ...cart, items: [...cart.items] });
-      localStorage.setItem(
-        "cart",
-        JSON.stringify({ ...cart, items: [...cart.items] })
-      );
     }
   };
 
@@ -195,6 +161,7 @@ const StoreDetail = () => {
 
     setMenuItems(menuData);
     setStoreInfo(storeData);
+    setIsGrocery(storeData?.category?.includes("roceries"));
   };
 
   useEffect(() => {
@@ -203,26 +170,6 @@ const StoreDetail = () => {
     }
     fetchMenu();
   }, []);
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    const categoryElement = document.getElementById(`category-${newValue}`);
-    if (categoryElement) {
-      const stickyHeaderHeight = 80;
-      const elementOffset =
-        categoryElement.getBoundingClientRect().top + window.scrollY;
-      const centerPosition =
-        elementOffset -
-        window.innerHeight / 2 +
-        categoryElement.clientHeight / 2 +
-        stickyHeaderHeight;
-
-      window.scrollTo({
-        top: centerPosition,
-        behavior: "smooth"
-      });
-    }
-  };
 
   const filteredItems = searchTerm
     ? Object.entries(menuItems).reduce(
@@ -245,34 +192,6 @@ const StoreDetail = () => {
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
   };
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Find the index of the category that is intersecting
-            const index = categoryRefs.current.indexOf(entry.target);
-            if (index !== -1 && activeTab !== index) {
-              setActiveTab(index); // Set the active tab based on the category index
-            }
-          }
-        });
-      },
-      {
-        threshold: 0.5 // This means at least 50% of the category should be visible to trigger the observer
-      }
-    );
-
-    // Observe all category elements
-    categoryRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => {
-      observer.disconnect(); // Cleanup the observer when the component is unmounted or dependencies change
-    };
-  }, [menuItems, activeTab, categoryRefs]); // Add activeTab and menuItems as dependencies
 
   return (
     <Box sx={{ width: "100%", p: 0 }}>
@@ -394,74 +313,38 @@ const StoreDetail = () => {
 
           <Box sx={{ p: 0.2 }}>
             {!searchTerm ? (
-              Object.keys(menuItems)
-                .filter((c) => menuItems[c]?.available)
-                .map((category, index) => (
-                  <Accordion
-                    key={index}
-                    sx={{ mt: 0.5, width: "100%" }}
-                    elevation={0}
-                  >
-                    {/* Accordion Summary */}
-                    <AccordionSummary
-                      expandIcon={
-                        <ArrowDropDownIcon
-                          fontSize="large"
-                          sx={{ color: "black" }}
-                        />
-                      }
-                      aria-controls={`panel-${index}-content`}
-                      id={`panel-${index}-header`}
-                      sx={{
-                        backgroundColor: (theme) =>
-                          theme.palette.mode === "dark" ? "#333" : "#fff"
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {menuItems[category]?.image && (
-                          <img
-                            src={menuItems[category]?.image}
-                            alt={category}
-                            style={{
-                              width: 50,
-                              height: 50,
-                              marginRight: 8,
-                              borderRadius: "50%"
-                            }}
-                          />
-                        )}
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontSize: "1rem" }}
-                        >
-                          {category}
-                        </Typography>
-                      </Box>
-                    </AccordionSummary>
-
-                    {/* Accordion Details */}
-                    <AccordionDetails sx={{ p: 0 }}>
-                      <Grid container spacing={1} sx={{}}>
-                        {menuItems[category].items
-                          .filter((item) => item.available)
-                          .map((item) => (
-                            <Box sx={{ width: "100%" }}>
-                              <ItemCardV2
-                                key={item.id}
-                                item={item}
-                                cart={cart}
-                                setCart={setCart}
-                                addToCart={addToCart}
-                                handleOpenModal={handleOpenModal}
-                                storeStatus={storeInfo}
-                              />{" "}
-                              <Divider />
-                            </Box>
-                          ))}
-                      </Grid>
-                    </AccordionDetails>
-                  </Accordion>
-                ))
+              isGrocery ? (
+                <TabMenu
+                
+                  menuItems={menuItems}
+                
+                  cart={cart}
+                  setCart={setCart}
+                  addToCart={addToCart}
+                  handleOpenModal={handleOpenModal}
+                  navigate={navigate}
+                  storeInfo={storeInfo}
+                />
+              ) : isServices ? (
+                <></> // or null if you prefer no rendering
+              ) : (
+                Object.keys(menuItems)
+                  .filter((category) => menuItems[category]?.available)
+                  .map((category, index) => (
+                    <AccordionMenu
+                      key={index}
+                      category={category}
+                      menuItems={menuItems}
+                      index={index}
+                      cart={cart}
+                      setCart={setCart}
+                      addToCart={addToCart}
+                      handleOpenModal={handleOpenModal}
+                      navigate={navigate}
+                      storeInfo={storeInfo}
+                    />
+                  ))
+              )
             ) : (
               <Grid container spacing={2}>
                 {filteredItems.map((item) => (
@@ -491,56 +374,6 @@ const StoreDetail = () => {
               addToCart={addToCart}
             />
           }
-
-          <SwipeableDrawer
-            anchor="bottom"
-            open={drawerOpen}
-            onClose={toggleDrawer(false)}
-            onOpen={toggleDrawer(true)}
-            sx={{
-              "& .MuiDrawer-paper": {
-                height: "83%",
-                bottom: 0,
-                borderRadius: "16px 16px 0 0"
-              }
-            }}
-          >
-            <Box
-              sx={{
-                p: 2,
-                height: "100%",
-                display: "flex",
-                flexDirection: "column"
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <IconButton onClick={toggleDrawer(false)}>
-                  <CloseIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  Select Category
-                </Typography>
-              </Box>
-              <List sx={{ flexGrow: 1, overflowY: "auto" }}>
-                {Object.keys(menuItems)
-                  .filter((c) => menuItems[c]?.available)
-                  .map((category, index) => (
-                    <React.Fragment key={index}>
-                      <ListItem
-                        button
-                        onClick={() => {
-                          handleTabChange(null, index);
-                          toggleDrawer(false)();
-                        }}
-                      >
-                        <ListItemText primary={category} />
-                      </ListItem>
-                      <Divider />
-                    </React.Fragment>
-                  ))}
-              </List>
-            </Box>
-          </SwipeableDrawer>
         </>
       )}
       {goToCartButton ? <GoToOrdersButton cart={cart} /> : null}
