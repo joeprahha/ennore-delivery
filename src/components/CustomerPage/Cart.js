@@ -193,7 +193,7 @@ const Cart = () => {
   const [couponOffer, setCouponOffer] = useState("");
   const [createdOrderId, setCreatedOrderId] = useState("");
   const [storeAllowsCOD, setStoreAllowsCOD] = useState(false); // Track if the store allows COD
-  const [storeDetail, setStoreDetails] = useState({ status: "open",minOrderValue:100 });
+  const [storeDetail, setStoreDetails] = useState({ status: "open" });
 
   const subtotal = cart.items.reduce(
     (total, item) => total + item.price * item.count,
@@ -249,6 +249,7 @@ const Cart = () => {
         const response = await api.get(`/stores/${cart.storeId}`); // Replace with your actual store API endpoint
         setStoreDetails(response.data); //status open close , minOrderValue
         setStoreAllowsCOD(response.data?.cod || false); //();
+        
       } catch (error) {
         console.error("Error fetching store data:", error);
       }
@@ -378,7 +379,7 @@ const Cart = () => {
           {/* Cart Items */}
 
           <Paper elevation={3} sx={{ borderRadius: 2, padding: 2, mb: 2 }}>
-            {storeDetail.minOrderValue > subtotal && (
+            {storeDetail?.minOrderValue > subtotal && (
               <Typography
                 variant="body1"
                 sx={{

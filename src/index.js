@@ -25,7 +25,19 @@ function Root() {
       }
     });
   }, []);
-
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/firebase-messaging-sw.js")
+      .then((registration) => {
+        console.log(
+          "Service Worker registered with scope:",
+          registration.scope
+        );
+      })
+      .catch((error) => {
+        console.error("Service Worker registration failed:", error);
+      });
+  }
   const handleUpdate = () => {
     window.location.reload(); // Reload the page to get the new version
   };
