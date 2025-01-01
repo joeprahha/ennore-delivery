@@ -210,7 +210,7 @@ const MyStore = ({ onMenuClick }) => {
         fetchOrders(response.data[0]._id);
       }
       if (!response?.data?.fcmToken && localStorage.getItem("fcmToken")) {
-        await api.put(`stores/${selectedStore}`, {
+        await api.put(`stores/${response.data[0]._id}`, {
           fcmToken: localStorage.getItem("fcmToken")
         });
       }

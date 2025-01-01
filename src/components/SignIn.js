@@ -35,18 +35,19 @@ import {
 
 const handleUpdateUserDetails = async () => {
   try {
-    await api.put("update-user", {
-      ...getUserInfo(),
-      fcmToken: localStorage.getItem("fcmToken")
-    });
-    localStorage.setItem(
-      "userInfo",
-      JSON.stringify({
+    if (getUserInfo().phone) {
+      await api.put("update-user", {
         ...getUserInfo(),
         fcmToken: localStorage.getItem("fcmToken")
-      })
-    );
-  
+      });
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          ...getUserInfo(),
+          fcmToken: localStorage.getItem("fcmToken")
+        })
+      );
+    }
   } catch (error) {
     console.error("Error updating user details:", error);
   }
@@ -74,6 +75,7 @@ const SignIn = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle visibility of confirm password
 
   const [clickCount, setClickCount] = useState(0);
+  const [FCMToken, setFCMToken] = useState(0);
 
   const [signLoader, setSignLoader] = useState(false); // 0 for Sign In, 1 for Sign Up
 
@@ -82,6 +84,8 @@ const SignIn = () => {
       const newCount = prevCount + 1;
       if (newCount === 8) {
         setLoginMethod("password"); // Trigger your action here
+        localStorage.getItem("fcmToken") &&
+          setFCMToken(localStorage.getItem("fcmToken"));
       }
       return newCount;
     });
@@ -632,6 +636,30 @@ const SignIn = () => {
           About
         </span>
       </Box>
+
+      {FCMToken ? (
+        <>
+          <Typography
+            variant="body1"
+            onClick={() => {
+              navigator.clipboard
+                .writeText(FCMToken)
+                .then(() => {})
+                .catch(() => {});
+            }}
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              cursor: "pointer",
+              userSelect: "all" // This should be the correct syntax
+            }}
+          >
+            {FCMToken}
+          </Typography>
+        </>
+      ) : (
+        <></>
+      )}
     </>
   );
 };

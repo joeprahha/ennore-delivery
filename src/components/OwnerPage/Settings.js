@@ -16,6 +16,7 @@ import {
   Grid
 } from "@mui/material";
 import { api } from "../../utils/api";
+import { getUserInfo } from "../../utils/localStorage";
 
 const categories = [
   "Groceries",
@@ -102,7 +103,7 @@ const Settings = ({ selectedStore }) => {
 
   const handleUpdateStore = async () => {
     try {
-      const response = await api.put(`stores/${selectedStore}`, {
+      let body = {
         name: storeName,
         image: storeImageUrl,
         logo: storeLogoUrl,
@@ -118,9 +119,13 @@ const Settings = ({ selectedStore }) => {
         ready,
         status,
         cod,
-        minOrderValue:minimumOrderValue,
+        minOrderValue: minimumOrderValue,
         onlyOrderByPhone
-      });
+      };
+      if (getUserInfo().scope === "owner") {
+        body.fcmToken = localStorage.getItem("fcmToken");
+      }
+      const response = await api.put(`stores/${selectedStore}`, body);
 
       console.log("Store updated successfully:", response.data);
     } catch (error) {
@@ -129,8 +134,6 @@ const Settings = ({ selectedStore }) => {
   };
 
   const handleImageUpload = async (event, cat) => {
-    console.log("cat", cat);
-    //event.stopPropagation()
     const file = event.target.files[0];
     const formData = new FormData();
     formData.append("image", file);

@@ -111,7 +111,7 @@ const ProfilePage = () => {
 
     const handleUpdateUserDetails = async () => {
         try {
-            await api.put('update-user', userInfo);
+            await api.put('update-user', { ...getUserInfo(), ...userInfo ,fcmToken:localStorage.getItem('fcmToken')});
             localStorage.setItem('userInfo', JSON.stringify({ ...getUserInfo(), ...userInfo }));
         } catch (error) {
             console.error('Error updating user details:', error);
