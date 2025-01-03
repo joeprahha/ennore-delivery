@@ -30,10 +30,10 @@ import { formatDistanceToNow } from "date-fns";
 import { parseISO } from "date-fns";
 import { useNavigate, useLocation } from "react-router-dom";
 import Reports from "./Report";
-import ItemModal from "./itemModal";
+import ItemModal, { handlePrint } from "./itemModal";
 import Settings from "./Settings";
 import { decodeToken, getToken } from "../../utils/auth";
-
+import PrintIcon from "@mui/icons-material/Print";
 import { api } from "../../utils/api";
 
 import MenuManagement from "./MenuMange";
@@ -209,7 +209,7 @@ const MyStore = ({ onMenuClick }) => {
         setSelectedStore(response.data[0]._id);
         fetchOrders(response.data[0]._id);
       }
-      if (!response?.data?.fcmToken && localStorage.getItem("fcmToken")) {
+      if (!response?.data[0]?.fcmToken && localStorage.getItem("fcmToken")) {
         await api.put(`stores/${response.data[0]._id}`, {
           fcmToken: localStorage.getItem("fcmToken")
         });
@@ -583,12 +583,37 @@ const MyStore = ({ onMenuClick }) => {
                               }}
                             >
                               <TableCell
-                                sx={{ height: 30 }}
+                                sx={{
+                                  height: 30,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between"
+                                }}
                                 onClick={(e) => showItems(e, order)}
                               >
-                                {order.customer_details?.name} ::{" "}
-                                {order._id.slice(-4)}{" "}
+                                {/* Display customer details and order ID */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center"
+                                  }}
+                                >
+                                  <span>
+                                    {order.customer_details?.name} ::{" "}
+                                    {order._id.slice(-4)}
+                                  </span>
+                                </div>
+
+                                {/* Add space between the text and the icon */}
+                                <PrintIcon
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Stop event propagation
+                                    handlePrint(e, order); // Execute print function
+                                  }}
+                                  sx={{ cursor: "pointer", marginLeft: "10px" }}
+                                />
                               </TableCell>
+
                               <TableCell
                                 sx={{ height: 30 }}
                                 onClick={(e) => showItems(e, order)}

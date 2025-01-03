@@ -147,13 +147,29 @@ const PaymentDrawer = ({
               <FormControlLabel
                 value="cod"
                 control={<Radio />}
-                label="Cash on Delivery"
-                disabled={!storeAllowsCOD} // Disable if store doesn't allow COD
+                label={
+                  <>
+                    Cash on Delivery
+                    <span
+                      style={{
+                        fontSize: "0.8em",
+                        color: "#888",
+                        display: "block",
+                        marginTop: "4px"
+                      }}
+                    >
+                      *You may also pay via GPay, PhonePe, etc., on delivery.
+                    </span>
+                  </>
+                }
+                disabled={!storeAllowsCOD} // Disable if the store doesn't allow COD
               />
               <FormControlLabel
                 value="online"
                 control={<Radio />}
-                label="Online Payment"
+                label="Online Payment (disabled)"
+                disabled={true} // Disable this option
+                style={{ color: "#888" }} // Set text color to indicate it's disabled
               />
             </RadioGroup>
             <Box sx={{ marginTop: "20px", textAlign: "center" }}>
@@ -249,7 +265,6 @@ const Cart = () => {
         const response = await api.get(`/stores/${cart.storeId}`); // Replace with your actual store API endpoint
         setStoreDetails(response.data); //status open close , minOrderValue
         setStoreAllowsCOD(response.data?.cod || false); //();
-        
       } catch (error) {
         console.error("Error fetching store data:", error);
       }

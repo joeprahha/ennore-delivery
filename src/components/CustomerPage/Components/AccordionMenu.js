@@ -1,19 +1,45 @@
-import React from 'react';
-import { Accordion, AccordionSummary, AccordionDetails, Box, Typography, Grid } from '@mui/material';
+import React from "react";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Box,
+  Typography,
+  Grid
+} from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ItemCardV2 from './ItemCardV2'; // Assuming ItemCard is another component
+import ItemCardV2 from "./ItemCardV2"; // Assuming ItemCard is another component
 
 // MenuAccordion Component for rendering individual category sections
-const AccordionMenu = ({ category, menuItems, index, cart, setCart, addToCart, handleOpenModal, navigate, storeInfo }) => {
+const AccordionMenu = ({
+  category,
+  menuItems,
+  index,
+  cart,
+  setCart,
+  addToCart,
+  handleOpenModal,
+  navigate,
+  storeInfo,
+  categoryLength
+}) => {
   return (
-    <Accordion key={index} sx={{ mt: 0.5, width: "100%" }} elevation={0}>
+    <Accordion
+      key={index}
+      sx={{ mt: 0.5, width: "100%" }}
+      elevation={0}
+      expanded={categoryLength <= 5}
+    >
       {/* Accordion Summary */}
       <AccordionSummary
-        expandIcon={<ArrowDropDownIcon fontSize="large" sx={{ color: "black" }} />}
+        expandIcon={
+          <ArrowDropDownIcon fontSize="large" sx={{ color: "black" }} />
+        }
         aria-controls={`panel-${index}-content`}
         id={`panel-${index}-header`}
         sx={{
-          backgroundColor: (theme) => theme.palette.mode === "dark" ? "#333" : "#fff"
+          backgroundColor: (theme) =>
+            theme.palette.mode === "dark" ? "#333" : "#fff"
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -37,7 +63,11 @@ const AccordionMenu = ({ category, menuItems, index, cart, setCart, addToCart, h
 
       {/* Accordion Details */}
       <AccordionDetails sx={{ p: 0 }}>
-        <Box key={index} id={`category-${index}`} sx={{ p: 0.5, width: "auto" }}>
+        <Box
+          key={index}
+          id={`category-${index}`}
+          sx={{ p: 0.5, width: "auto" }}
+        >
           <Grid container spacing={1}>
             {menuItems[category].items
               .filter((item) => item.available) // Filter only available items
@@ -50,7 +80,6 @@ const AccordionMenu = ({ category, menuItems, index, cart, setCart, addToCart, h
                   handleOpenModal={handleOpenModal}
                   navigate={navigate}
                   storeStatus={storeInfo}
-                  
                 />
               ))}
           </Grid>
@@ -59,6 +88,5 @@ const AccordionMenu = ({ category, menuItems, index, cart, setCart, addToCart, h
     </Accordion>
   );
 };
-
 
 export default AccordionMenu;

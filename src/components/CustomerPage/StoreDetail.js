@@ -342,6 +342,7 @@ const StoreDetail = () => {
                       handleOpenModal={handleOpenModal}
                       navigate={navigate}
                       storeInfo={storeInfo}
+                      categoryLength={Object.keys(menuItems).length}
                     />
                   ))
               )
