@@ -438,7 +438,7 @@ const Deliveries = () => {
           </Typography>
 
           {selectedOrder?.status !== "delivered" &&
-          selectedOrder.status !== "cancelled" ? (
+          selectedOrder?.status !== "cancelled" ? (
             <Button
               onClick={assignToMe}
               sx={{
@@ -485,9 +485,9 @@ const Deliveries = () => {
             <Paper elevation={3} sx={{ borderRadius: 2, padding: 1, mb: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem", mr: 2 }}>
-                  <strong>Order ID:</strong> {selectedOrder._id}
+                  <strong>Order ID:</strong> {selectedOrder?._id}
                 </Typography>
-                {selectedOrder.payment === "paid" ? (
+                {selectedOrder?.payment === "paid" ? (
                   <Typography
                     variant="h6"
                     sx={{ fontSize: "0.9rem", color: "green" }}
@@ -508,14 +508,14 @@ const Deliveries = () => {
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
                   <strong>Placed Time:</strong>{" "}
-                  {new Date(selectedOrder.created_at).toLocaleString("en-IN", {
+                  {new Date(selectedOrder?.created_at).toLocaleString("en-IN", {
                     timeZone: "Asia/Kolkata"
                   })}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontSize: "1rem" }}>
-                  <strong>Total:</strong> ₹{selectedOrder.total}
+                  <strong>Total:</strong> ₹{selectedOrder?.total}
                 </Typography>
               </Box>
             </Paper>
@@ -528,7 +528,7 @@ const Deliveries = () => {
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
-                  <strong>Store Name:</strong> {selectedOrder.storename}
+                  <strong>Store Name:</strong> {selectedOrder?.storename}
                 </Typography>
               </Box>
               <Divider />
@@ -542,21 +542,22 @@ const Deliveries = () => {
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
-                  <strong>Name:</strong> {selectedOrder.customer_details.name}
+                  <strong>Name:</strong> {selectedOrder?.customer_details?.name}
                 </Typography>
               </Box>
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
-                  <strong>Phone:</strong> {selectedOrder.customer_details.phone}
+                  <strong>Phone:</strong>{" "}
+                  {selectedOrder?.customer_details?.phone}
                 </Typography>
               </Box>
               <Divider />
               <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
                 <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
                   <strong>Address:</strong>{" "}
-                  {selectedOrder.customer_details.address?.address1},{" "}
-                  {selectedOrder.customer_details.address?.local}
+                  {selectedOrder?.customer_details.address?.address1},{" "}
+                  {selectedOrder?.customer_details.address?.local}
                 </Typography>
               </Box>
             </Paper>
@@ -566,7 +567,7 @@ const Deliveries = () => {
               <Typography variant="h6" sx={{ fontSize: "0.75rem" }}>
                 Items
               </Typography>
-              {JSON.parse(selectedOrder.items).map((item) => (
+              {JSON.parse(selectedOrder?.items).map((item) => (
                 <>
                   <Box
                     key={item.id}
