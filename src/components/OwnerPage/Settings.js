@@ -123,7 +123,7 @@ const Settings = ({ selectedStore }) => {
         onlyOrderByPhone
       };
       if (getUserInfo().scope === "owner") {
-        body.fcmToken = localStorage.getItem("fcmToken");
+        //ody.fcmToken = localStorage.getItem("fcmToken");
       }
       const response = await api.put(`stores/${selectedStore}`, body);
 

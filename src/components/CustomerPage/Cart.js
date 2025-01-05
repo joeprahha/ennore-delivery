@@ -52,6 +52,64 @@ const locations = [
   "Ennore Bus Depot Surroundings"
 ];
 
+const LabelTag = ({ text, style = {}, component }) => (
+  <Typography
+    variant="body2"
+    style={{
+      fontSize: "0.70rem",
+      color: "#888",
+      marginLeft: "4px",
+      ...style
+    }}
+    component={component}
+  >
+    {text}
+  </Typography>
+);
+const PaymentDetailTag = ({ paymentDetails }) => (
+  <Paper
+    sx={{
+      mt: 1,
+      p: 1,
+      pl: 2,
+      pr: 2,
+      mb: 2
+      //backgroundColor: "#f9f9f9"
+    }}
+    elevation={1}
+  >
+    {paymentDetails?.map((item, index) => (
+      <Paper key={index} elevation={0} sx={{}}>
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Typography
+            variant="body2"
+            sx={{
+              width: "80%",
+              fontWeight: "430",
+              textAlign: "right",
+              fontSize: "0.70rem",
+              pr: 4
+            }}
+          >
+            {item.title}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              width: "20%",
+              fontWeight: "330",
+              textAlign: "left",
+              fontSize: "0.70rem"
+            }}
+          >
+            ₹{item.value}
+          </Typography>
+        </Box>
+      </Paper>
+    ))}{" "}
+  </Paper>
+);
+
 const PaymentDrawer = ({
   orderId,
   redirectUrl,
@@ -60,25 +118,27 @@ const PaymentDrawer = ({
   onOpen,
   cart,
   initiatePhonePePayment,
-  storeAllowsCOD
+  storeAllowsCOD,
+  total
 }) => {
   const [paymentMethod, setPaymentMethod] = useState(null); // Track selected payment method
   const [isProcessing, setIsProcessing] = useState(false); // Show processing state
   const navigate = useNavigate();
+  const [paymentDetails, setPaymentDetails] = useState({});
 
   const handlePaymentProceed = async () => {
     setIsProcessing(true);
     try {
       if (paymentMethod === "cod") {
         try {
-          await api.put(`/cod/${orderId}`);
+          await api.put(`/cod/${orderId}?paymentMethod=${paymentMethod}`);
           navigate(`/ordersuccess/${orderId}?status=success`);
         } catch (err) {
           alert("Order Failed");
           navigate("/cart");
         }
-      } else if (paymentMethod === "online") {
-        await initiatePhonePePayment(orderId);
+      } else if (paymentMethod === "online" || paymentMethod === "partial") {
+        await initiatePhonePePayment(orderId, paymentMethod);
       }
     } catch (error) {
       console.error("Payment API error:", error);
@@ -86,7 +146,30 @@ const PaymentDrawer = ({
       setIsProcessing(false);
     }
   };
+  useEffect(() => {
+    const paymentMessages = {
+      cod: [
+        { title: "Total", value: total },
+        { title: "Total to be paid on delivery", value: total }
+      ],
+      partial: [
+        { title: "Total", value: total },
+        { title: "Amount to be paid now", value: 10 },
+        {
+          title: "Amount to be paid on delivery",
+          value: total - 10
+        }
+      ],
+      online: [
+        { title: "Total", value: total },
+        { title: "Transaction Fee (2%)", value: total * 0.02 },
+        { title: "Total Payable Amount", value: total + total * 0.02 }
+      ]
+    };
 
+    // Set the payment details based on the selected payment method
+    setPaymentDetails(paymentMessages[paymentMethod]);
+  }, [paymentMethod, total]);
   return (
     <SwipeableDrawer
       anchor="bottom"
@@ -120,7 +203,7 @@ const PaymentDrawer = ({
           }}
         >
           <ArrowBackIosNewOutlinedIcon onClick={onClose} />
-          <h2 style={{ marginLeft: "10px" }}>Payment</h2>
+          <h2 style={{ marginLeft: "10px" }}>Payment</h2>{" "}
         </Box>
 
         {/* Payment Options */}
@@ -136,7 +219,7 @@ const PaymentDrawer = ({
             title="Payment Page"
           />
         ) : (
-          <Box sx={{ padding: "20px" }}>
+          <Box sx={{ p: 2 }}>
             <Typography variant="h6" style={{ marginBottom: "20px" }}>
               Select Payment Method
             </Typography>
@@ -144,34 +227,115 @@ const PaymentDrawer = ({
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
             >
-              <FormControlLabel
-                value="cod"
-                control={<Radio />}
-                label={
-                  <>
-                    Cash on Delivery
-                    <span
-                      style={{
-                        fontSize: "0.8em",
-                        color: "#888",
-                        display: "block",
-                        marginTop: "4px"
-                      }}
-                    >
-                      *You may also pay via GPay, PhonePe, etc., on delivery.
-                    </span>
-                  </>
-                }
-                disabled={!storeAllowsCOD} // Disable if the store doesn't allow COD
-              />
-              <FormControlLabel
-                value="online"
-                control={<Radio />}
-                label="Online Payment (disabled)"
-                disabled={true} // Disable this option
-                style={{ color: "#888" }} // Set text color to indicate it's disabled
-              />
+              {/* Partial Payment */}
+              <Paper
+                elevation={0}
+                sx={{
+                  pl: 1,
+                  pr: 1,
+                  mb: 3,
+
+                  boxSizing: "border-box"
+                }}
+              >
+                <FormControlLabel
+                  value="partial"
+                  control={<Radio />}
+                  label={
+                    <>
+                      <Typography
+                        variant="h6"
+                        component="span"
+                        sx={{ fontSize: "0.90rem" }}
+                      >
+                        Partial Online Payment
+                      </Typography>
+                      <LabelTag text="(Recommended)" component="span" />
+                      <LabelTag
+                        text=" Just Pay ₹10 now to place your order,
+                        balance is payable on delivery."
+                      />
+                      {paymentMethod === "partial" && (
+                        <PaymentDetailTag paymentDetails={paymentDetails} />
+                      )}
+                    </>
+                  }
+                />
+              </Paper>
+
+              {/* <Paper
+                elevation={0}
+                sx={{
+                  pl: 1,
+                  pr: 1,
+                  mb: 3,
+                  boxSizing: "border-box"
+                }}
+              >
+                <FormControlLabel
+                  value="online"
+                  control={<Radio />}
+                  label={
+                    <>
+                      <Typography
+                        variant="h6"
+                        component="span"
+                        sx={{ fontSize: "0.90rem" }}
+                      >
+                        Full Online Payment
+                      </Typography>
+                      <LabelTag
+                        text="(+2% Transaction fee) "
+                        component="span"
+                      />
+                      <LabelTag text="Payment with total of an order + 2% Transaction Charges added" />
+                      {paymentMethod === "online" && (
+                        <PaymentDetailTag paymentDetails={paymentDetails} />
+                      )}
+                    </>
+                  }
+                  disabled={false}
+                  sx={{ width: "100%" }}
+                />
+              </Paper> */}
+              <Paper
+                elevation={0}
+                sx={{
+                  pl: 1,
+                  pr: 1,
+                  mb: 3,
+
+                  boxSizing: "border-box"
+                }}
+              >
+                <FormControlLabel
+                  value="cod"
+                  control={<Radio />}
+                  label={
+                    <>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontSize: "0.90rem" }}
+                        component="span"
+                      >
+                        Cash on Delivery
+                      </Typography>
+                      {!storeAllowsCOD ? (
+                        <LabelTag text="(disabled)" component="span" />
+                      ) : (
+                        <></>
+                      )}
+                      <LabelTag text="*You may also pay via google pay, PhonePe, etc., on delivery." />
+                      {paymentMethod === "cod" && (
+                        <PaymentDetailTag paymentDetails={paymentDetails} />
+                      )}
+                    </>
+                  }
+                  disabled={!storeAllowsCOD}
+                />
+              </Paper>
             </RadioGroup>
+
             <Box sx={{ marginTop: "20px", textAlign: "center" }}>
               <Button
                 variant="contained"
@@ -231,13 +395,16 @@ const Cart = () => {
     setDrawerOpen(true);
   };
 
-  const initiatePhonePePayment = async (orderId) => {
+  const initiatePhonePePayment = async (orderId, paymentMethod) => {
     try {
-      const response = await api.post("initiate-payment", {
-        merchantTransactionId: orderId,
-        redirectUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/redirect`, //
-        callbackUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/callback-payment` // Backend callback URL
-      });
+      const response = await api.post(
+        `initiate-payment?paymentMethod=${paymentMethod}`,
+        {
+          merchantTransactionId: orderId,
+          redirectUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/redirect`, //
+          callbackUrl: `https://ennore-delivery-api.onrender.com/ennore-delivery/callback-payment` // Backend callback URL
+        }
+      );
 
       if (response.data.success) {
         window.location.href = response.data.redirectUrl;
@@ -336,11 +503,12 @@ const Cart = () => {
     if (response?.data?.order?._id) {
       let orderId = response.data.order._id;
       if (orderId) {
-        if (storeAllowsCOD) {
-          setIsDrawerOpen(true);
-        } else {
-          await initiatePhonePePayment(orderId);
-        }
+        setIsDrawerOpen(true);
+        // if (storeAllowsCOD) {
+        //   setIsDrawerOpen(true);
+        // } else {
+        //   await initiatePhonePePayment(orderId);
+        // }
         setCreatedOrderId(orderId);
       } else {
         setLoading(false);
@@ -370,6 +538,9 @@ const Cart = () => {
         cart={cart}
         initiatePhonePePayment={initiatePhonePePayment}
         storeAllowsCOD={storeAllowsCOD}
+        total={total}
+        platformFee={platformFee}
+        deliveryFee={deliveryFee}
       />
       <Box
         sx={{

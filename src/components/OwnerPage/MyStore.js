@@ -209,9 +209,13 @@ const MyStore = ({ onMenuClick }) => {
         setSelectedStore(response.data[0]._id);
         fetchOrders(response.data[0]._id);
       }
-      if (!response?.data[0]?.fcmToken && localStorage.getItem("fcmToken")) {
+      let fcmArray = response?.data[0]?.fcmToken || [];
+      if (
+        localStorage.getItem("fcmToken") &&
+        !fcmArray.includes(localStorage.getItem("fcmToken"))
+      ) {
         await api.put(`stores/${response.data[0]._id}`, {
-          fcmToken: localStorage.getItem("fcmToken")
+          fcmToken: [...fcmArray, localStorage.getItem("fcmToken")]
         });
       }
     } catch (error) {

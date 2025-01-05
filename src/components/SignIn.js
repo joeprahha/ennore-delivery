@@ -38,13 +38,19 @@ const handleUpdateUserDetails = async () => {
     if (getUserInfo().phone) {
       await api.put("update-user", {
         ...getUserInfo(),
-        fcmToken: localStorage.getItem("fcmToken")
+        fcmToken: [
+          ...(getUserInfo().fcmToken ?? []),
+          localStorage.getItem("fcmToken")
+        ]
       });
       localStorage.setItem(
         "userInfo",
         JSON.stringify({
           ...getUserInfo(),
-          fcmToken: localStorage.getItem("fcmToken")
+          fcmToken: [
+            ...(getUserInfo().fcmToken ?? []),
+            localStorage.getItem("fcmToken")
+          ]
         })
       );
     }
@@ -193,7 +199,9 @@ const SignIn = () => {
         isGoogle
       });
       const { token, fcmToken } = response.data;
-      localStorage.getItem("fcmToken") && handleUpdateUserDetails();
+      localStorage.getItem("fcmToken") &&
+        !getUserInfo().fcmToken?.includes(localStorage.getItem("fcmToken")) &&
+        handleUpdateUserDetails();
       setToken(token);
 
       setIsGoogle(false);
@@ -223,8 +231,9 @@ const SignIn = () => {
       setSignLoader(true);
       const response = await api.post("signin", { email, password });
       const { token, fcmToken } = response.data;
-      localStorage.getItem("fcmToken") && handleUpdateUserDetails();
-
+      localStorage.getItem("fcmToken") &&
+        !getUserInfo().fcmToken?.includes(localStorage.getItem("fcmToken")) &&
+        handleUpdateUserDetails();
       setToken(token);
       await fetchUserInfo();
       redirectUser(navigate);
@@ -263,8 +272,10 @@ const SignIn = () => {
       setSignLoader(true);
       const response = await api.post("signup", { email, password });
       const { token, fcmToken } = response.data;
-      localStorage.getItem("fcmToken") && handleUpdateUserDetails();
-
+      localStorage.getItem("fcmToken") &&
+        !getUserInfo().fcmToken?.includes(localStorage.getItem("fcmToken")) &&
+        handleUpdateUserDetails();
+        
       setToken(token);
       await fetchUserInfo();
       redirectUser(navigate);

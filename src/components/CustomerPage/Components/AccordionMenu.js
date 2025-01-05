@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -23,12 +23,19 @@ const AccordionMenu = ({
   storeInfo,
   categoryLength
 }) => {
+  const [expanded, setExpanded] = useState(categoryLength <= 5); // Default open if categoryLength <= 5
+
+  const handleChange = (event, isExpanded) => {
+    setExpanded(isExpanded); // Manually toggle on user interaction
+  };
+
   return (
     <Accordion
       key={index}
       sx={{ mt: 0.5, width: "100%" }}
       elevation={0}
-      expanded={categoryLength <= 5}
+      expanded={expanded}
+      onChange={handleChange}
     >
       {/* Accordion Summary */}
       <AccordionSummary

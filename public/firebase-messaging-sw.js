@@ -30,7 +30,7 @@ messaging.onBackgroundMessage(function (payload) {
   }
   self.registration.showNotification(title, {
     body,
-    icon: icon || "/logo512.png",
+    icon: "https://res.cloudinary.com/dq6e1ggmv/image/upload/v1735579876/jtbzy1ax6vcsz7ez89qb.jpg?v=1",
     sound: "/new_order_to_store.mpeg",
     vibrate: [200, 100, 200],
     renotify: true
