@@ -4,8 +4,11 @@ import QuantityButton from "./QuantityButton"; // Adjust the import based on you
 import { isTokenValid, logout } from "../../../utils/auth";
 
 const getOptimizedImageUrl = (imageUrl) => {
-  const [base, imgUrl] = imageUrl?.split("/upload/");
-  return `${base}/upload/w_300,h_300,c_fill,f_webp/${imgUrl}`;
+  if (imageUrl) {
+    const [base, imgUrl] = imageUrl?.split("/upload/");
+    return `${base}/upload/w_300,h_300,c_fill,f_webp/${imgUrl}`;
+  }
+  return "";
 };
 
 const ItemCard = ({
