@@ -24,26 +24,10 @@ import {
 import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
 import { api } from "../../utils/api";
 import { getUserInfo } from "../../utils/localStorage";
+import { goToDeliveries, goToPorterAssignments } from "./Deliveries";
+import { useNavigate } from "react-router-dom";
 
-const steps = ["Placed", "Accepted", "Ready", "Driver Picked", "Delivered"];
-const collectionSteps = ["Placed", "Accepted", "Ready"];
-const getStatusIndex = (status) => {
-  switch (status) {
-    case "new":
-      return 0;
-    case "accepted":
-      return 1;
-    case "ready":
-      return 2;
-    case "picked":
-      return 3;
-    case "delivered":
-      return 4;
-    default:
-      return 0;
-  }
-};
-const DriverStatus = { ready: "Picked", picked: "Delivered" };
+const porterStatus = { new: "picked", picked: "delivered" };
 
 function getRelativeTimeFromIST(istDateString) {
   if (!istDateString) return "Invalid date";
@@ -101,27 +85,24 @@ function getRelativeTimeFromIST(istDateString) {
 
 const PorterAssignments = () => {
   const [value, setValue] = useState(0); // Track the active tab
-  const [orders, setOrders] = useState([]);
-  const [newOrders, setNewOrders] = useState([]);
-  const [assignedOrders, setAssignedOrders] = useState([]); // Added state for assigned orders
-  const [completedOrders, setCompletedOrders] = useState([]);
-  const [loadingNew, setLoadingNew] = useState(false);
+
+  const [assignedOrders, setAssignedOrders] = useState([]);
+  const [filteredOrders, setFilteredOrderss] = useState([]);
   const [loadingAssigned, setLoadingAssigned] = useState(false); // Loading state for assigned orders
-  const [loadingCompleted, setLoadingCompleted] = useState(false);
   const [error, setError] = useState(null); // For error handling
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-
-
+  const navigate = useNavigate();
   const fetchDriverAssignments = async () => {
     try {
       //setLoadingAssignments(true); // Set loading state to true before the request
       const response = await api.get(
         `/assign-driver?driverId=${getUserInfo()._id}`
       );
-      setAssignedOrders(response.data); // Set the state with the fetched assignments
-      //setUnassignedAssignments(response.data.filter((a) => a.status !== "completed")); // Filter the unassigned or incomplete assignments
+      setAssignedOrders(response.data.assignments);
+      setFilteredOrderss(
+        response.data.assignments.filter((a) => a.status !== "delivered")
+      );
       setError(null); // Clear any previous errors on success
     } catch (error) {
       setError("Error fetching driver assignments"); // Set an error message if the request fails
@@ -131,26 +112,25 @@ const PorterAssignments = () => {
     }
   };
 
-
-
-  const assignToMe = async () => {
+  const porterStatusUpdate = async () => {
     try {
       const deliveryPartnerId = getUserInfo()._id;
       const name = getUserInfo().name;
 
-      if (!selectedOrder?.deliver_by && DriverStatus[selectedOrder.status]) {
-        // Update the delivery partner
+      if (porterStatus[selectedOrder.status]) {
+        // porterStatus[selectedOrder.status] === "picked";
         const response = await api.put(
-          `/orders/${selectedOrder._id}/delivery-partner`,
+          `/assign-driver?driverId=${getUserInfo()._id}`,
           {
-            deliveryPartnerId,
-            name
+            assignmentId: selectedOrder._id,
+            status: porterStatus[selectedOrder.status],
+            pickedTime: new Date(),
+            deliveredTime: new Date()
           }
         );
-        setNewOrders(response.data);
       } else {
         // Update the order status
-        const newStatus = DriverStatus[selectedOrder.status].toLowerCase();
+        const newStatus = porterStatus[selectedOrder.status].toLowerCase();
         await api.put(`/orders/${selectedOrder._id}/status`, {
           status: newStatus
         });
@@ -165,29 +145,51 @@ const PorterAssignments = () => {
 
   // Handle tab change
   const handleTabChange = async (vent, newValue) => {
+    console.log(newValue);
     setValue(newValue);
     if (newValue === 0) {
-      await fetchDriverAssignments();
+      setFilteredOrderss(
+        assignedOrders.filter((a) => a.status !== "delivered")
+      );
     } else if (newValue === 1) {
-      //  await fetchDriverAssignments();
-      //fetchNewOrders();
+      setFilteredOrderss(
+        assignedOrders.filter((a) => a.status === "delivered")
+      );
+      console.log(assignedOrders.filter((a) => a.status === "delivered"));
     } else {
       //await fetchCompletedOrders();
     }
   };
 
   const handleRowClick = (order) => {
+    console.log(order);
     setSelectedOrder(order);
     setDrawerOpen(true);
   };
 
   useEffect(() => {
     // Fetch new orders by default when the component mounts
-    fetchDriverAssignments()
+    fetchDriverAssignments();
   }, []);
+  console.log(assignedOrders);
 
   return (
     <Box>
+      <Button
+        type="text"
+        onClick={() => {
+          if (window.location.pathname === "/deliveries") {
+            goToPorterAssignments(navigate); // Function call when the button is clicked
+          } else {
+            goToDeliveries(navigate); // Function call when the button is clicked
+          }
+        }}
+      >
+        {"<"} Go to{" "}
+        {window.location.pathname === "/deliveries"
+          ? "Porter Assignments"
+          : "Orders"}
+      </Button>
       <Box
         sx={{
           display: "flex",
@@ -202,7 +204,7 @@ const PorterAssignments = () => {
       >
         {" "}
         <Tabs
-          sx={{ mt: 2 }}
+          //sx={{ mt: 2 }}
           value={value}
           onChange={handleTabChange}
           indicatorColor="primary"
@@ -210,6 +212,7 @@ const PorterAssignments = () => {
           centered
         >
           <Tab label="Porter" />
+          <Tab label="Done" />
         </Tabs>
       </Box>
 
@@ -222,7 +225,7 @@ const PorterAssignments = () => {
         )}
 
         {/* Assigned Orders Tab */}
-        {value === 0 &&
+        {(value === 0 || value === 1) &&
           (loadingAssigned ? (
             <Box
               sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}
@@ -240,28 +243,21 @@ const PorterAssignments = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {assignedOrders.length > 0 ? (
-                    [assignedOrders]
-                      .filter(
-                        (order) =>
-                          (order?.deliver_by === getUserInfo().name ||
-                            order?.diverName === getUserInfo().name) &&
-                          (order.status !== "delivered" ||
-                            order.status !== "cancelled")
-                      )
-                      .map((order) => (
-                        <TableRow
-                          key={order.id}
-                          onClick={() => handleRowClick(order)}
-                        >
-                          <TableCell>{order.createduser}</TableCell>
-                          <TableCell>{order.total}</TableCell>
-                          <TableCell>{order.status}</TableCell>
-                        </TableRow>
-                      ))
+                  {filteredOrders.length > 0 ? (
+                    filteredOrders.map((order) => (
+                      <TableRow
+                        key={order._id}
+                        onClick={() => handleRowClick(order)}
+                      >
+                        <TableCell>{order.driverName}</TableCell>{" "}
+                        {/* Customer Name */}
+                        <TableCell>{order.fromAddress}</TableCell> {/* Price */}
+                        <TableCell>{order.status}</TableCell> {/* Status */}
+                      </TableRow>
+                    ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={3} align="center">
                         No orders assigned to you.
                       </TableCell>
                     </TableRow>
@@ -309,9 +305,9 @@ const PorterAssignments = () => {
           {selectedOrder?.status !== "delivered" ||
           selectedOrder.status !== "cancelled" ? (
             <Button
-              onClick={assignToMe}
+              onClick={porterStatusUpdate}
               sx={{
-                backgroundColor: DriverStatus[selectedOrder?.status]
+                backgroundColor: porterStatus[selectedOrder?.status]
                   ? "red"
                   : selectedOrder?.deliver_by
                   ? "inherit"
@@ -321,12 +317,9 @@ const PorterAssignments = () => {
                   backgroundColor: "#c62828"
                 }
               }}
-              disabled={!DriverStatus[selectedOrder?.status]}
+              disabled={!porterStatus[selectedOrder?.status]}
             >
-              {selectedOrder?.deliver_by
-                ? DriverStatus[selectedOrder?.status] ||
-                  selectedOrder?.deliver_by
-                : "Assign to Me"}
+              {porterStatus[selectedOrder?.status]}
             </Button>
           ) : (
             <Button sx={{ backgroundColor: "green" }}>Delivered</Button>
@@ -358,7 +351,7 @@ const PorterAssignments = () => {
                   Drop Address:{selectedOrder?.toAddress}
                 </Typography>
                 <Typography variant="h6" sx={{ fontSize: "0.9rem" }}>
-                  Drop Contact:{selectedOrder?.reciverPhone}
+                  Drop Contact:{selectedOrder?.receiverPhone}
                 </Typography>
               </Box>
             </Paper>

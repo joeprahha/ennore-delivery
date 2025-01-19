@@ -24,6 +24,7 @@ import {
 import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
 import { api } from "../../utils/api";
 import { getUserInfo } from "../../utils/localStorage";
+import { useNavigate } from "react-router-dom";
 
 const steps = ["Placed", "Accepted", "Ready", "Driver Picked", "Delivered"];
 const collectionSteps = ["Placed", "Accepted", "Ready"];
@@ -99,6 +100,13 @@ function getRelativeTimeFromIST(istDateString) {
   }
 }
 
+export const goToPorterAssignments = (navigate) => {
+  navigate("/porter-assignments");
+};
+export const goToDeliveries = (navigate) => {
+  navigate("/deliveries");
+};
+
 const Deliveries = () => {
   const [value, setValue] = useState(0); // Track the active tab
   const [orders, setOrders] = useState([]);
@@ -111,6 +119,7 @@ const Deliveries = () => {
   const [error, setError] = useState(null); // For error handling
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const navigate = useNavigate();
 
   // Fetch new orders
   const fetchNewOrders = async () => {
@@ -203,6 +212,21 @@ const Deliveries = () => {
 
   return (
     <Box>
+      <Button
+        onClick={() => {
+          if (window.location.pathname === "/deliveries") {
+            goToPorterAssignments(navigate); // Function call when the button is clicked
+          } else {
+            goToDeliveries(navigate); // Function call when the button is clicked
+          }
+        }}
+      >
+        {"<"} Go to{" "}
+        {window.location.pathname === "/deliveries"
+          ? "Porter Assignments"
+          : "Orders"}
+      </Button>
+
       <Box
         sx={{
           display: "flex",

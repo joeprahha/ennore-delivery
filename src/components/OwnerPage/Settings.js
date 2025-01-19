@@ -25,7 +25,8 @@ const categories = [
   "Burger",
   "Snacks",
   "Bakery",
-  "Restaurant"
+  "Restaurant",
+  "Fresh Meats & More"
 ];
 const locations = [
   "Nettukuppam",

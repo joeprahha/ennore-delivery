@@ -237,6 +237,7 @@ const AppContent = ({
         closeOnClick
         rtl={false}
         draggable
+        limit={2} // Limits the number of toasts to 2
       />
     </>
   );
@@ -259,9 +260,11 @@ const App = () => {
     const fetchToken = async () => {
       try {
         const token = await requestFCMToken();
-        setFcmToken(token);
-        localStorage.setItem("fcmToken", token);
-     //   alert("token", token); //TODO
+        if (token) {
+          setFcmToken(token);
+          localStorage.setItem("fcmToken", token);
+        }
+        //   alert("token", token); //TODO
       } catch (err) {}
     };
     !localStorage.getItem("fcmToken") && fetchToken();

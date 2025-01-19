@@ -85,6 +85,13 @@ const AssignDriver = () => {
       console.log("response");
       alert("Driver assigned successfully!");
       setOpen(false);
+      setFormData({
+        customerId: getUserInfo()._id, // Add customerId
+        fromAddress: getUserInfo().address1 + ", " + getUserInfo().local,
+        toAddress: "",
+        senderPhone: getUserInfo().phone,
+        receiverPhone: ""
+      });
     } catch (error) {
       console.error("Error assigning driver:", error);
       alert("Failed to assign driver.");

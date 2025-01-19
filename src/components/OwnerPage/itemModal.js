@@ -17,86 +17,84 @@ export const handlePrint = (e, order) => {
   const originalContents = document.body.innerHTML;
 
   // Create receipt HTML
-  const receiptContent = `
-      <div style="font-family: Arial, sans-serif; margin: 0; padding: 0; width: 8cm; box-sizing: border-box;">
-        <div style="padding: 10px;">
-          <!-- Header with logos -->
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-              <img src="/logo512.png" alt="Ennore Delivery Logo" style="width:200px;height: 50px; object-fit: cover; object-position: center;">
-            <img src="takeaway_logo.png" alt="Takeaway Logo" style="width: 50px; height: 50px;">
-          </div>
+  const receiptContent = `<div style="font-family: Arial, sans-serif; margin: 0; padding: 0; width: 8cm; box-sizing: border-box; font-size: 1rem;">
+  <div style="padding: 5px;">
+    <!-- Header with logos -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <img src="https://res.cloudinary.com/dq6e1ggmv/image/upload/v1735579876/jtbzy1ax6vcsz7ez89qb.jpg?v=1" alt="Ennore Delivery Logo" style="width:100px;height: 25px; object-fit: cover; object-position: center;">
+      <img src="takeaway_logo.png" alt="Takeaway Logo" style="width: 50px; height: 50px;">
+    </div>
 
-          <!-- Order details -->
-          <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-            <div style="width: 48%;">
-              <p><strong>Order ID:</strong> ${order._id}</p>
-              <p><strong>Placed on:</strong> ${new Date(
-                order.created_at
-              ).toLocaleString()}</p>
-              <p><strong>Store:</strong> ${order.storename}</p>
-            </div>
-          </div>
-
-          <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
-
-          <!-- Customer information -->
-          <div style="margin-top: 15px;">
-            <p><strong>Customer Name:</strong> ${order.createduser}</p>
-            <p><strong>Payment:</strong> ${order.payment}</p>
-            <p><strong>Phone:</strong> ${order.customer_details.phone}</p>
-          </div>
-
-          <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
-
-          <!-- Items list -->
-          <div style="margin-top: 15px;">
-            <table width="100%" style="padding: 5px; text-align: left;">
-              <tr>
-                <th style="width: 60%;">Item</th>
-                <th>Qty</th>
-                <th>Amount</th>
-              </tr>
-              ${JSON.parse(order.items)
-                .map(
-                  (item) => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>${item.count}</td>
-                  <td>₹${item.price}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </table>
-          </div>
-
-          <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
-
-          <!-- Charges -->
-          <div style="margin-top: 15px;">
-            <p><strong>Subtotal:</strong> ₹${order.subTotal}</p>
-            <p><strong>Donation:</strong> ₹${order.donation}</p>
-            <p><strong>Delivery Charge:</strong> ₹${order.delivery_fee}</p>
-            <p><strong>Market Fee:</strong> ₹${order.platformFee}</p>
-          </div>
-
-          <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
-
-          <!-- Total -->
-          <div style="font-weight: bold;">
-            <p><strong>Total:</strong> ₹${order.total}</p>
-          </div>
-
-          <div style="border-top: 1px solid #000; margin: 10px 0;"></div>
-
-          <!-- Footer with link -->
-          <div style="text-align: center; margin-top: 20px;">
-            <p>Order more on Ennore Delivery</p>
-            <a href="https://ennore-delivery.netlify.app/" target="_blank" style="text-decoration: none; color: #000; font-weight: bold;">https://ennore-delivery.netlify.app/</a>
-          </div>
-        </div>
+    <!-- Order details -->
+    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+      <div style="width: 100%;">
+        <p style="margin: 5px 0;"><strong>Order ID:</strong> ${order._id}</p>
+        <p style="margin: 5px 0;"><strong>Placed on:</strong> ${new Date(
+          order.created_at
+        ).toLocaleString()}</p>
+        <p style="margin: 5px 0;"><strong>Store:</strong> ${order.storename}</p>
       </div>
-    `;
+    </div>
+
+    <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
+
+    <!-- Customer information -->
+    <div style="margin-top: 7px;">
+      <p style="margin: 5px 0;">Customer Name: ${order.createduser}</p>
+      <p style="margin: 5px 0;">Payment: ${order.payment}</p>
+      <p style="margin: 5px 0;">Phone: ${order.customer_details.phone}</p>
+    </div>
+
+    <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
+
+    <!-- Items list -->
+    <div style="margin-top: 7px;">
+      <table width="100%" style="padding: 5px; text-align: left;">
+        <tr>
+          <th style="width: 60%;">Item</th>
+          <th>Qty</th>
+          <th>Amount</th>
+        </tr>
+        ${JSON.parse(order.items)
+          .map(
+            (item) => `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.count}</td>
+            <td>₹${item.price}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </table>
+    </div>
+
+    <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
+
+    <div style="margin-top: 7px;">
+      <p style="margin: 5px 0;">Subtotal: ₹${order.subTotal}</p>
+      <p style="margin: 5px 0;">Others: ₹${
+        order.donation + order.delivery_fee + order.platformFee
+      }</p>
+    </div>
+
+    <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
+
+    <!-- Total -->
+    <div style="font-weight: bold;">
+      <p style="margin: 5px 0;"><strong>Total:</strong> ₹${order.total}</p>
+    </div>
+
+    <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
+
+    <!-- Footer with link -->
+    <div style="text-align: center; margin-top: 10px;">
+      <p style="margin: 5px 0;">Order more on Ennore Delivery</p>
+      <a href="https://ennore-delivery.netlify.app/" target="_blank" style="text-decoration: none; color: #000; font-weight: bold;">https://ennore-delivery.netlify.app/</a>
+    </div>
+  </div>
+</div>
+ `;
 
   // Replace the body with the receipt content for printing
   document.body.innerHTML = receiptContent;
@@ -133,7 +131,6 @@ export const handlePrint = (e, order) => {
 };
 
 const ItemModal = ({ open, handleClose, order }) => {
-  // Parse the items and handle cases where items may not be available
   const items = JSON.parse(order?.items || "[]");
   const orderedBy = order?.createduser; // Customer name
   const total = order?.total - order?.donation - order?.delivery_fee; // Total calculation

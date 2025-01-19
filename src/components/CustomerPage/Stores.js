@@ -48,8 +48,8 @@ const Stores = () => {
     "Restaurant",
     "Groceries",
     "Bakes",
-    "Meat",
-    "Other Service"
+    "Meat & More",
+    "Fresh Meats & More"
   ];
 
   useEffect(() => {
@@ -274,12 +274,8 @@ const Stores = () => {
 
                   {groupedStores[category]
                     .sort((a, b) => {
-                      // If a.rank is missing, treat it as a high rank (last in the list)
-                      if (a.rank == null) return 1; // a goes to the end
-                      // If b.rank is missing, treat it as a high rank (last in the list)
-                      if (b.rank == null) return -1; // b goes to the end
-
-                      // Otherwise, compare the ranks in ascending order
+                      if (a.rank == null) return 1;
+                      if (b.rank == null) return -1;
                       return a.rank - b.rank;
                     })
                     .map((store) => {

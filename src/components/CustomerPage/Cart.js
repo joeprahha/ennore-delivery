@@ -370,17 +370,16 @@ const Cart = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
   const [coupon, setCoupon] = useState("");
-  const [couponOffer, setCouponOffer] = useState("");
+  const [couponOffer, setCouponOffer] = useState(null);
   const [createdOrderId, setCreatedOrderId] = useState("");
   const [storeAllowsCOD, setStoreAllowsCOD] = useState(false); // Track if the store allows COD
   const [storeDetail, setStoreDetails] = useState({ status: "open" });
-
+  const [deliveryFee, setDeliveryFee] = useState(7.5);
   const subtotal = cart.items.reduce(
     (total, item) => total + item.price * item.count,
     0
   );
-  const platformFee = 2;
-  const deliveryFee = 7.5;
+  let platformFee = 2;
   const total = subtotal + platformFee + deliveryFee + donation + driverTip;
 
   const handleChange = (field) => (event) => {
@@ -441,6 +440,11 @@ const Cart = () => {
     }
   }, []);
 
+  useEffect(() => {
+    setCouponOffer(null);
+    setDeliveryFee(7.5);
+  }, [coupon, setCoupon]);
+
   const handleCheckout = async () => {
     console.log(storeDetail.minOrderValue);
     let minOrderValue = storeDetail.minOrderValue || 100;
@@ -486,6 +490,9 @@ const Cart = () => {
       callbackUrl: `${baseUrl}callback-payment`,
       instructions: instructions
     };
+    if (coupon) {
+      orderData.couponId = coupon;
+    }
     let response;
     try {
       response = await api.post("orders", orderData);
@@ -518,11 +525,24 @@ const Cart = () => {
   };
 
   const handleCoupon = async (e) => {
-    setCoupon(e.target.value);
-    const response = await api.get(`coupon/${e.target.value}`);
-    if (response.data.valid) {
-      setCouponOffer(`Hurray! You gor Coupon Applied ${response.data.offer}`);
-    } else {
+    try {
+      if (!coupon) {
+        alert("Not valid");
+        return;
+      }
+      //setCoupon(coupon);
+      const response = await api.get(`coupon/${coupon}`);
+      if (response.data.valid) {
+        const onWhat = response.data?.on;
+        if (onWhat === "deliveryFee") {
+          setDeliveryFee(0);
+        }
+        setCouponOffer(response.data);
+      } else {
+        alert("Not valid Coupon");
+      }
+    } catch (err) {
+      console.log(err);
       alert("Not valid Coupon");
     }
   };
@@ -681,7 +701,7 @@ const Cart = () => {
                   variant="outlined"
                   placeholder="Enter Coupon"
                   value={coupon}
-                  onChange={(e) => handleCoupon(e)}
+                  onChange={(e) => setCoupon(e.target.value)}
                   sx={{
                     backgroundColor: "#fff",
                     borderRadius: "4px",
@@ -699,11 +719,13 @@ const Cart = () => {
                     whiteSpace: "nowrap",
                     fontSize: "0.75rem"
                   }}
+                  onClick={handleCoupon}
                 >
                   Apply
                 </Button>
               </Box>
-              {couponOffer && (
+
+              {couponOffer && coupon && (
                 <Box
                   sx={{
                     mt: 1,
@@ -720,7 +742,7 @@ const Cart = () => {
                     🎉
                   </span>
                   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                    {couponOffer}
+                    {couponOffer?.description}
                   </Typography>
                 </Box>
               )}
@@ -1009,10 +1031,44 @@ const Cart = () => {
                         Delivery Partner Fee:
                       </Typography>
                     </Box>
-                    <Typography sx={{ fontSize: "0.8rem" }}>
-                      ₹{deliveryFee}
-                    </Typography>
+
+                    {couponOffer.on === "deliveryFee" ? (
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {/* Coupon Applied Label */}
+                        <Typography
+                          sx={{
+                            fontSize: "0.8rem",
+                            color: "green",
+                            marginRight: 2 // Space before the striked-out fee
+                          }}
+                        >
+                          Coupon Applied🎉
+                        </Typography>
+
+                        {/* Displaying the striked out original fee */}
+                        <Typography
+                          sx={{
+                            fontSize: "0.8rem",
+                            textDecoration: "line-through", // This adds the strike-through effect
+                            marginRight: 1, // Adds space between the original and new fee
+                            color: "green"
+                          }}
+                        >
+                          ₹{7.5}
+                        </Typography>
+
+                        {/* Displaying the new fee */}
+                        <Typography sx={{ fontSize: "0.8rem", color: "green" }}>
+                          ₹{0}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontSize: "0.8rem" }}>
+                        ₹{deliveryFee}
+                      </Typography>
+                    )}
                   </Box>
+
                   <Divider sx={{ marginY: 1 }} />
 
                   <Box
