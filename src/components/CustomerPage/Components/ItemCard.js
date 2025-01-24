@@ -1,5 +1,15 @@
-import React, { useEffect } from "react";
-import { Grid, Paper, Box, Typography, Button } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Grid,
+  Paper,
+  Box,
+  Typography,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
+} from "@mui/material";
 import QuantityButton from "./QuantityButton"; // Adjust the import based on your file structure
 import { isTokenValid, logout } from "../../../utils/auth";
 
@@ -20,12 +30,23 @@ const ItemCard = ({
   storeStatus,
   navigate
 }) => {
+  const [selectedVariant, setSelectedVariant] = useState(
+    item?.variant?.[0] ?? null
+  ); 
   const cartItem = cart.items.find((cartItem) => cartItem.id === item.id);
+
+  const handleVariantSelect = (event) => {
+    event.stopPropagation();
+    const variant = item.variant.find((v) => v.qty === event.target.value);
+    setSelectedVariant(variant);
+  };
+
+  const currentPrice = selectedVariant ? selectedVariant.price : item.price;
+  const currentMRP = selectedVariant ? selectedVariant.mrp : item.mrp;
 
   return (
     <Grid item xs={4} sm={3} md={2} key={item.id}>
       <Paper
-        onClick={() => handleOpenModal(item)}
         sx={{
           cursor: "pointer",
           textAlign: "center",
@@ -48,6 +69,7 @@ const ItemCard = ({
         tabIndex={0}
       >
         <Box
+          onClick={() => handleOpenModal(item)}
           sx={{
             width: "100%",
             height: "120px",
@@ -78,7 +100,6 @@ const ItemCard = ({
             fontWeight: 500,
             overflow: "hidden",
             textOverflow: "ellipsis",
-
             height: "2.5rem",
             width: "100%",
             mt: 0.5
@@ -87,21 +108,83 @@ const ItemCard = ({
           {item.name}
         </Typography>
 
-        <Typography
-          variant="body2"
+        {/* Replace Chips with a Select dropdown */}
+        {item.variant && item.variant.length > 0 && (
+          <Box sx={{ mt: 1 }}>
+            <FormControl fullWidth size="small" sx={{ height: 25 }}>
+              <InputLabel>qty</InputLabel>
+              <Select
+                value={selectedVariant.qty}
+                label="Variant"
+                onChange={handleVariantSelect}
+                sx={{
+                  fontSize: "0.65rem", // Reduce font size
+                  width: "100%",
+                  height: "30px", // Reduce dropdown height
+                  "& .MuiSelect-icon": {
+                    fontSize: "1.2rem" // Adjust the icon size if needed
+                  }
+                }}
+              >
+                {item.variant.map((variant, index) => (
+                  <MenuItem
+                    key={index}
+                    value={variant.qty}
+                    sx={{
+                      fontSize: "0.65rem", // Smaller text size
+                      padding: "2px 8px", // Reduce padding to shrink height
+                      height: "auto", // Let the height adjust based on content
+                      lineHeight: "0.2" // Reduce the line height to make the text more compact
+                    }}
+                  >
+                    {variant.qty}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
+
+        <Box
           sx={{
-            mb: 0.5,
-            fontSize: "0.75rem",
-            color: "#555",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            width: "100%",
-            mt: 0.5
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
-          ₹{item.price}
-        </Typography>
+          {currentMRP > currentPrice && (
+            <Typography
+              variant="body2"
+              size="small"
+              sx={{
+                mb: 0.5,
+                fontSize: "0.70rem",
+                fontWeight: "200",
+                width: "auto",
+                mt: 0.5,
+                textDecoration: "line-through", // Strikethrough for MRP
+                mr: 1
+              }}
+              color="error"
+            >
+              ₹{currentMRP}
+            </Typography>
+          )}
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 0.5,
+              fontSize: "0.75rem",
+              fontWeight: "500",
+              overflow: "hidden",
+              width: "auto",
+              mt: 0.5
+            }}
+            color="success"
+          >
+            ₹{currentPrice}
+          </Typography>
+        </Box>
 
         {storeStatus?.status !== "open" ? (
           <Button

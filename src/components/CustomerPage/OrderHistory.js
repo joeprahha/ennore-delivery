@@ -252,7 +252,8 @@ const OrderHistory = ({ userId }) => {
                     borderRadius: 1
                   }}
                 >
-                  {order.payment === "paid" ? (
+                  {order.payment === "paid" ||
+                  order.payment === "partially paid" ? (
                     <Typography
                       variant="body2"
                       sx={{
@@ -263,7 +264,7 @@ const OrderHistory = ({ userId }) => {
                       }}
                       textAlign="right"
                     >
-                      Paid
+                      {order.payment.toUpperCase()}
                     </Typography>
                   ) : (
                     <Box>
@@ -277,7 +278,9 @@ const OrderHistory = ({ userId }) => {
                         }}
                         textAlign="right"
                       >
-                        {order.status==='cancelled'?'Order Cancelled':order.payment === "failed"
+                        {order.status === "cancelled"
+                          ? "Order Cancelled"
+                          : order.payment === "failed"
                           ? "Payment Failed"
                           : order.payment}
                       </Typography>
@@ -423,7 +426,6 @@ const OrderHistory = ({ userId }) => {
               pl: 2,
               color: "red",
               fontSize: "0.55rem",
-
               fontWeight: "bold"
             }}
           >
@@ -431,6 +433,20 @@ const OrderHistory = ({ userId }) => {
               ? "Payment failed"
               : selectedOrder?.payment}
           </Typography>
+        )}
+        {selectedOrder?.payment === "partially paid" ? (
+          <Typography
+            variant="body1"
+            sx={{
+              pl: 2,
+              fontSize: "0.55rem",
+              fontWeight: "bold"
+            }}
+          >
+            Partially Paid: Rs {selectedOrder?.partiallyPaid}
+          </Typography>
+        ) : (
+          <></>
         )}
         <Divider />
 
@@ -558,7 +574,45 @@ const OrderHistory = ({ userId }) => {
             ₹{selectedOrder?.total?.toFixed(2)}
           </Typography>
         </Box>
-
+        {selectedOrder?.payment === "partially paid" ? (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                pl: 1,
+                pr: 1
+              }}
+            >
+              <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
+                Partially Paid
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
+                ₹{(selectedOrder.partiallyPaid ?? 10).toFixed(2)}
+              </Typography>
+            </Box>
+            <Divider sx={{ my: 1 }} />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                p: 1,
+                pr: 1
+              }}
+            >
+              <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
+                Payable
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
+                ₹
+                {(selectedOrder.total ?? 0) -
+                  (selectedOrder.partiallyPaid ?? 10)}
+              </Typography>
+            </Box>
+          </>
+        ) : (
+          <></>
+        )}
         <Divider sx={{ my: 1 }} />
         <Box sx={{ height: "40px", width: "100%" }}>
           <Chip

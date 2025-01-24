@@ -176,7 +176,7 @@ const StoreDetail = () => {
         (acc, [category, { available, items }]) => {
           if (available) {
             items.forEach((item) => {
-              if (item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+              if (item.name?.toLowerCase().includes(searchTerm?.toLowerCase())) {
                 acc.push(item);
               }
             });

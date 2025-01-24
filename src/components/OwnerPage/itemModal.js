@@ -39,11 +39,16 @@ export const handlePrint = (e, order) => {
     <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
 
     <!-- Customer information -->
-    <div style="margin-top: 7px;">
-      <p style="margin: 5px 0;">Customer Name: ${order.createduser}</p>
-      <p style="margin: 5px 0;">Payment: ${order.payment}</p>
-      <p style="margin: 5px 0;">Phone: ${order.customer_details.phone}</p>
-    </div>
+   <div style="margin-top: 7px;">
+  <p style="margin: 5px 0;">Customer Name: ${order.createduser}</p>
+  <p style="margin: 5px 0;">Payment: ${order.payment}</p>
+  ${
+    order.payment === "partially paid"
+      ? `<p style="margin: 5px 0;">Partially paid: Rs ${order.partiallyPaid}</p>`
+      : ""
+  }
+  <p style="margin: 5px 0;">Phone: ${order.customer_details.phone}</p>
+</div>
 
     <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
 
@@ -81,9 +86,20 @@ export const handlePrint = (e, order) => {
     <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
 
     <!-- Total -->
-    <div style="font-weight: bold;">
-      <p style="margin: 5px 0;"><strong>Total:</strong> ₹${order.total}</p>
-    </div>
+ <div style="font-weight: bold;">
+  <p style="margin: 5px 0;"><strong>Total:</strong> ₹${order.total}</p>
+  
+  ${
+    order.payment === "partially paid"
+      ? `<p style="margin: 5px 0;"><strong>Partially paid:</strong> ₹${
+          order.partiallyPaid ?? 10
+        }</p>
+     <p style="margin: 5px 0;"><strong>Payable Total:</strong> ₹${(
+       order.total - (order.partiallyPaid ?? 10)
+     ).toFixed(2)}</p>`
+      : ""
+  }
+</div>
 
     <div style="border-top: 1px solid #000; margin: 5px 0;"></div>
 
@@ -190,7 +206,13 @@ const ItemModal = ({ open, handleClose, order }) => {
       </Box>
 
       <Typography variant="body1">Payment Status : {order.payment}</Typography>
-
+      {order.payment === "partially paid" ? (
+        <Typography variant="body1">
+          Partially Paid: Rs {order.partiallyPaid ?? 10}
+        </Typography>
+      ) : (
+        <></>
+      )}
       {order?.instructions && (
         <Box
           sx={{

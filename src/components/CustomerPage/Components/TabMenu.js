@@ -129,11 +129,7 @@ const TabMenu = ({
               Select Category
             </Typography>
           </Box>
-          <Grid
-            container
-            spacing={2}
-            sx={{ flexGrow: 1, overflowY: "auto", padding: 2 }}
-          >
+          <Grid container spacing={1} sx={{ flexGrow: 1, overflowX: "hidden" }}>
             {Object.keys(menuItems)
               .filter((c) => menuItems[c]?.available)
               .map((category, index) => {
@@ -151,8 +147,8 @@ const TabMenu = ({
                         cursor: "pointer",
                         textAlign: "center",
                         padding: 2,
-                        height: "110px",
-                        width: "70px",
+                        height: "65px",
+                        width: "65px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
@@ -175,16 +171,24 @@ const TabMenu = ({
                         }}
                       />
                       {/* Category Name */}
-                      <Typography
-                        variant="body1"
+                      <Box
                         sx={{
-                          fontSize: "0.75rem"
+                          fontSize: "0.75rem",
+                          height: "30px"
                         }}
                       >
-                        {category}
-                      </Typography>
+                        {" "}
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontSize: "0.75rem",
+                            height: "auto"
+                          }}
+                        >
+                          {category}
+                        </Typography>
+                      </Box>
                     </Box>
-                    <Divider sx={{ marginY: 1 }} />
                   </Grid>
                 );
               })}

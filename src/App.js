@@ -46,6 +46,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AssignDriver from "./components/assignDriver";
 import PorterAssignments from "./components/DriverPage/PorterAssignments";
 import { requestFCMToken } from "./utils/firebaseUtils.js";
+import NewMenuPage from "./components/OwnerPage/NewMenu.js";
 
 const AppContent = ({
   handleMenuClick,
@@ -70,7 +71,9 @@ const AppContent = ({
     "/deliveries",
     "/mystore",
     "/about",
-    "/profile"
+    "/profile",
+    "/menu/:menuId",
+    "/menu"
   ].some((item) => location.pathname.includes(item));
 
   // Ensure valid customer details on first render
@@ -114,7 +117,9 @@ const AppContent = ({
     "/tc",
     "/profile",
     "/stores/:storeId",
-    "/stores"
+    "/stores",
+    "/menu",
+    "/menu/:menuId"
   ];
 
   const deliveryPartnerRoutes = [
@@ -186,6 +191,7 @@ const AppContent = ({
         <Route path="/about" element={<About />} />
         <Route path="/tc" element={<TC />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/menu/:menuId" element={<NewMenuPage />} />
         <Route
           path="/stores/:storeId"
           element={
