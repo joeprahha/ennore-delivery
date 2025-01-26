@@ -43,6 +43,9 @@ const ItemCard = ({
 
   const currentPrice = selectedVariant ? selectedVariant.price : item.price;
   const currentMRP = selectedVariant ? selectedVariant.mrp : item.mrp;
+  const discountPercentage = Math.floor(
+    ((currentMRP - currentPrice) / currentMRP) * 100
+  );
 
   return (
     <Grid item xs={6} sm={3} md={2} key={item.id}>
@@ -55,6 +58,7 @@ const ItemCard = ({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          position: "relative", // Add this for positioning the offer label
           transition: "none",
           "&:hover": {
             backgroundColor: "transparent"
@@ -68,6 +72,49 @@ const ItemCard = ({
         }}
         tabIndex={0}
       >
+        {discountPercentage > 10 && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "0px",
+              right: "0px",
+              backgroundColor: "rgba(25, 173, 52, 0.7)", // Green background for visibility
+              color: "white",
+              padding: "2px 4px",
+              borderRadius: "0 4px 0 4px",
+              fontSize: "0.65rem",
+              fontWeight: "500",
+              zIndex: 1,
+              width: "auto"
+            }}
+          >
+            {discountPercentage}% OFF
+          </Box>
+        )}
+
+        {/* <Box
+          sx={{
+            position: "absolute",
+            top: "0px",
+            right: "10px",
+            backgroundColor: "rgba(25, 173, 52, 0.7)", // Green background
+            color: "white",
+            padding: "6px 8px",
+            width: "5%",
+            height: "auto",
+            fontSize: "0.55rem",
+            fontWeight: "500",
+            zIndex: 1,
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 90%, 50% 100%, 0% 90%)", // V-shape at the bottom
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center"
+          }}
+        >
+          20% OFF
+        </Box> */}
+
         <Box
           onClick={() => handleOpenModal(item)}
           sx={{
@@ -83,7 +130,7 @@ const ItemCard = ({
         >
           <img
             src={getOptimizedImageUrl(item.image)}
-            alt={item.name}
+            // alt={item.name}
             style={{
               width: "100%",
               height: "100%",
@@ -149,27 +196,10 @@ const ItemCard = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "flex-start",
+            pl: 1
           }}
         >
-          {currentMRP > currentPrice && (
-            <Typography
-              variant="body2"
-              size="small"
-              sx={{
-                mb: 0.5,
-                fontSize: "0.70rem",
-                fontWeight: "200",
-                width: "auto",
-                mt: 0.5,
-                textDecoration: "line-through", // Strikethrough for MRP
-                mr: 1
-              }}
-              color="error"
-            >
-              ₹{currentMRP}
-            </Typography>
-          )}
           <Typography
             variant="body2"
             sx={{
@@ -180,10 +210,31 @@ const ItemCard = ({
               width: "auto",
               mt: 0.5
             }}
-            color="success"
+            color="text.secondary"
           >
             ₹{currentPrice}
           </Typography>
+          {currentMRP > currentPrice && (
+            <Typography
+              variant="body2"
+              size="small"
+              sx={{
+                ml: 0.5,
+                mb: 0.5,
+                fontSize: "0.70rem",
+                fontWeight: "200",
+                width: "auto",
+                mt: 0.5,
+                textDecoration: "line-through",
+                mr: 1,
+                lineHeight: "1.25rem",
+                verticalAlign: "bottom"
+              }}
+              color="text.secondary"
+            >
+              ₹{currentMRP}
+            </Typography>
+          )}
         </Box>
 
         {storeStatus?.status !== "open" ? (
@@ -233,7 +284,7 @@ const ItemCard = ({
 
               if (!isTokenValid()) {
                 alert("Sign in to Add Cart");
-                // logout(navigate);
+                logout(navigate);
                 return;
               }
               addToCart(item);
@@ -242,7 +293,7 @@ const ItemCard = ({
               width: "100%",
               mt: "auto",
               height: "25px",
-              fontSize: "0.65rem",
+              fontSize: "0.95rem",
               mb: 0.5,
               display: "flex",
               alignItems: "center",
@@ -258,7 +309,7 @@ const ItemCard = ({
               }
             }}
           >
-            Add to Cart
+            Add
           </Button>
         )}
       </Paper>

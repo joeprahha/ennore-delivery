@@ -319,7 +319,7 @@ const StoreDetail = () => {
                 <Box
                   sx={{
                     maxHeight: "calc(100vh - 50px)",
-                    overflowY: "auto" 
+                    overflowY: "auto"
                   }}
                 >
                   {" "}
@@ -443,7 +443,7 @@ const StoreDetail = () => {
           </Paper>
         </Box>
       )}
-      <Box sx={{ height: "80px" }} />
+      {!isGrocery ? <Box sx={{ height: "80px" }} /> : <></>}
     </Box>
   );
 };

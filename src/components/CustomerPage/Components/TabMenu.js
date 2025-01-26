@@ -58,16 +58,16 @@ const TabMenu = ({
         <Box
           sx={{
             position: "sticky",
-            top: 30, // Adjust if needed
+            top: 0,
             width: "auto",
             backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
             zIndex: 1,
             height: "80vh"
           }}
         >
-          {/* <IconButton sx={{ flexShrink: 0 }} onClick={toggleDrawer(true)}>
+          <IconButton sx={{ flexShrink: 0 }} onClick={toggleDrawer(true)}>
             <MenuIcon />
-          </IconButton> */}
+          </IconButton>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -279,6 +279,7 @@ const CategoryItems = ({
               />
             ))}
       </Grid>
+      <Box sx={{ height: "50px" }}></Box>
     </Box>
   );
 };
