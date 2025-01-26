@@ -267,7 +267,7 @@ const NewMenuPage = () => {
 
   return (
     <Box>
-      <Box sx={{ m: 1, overflowX: "auto" }}>
+      <Box sx={{ m: 1, overflowX: "hidden" }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -309,264 +309,298 @@ const NewMenuPage = () => {
         {loadingMenu ? (
           <CircularProgress />
         ) : (
-          <>
+          <Box
+            sx={{
+              flexGrow: 1,
+              bgcolor: "background.paper",
+              display: "flex",
+              position: "relative",
+              height: "70vh"
+            }}
+          >
             {searchQuery === "" ? (
               <Tabs
                 value={selectedCategoryIndex}
                 onChange={handleCategoryChange}
                 aria-label="Menu categories"
+                orientation="vertical"
+                variant="scrollable"
+                sx={{
+                  borderRight: 1,
+                  borderColor: "divider",
+                  position: "sticky", // Sticky position
+                  top: 0, // Stick to the top when scrolling
+                  height: "100%", // Full height to keep the tabs visible
+                  zIndex: 1, // Keeps the tabs above the content
+                  bgcolor: "background.paper", // Keeps background consistent while scrolling
+                  overflow: "hidden" // Prevents scrolling on the tabs
+                }}
               >
                 {Object.keys(menu).map((categoryName, index) => (
-                  <Tab key={categoryName} label={categoryName} />
+                  <Tab
+                    key={categoryName}
+                    label={categoryName}
+                    aria-controls={`vertical-tabpanel-${index}`}
+                  />
                 ))}
               </Tabs>
             ) : (
               <></>
             )}
+            <Box
+              sx={{
+                flexGrow: 1,
+                overflowY: "auto",
+                height: "100%"
+              }}
+            >
+              <Grid container spacing={3}>
+                {Object.entries(filteredMenu).map(
+                  ([categoryName, { items, available }], index) => {
+                    if (selectedCategoryIndex !== index && !searchQuery)
+                      return null; // Hide non-selected categories
 
-            <Grid container spacing={3}>
-              {Object.entries(filteredMenu).map(
-                ([categoryName, { items, available }], index) => {
-                  if (selectedCategoryIndex !== index && !searchQuery)
-                    return null; // Hide non-selected categories
-
-                  return (
-                    <Grid item xs={12} key={categoryName}>
-                      <Card>
-                        <CardContent>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Typography variant="h6">{categoryName}</Typography>
-                            <Box display="flex" alignItems="center">
-                              <IconButton
-                                onClick={() =>
-                                  handleDeleteCategory(categoryName)
-                                }
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                              <Switch
-                                checked={available}
-                                onChange={() =>
-                                  setMenu({
-                                    ...menu,
-                                    [categoryName]: {
-                                      ...menu[categoryName],
-                                      available: !available
-                                    }
-                                  })
-                                }
-                              />
-                              <IconButton
-                                onClick={() => handleAddItem(categoryName)}
-                              >
-                                <AddIcon />
-                              </IconButton>
+                    return (
+                      <Grid item xs={12} key={categoryName}>
+                        <Card>
+                          <CardContent>
+                            <Box
+                              display="flex"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <Typography variant="h6">
+                                {categoryName}
+                              </Typography>
+                              <Box display="flex" alignItems="center">
+                                <IconButton
+                                  onClick={() =>
+                                    handleDeleteCategory(categoryName)
+                                  }
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                                <Switch
+                                  checked={available}
+                                  onChange={() =>
+                                    setMenu({
+                                      ...menu,
+                                      [categoryName]: {
+                                        ...menu[categoryName],
+                                        available: !available
+                                      }
+                                    })
+                                  }
+                                />
+                                <IconButton
+                                  onClick={() => handleAddItem(categoryName)}
+                                >
+                                  <AddIcon />
+                                </IconButton>
+                              </Box>
                             </Box>
-                          </Box>
-                          <TableContainer>
-                            <Table>
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Image</TableCell>
-                                  <TableCell>Barcode</TableCell>
-                                  <TableCell>Store Name</TableCell>
-                                  <TableCell>Website Name</TableCell>
-                                  <TableCell>MRP</TableCell>
-                                  <TableCell>Price</TableCell>
-                                  <TableCell>Available</TableCell>
-                                  <TableCell>Action</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {items.map((item) => (
-                                  <TableRow key={item.id}>
-                                    <TableCell>
-                                      <input
-                                        id={`image-upload-${item.id}`}
-                                        style={{ display: "none" }}
-                                        type="file"
-                                        onChange={(e) =>
-                                          handleImageChange(
-                                            e,
-                                            categoryName,
-                                            item.id
-                                          )
-                                        }
-                                      />
-                                      <Box
-                                        onClick={() =>
-                                          document
-                                            .getElementById(
-                                              `image-upload-${item.id}`
-                                            )
-                                            .click()
-                                        }
-                                        sx={{ width: "50px", height: "50px" }}
-                                      >
-                                        <img
-                                          src={item.image}
-                                          alt={item.name.slice(0, 10)}
-                                          width="100%"
-                                          height="100%"
-                                          style={{ objectFit: "cover" }}
-                                        />
-                                      </Box>
-                                    </TableCell>
-                                    <TableCell>
-                                      <TextField
-                                        value={item.barcode}
-                                        onChange={(e) =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      barcode: e.target.value
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <TextField
-                                        value={item.storeName}
-                                        onChange={(e) =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      storeName: e.target.value
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <TextField
-                                        value={item.name}
-                                        onChange={(e) =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      name: e.target.value
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <TextField
-                                        value={item.mrp}
-                                        onChange={(e) =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      mrp: e.target.value
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <TextField
-                                        value={item.price}
-                                        onChange={(e) =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      price: e.target.value
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <Switch
-                                        checked={item.available}
-                                        onChange={() =>
-                                          setMenu({
-                                            ...menu,
-                                            [categoryName]: {
-                                              ...menu[categoryName],
-                                              items: items.map((i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      available: !i.available
-                                                    }
-                                                  : i
-                                              )
-                                            }
-                                          })
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <IconButton
-                                        onClick={() =>
-                                          handleDeleteItem(
-                                            categoryName,
-                                            item.id
-                                          )
-                                        }
-                                      >
-                                        <DeleteIcon />
-                                      </IconButton>
-                                    </TableCell>
+                            <TableContainer>
+                              <Table>
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Image</TableCell>
+                                    <TableCell>Barcode</TableCell>
+                                    <TableCell>Store Name</TableCell>
+                                    <TableCell>Website Name</TableCell>
+                                    <TableCell>MRP</TableCell>
+                                    <TableCell>Price</TableCell>
+                                    <TableCell>Available</TableCell>
+                                    <TableCell>Action</TableCell>
                                   </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  );
-                }
-              )}
-            </Grid>
-          </>
+                                </TableHead>
+                                <TableBody>
+                                  {items.map((item) => (
+                                    <TableRow key={item.id}>
+                                      <TableCell>
+                                        <input
+                                          id={`image-upload-${item.id}`}
+                                          style={{ display: "none" }}
+                                          type="file"
+                                          onChange={(e) =>
+                                            handleImageChange(
+                                              e,
+                                              categoryName,
+                                              item.id
+                                            )
+                                          }
+                                        />
+                                        <Box
+                                          onClick={() =>
+                                            document
+                                              .getElementById(
+                                                `image-upload-${item.id}`
+                                              )
+                                              .click()
+                                          }
+                                          sx={{ width: "50px", height: "50px" }}
+                                        >
+                                          <img
+                                            src={item.image}
+                                            alt={item.name.slice(0, 10)}
+                                            width="100%"
+                                            height="100%"
+                                            style={{ objectFit: "cover" }}
+                                          />
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell>
+                                        <TextField
+                                          value={item.barcode}
+                                          onChange={(e) =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        barcode: e.target.value
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <TextField
+                                          value={item.storeName}
+                                          onChange={(e) =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        storeName:
+                                                          e.target.value
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <TextField
+                                          value={item.name}
+                                          onChange={(e) =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        name: e.target.value
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <TextField
+                                          value={item.mrp}
+                                          onChange={(e) =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        mrp: e.target.value
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <TextField
+                                          value={item.price}
+                                          onChange={(e) =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        price: e.target.value
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <Switch
+                                          checked={item.available}
+                                          onChange={() =>
+                                            setMenu({
+                                              ...menu,
+                                              [categoryName]: {
+                                                ...menu[categoryName],
+                                                items: items.map((i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        available: !i.available
+                                                      }
+                                                    : i
+                                                )
+                                              }
+                                            })
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <IconButton
+                                          onClick={() =>
+                                            handleDeleteItem(
+                                              categoryName,
+                                              item.id
+                                            )
+                                          }
+                                        >
+                                          <DeleteIcon />
+                                        </IconButton>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    );
+                  }
+                )}
+              </Grid>
+            </Box>
+          </Box>
         )}
       </Box>
 

@@ -32,7 +32,7 @@ const ItemCard = ({
 }) => {
   const [selectedVariant, setSelectedVariant] = useState(
     item?.variant?.[0] ?? null
-  ); 
+  );
   const cartItem = cart.items.find((cartItem) => cartItem.id === item.id);
 
   const handleVariantSelect = (event) => {
@@ -45,13 +45,13 @@ const ItemCard = ({
   const currentMRP = selectedVariant ? selectedVariant.mrp : item.mrp;
 
   return (
-    <Grid item xs={4} sm={3} md={2} key={item.id}>
+    <Grid item xs={6} sm={3} md={2} key={item.id}>
       <Paper
         sx={{
           cursor: "pointer",
           textAlign: "center",
           p: 1,
-          height: "200px",
+          height: "220px",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",

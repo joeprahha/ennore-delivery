@@ -176,7 +176,9 @@ const StoreDetail = () => {
         (acc, [category, { available, items }]) => {
           if (available) {
             items.forEach((item) => {
-              if (item.name?.toLowerCase().includes(searchTerm?.toLowerCase())) {
+              if (
+                item.name?.toLowerCase().includes(searchTerm?.toLowerCase())
+              ) {
                 acc.push(item);
               }
             });
@@ -194,7 +196,7 @@ const StoreDetail = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", p: 0 }}>
+    <Box sx={{ width: "100%", p: 0, position: "relative" }}>
       {loading ? (
         <BikeLoader />
       ) : (
@@ -314,17 +316,23 @@ const StoreDetail = () => {
           <Box sx={{ p: 0.2 }}>
             {!searchTerm ? (
               isGrocery ? (
-                <TabMenu
-                
-                  menuItems={menuItems}
-                
-                  cart={cart}
-                  setCart={setCart}
-                  addToCart={addToCart}
-                  handleOpenModal={handleOpenModal}
-                  navigate={navigate}
-                  storeInfo={storeInfo}
-                />
+                <Box
+                  sx={{
+                    maxHeight: "calc(100vh - 50px)",
+                    overflowY: "auto" 
+                  }}
+                >
+                  {" "}
+                  <TabMenu
+                    menuItems={menuItems}
+                    cart={cart}
+                    setCart={setCart}
+                    addToCart={addToCart}
+                    handleOpenModal={handleOpenModal}
+                    navigate={navigate}
+                    storeInfo={storeInfo}
+                  />{" "}
+                </Box>
               ) : isServices ? (
                 <></> // or null if you prefer no rendering
               ) : (
