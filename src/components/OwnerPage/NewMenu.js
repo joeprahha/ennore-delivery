@@ -47,7 +47,10 @@ const NewMenuPage = () => {
     image: null,
     storeName: ""
   });
-  const inputRef = useRef(null); // Ref for the hidden barcode input field
+  const inputRef = useRef(null);
+  const inputRef2 = useRef(null);
+  localStorage.setItem("itemMaster", JSON.stringify([]));
+  const itemMater = JSON.parse(localStorage.getItem("itemMater") || "[]");
   const itemRefs = useRef({});
   const [selectedStore, setSelectedStore] = useState(menuId);
 
@@ -134,6 +137,12 @@ const NewMenuPage = () => {
       inputRef.current.focus(); // Focus the input when clicked
     }
   };
+  const handleClick2 = () => {
+    console.log("i");
+    if (inputRef2.current) {
+      inputRef2.current.focus(); // Focus the input when clicked
+    }
+  };
 
   const handleBarcodeScan = debounce((e) => {
     setSearchQuery(e.target.value);
@@ -161,8 +170,8 @@ const NewMenuPage = () => {
     const updatedCategory = {
       ...menu[category],
       items: [
-        ...menu[category].items,
-        { ...newItem, id: Date.now().toString() }
+        { ...newItem, id: Date.now().toString() },
+        ...menu[category].items
       ]
     };
     setMenu({ ...menu, [category]: updatedCategory });
@@ -196,7 +205,6 @@ const NewMenuPage = () => {
       setSave(false);
     }
   };
-
   const handleImageChange = async (event, categoryName, itemId) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -286,8 +294,8 @@ const NewMenuPage = () => {
           />
           <input
             ref={inputRef}
-            onChange={handleBarcodeScan} // onInput ensures we capture the value on barcode input
-            onClick={handleClick} // Focus input on click
+            onClick={handleClick}
+            onChange={handleBarcodeScan}
             style={{
               width: "200px",
               height: "30px",
@@ -403,16 +411,36 @@ const NewMenuPage = () => {
                               <Table>
                                 <TableHead>
                                   <TableRow>
-                                    <TableCell>Image</TableCell>
-                                    <TableCell>Barcode</TableCell>
-                                    <TableCell>Store Name</TableCell>
-                                    <TableCell>Website Name</TableCell>
-                                    <TableCell>MRP</TableCell>
-                                    <TableCell>Price</TableCell>
-                                    <TableCell>Available</TableCell>
-                                    <TableCell>Action</TableCell>
+                                    <TableCell sx={{ width: "5%" }}>
+                                      Image
+                                    </TableCell>
+                                    <TableCell sx={{ width: "15%" }}>
+                                      Barcode
+                                    </TableCell>
+                                    <TableCell sx={{ width: "15%" }}>
+                                      Store Name
+                                    </TableCell>
+                                    <TableCell sx={{ width: "25%" }}>
+                                      Website Name
+                                    </TableCell>{" "}
+                                    {/* Wider column */}
+                                    <TableCell sx={{ width: "9%" }}>
+                                      MRP
+                                    </TableCell>{" "}
+                                    {/* Narrower column */}
+                                    <TableCell sx={{ width: "9%" }}>
+                                      Price
+                                    </TableCell>{" "}
+                                    {/* Narrower column */}
+                                    <TableCell sx={{ width: "9%" }}>
+                                      Available
+                                    </TableCell>
+                                    <TableCell sx={{ width: "8%" }}>
+                                      Action
+                                    </TableCell>
                                   </TableRow>
                                 </TableHead>
+
                                 <TableBody>
                                   {items.map((item) => (
                                     <TableRow key={item.id}>
@@ -441,7 +469,7 @@ const NewMenuPage = () => {
                                         >
                                           <img
                                             src={item.image}
-                                            alt={item.name.slice(0, 10)}
+                                            alt={item?.name?.slice(0, 10)}
                                             width="100%"
                                             height="100%"
                                             style={{ objectFit: "cover" }}
@@ -450,27 +478,78 @@ const NewMenuPage = () => {
                                       </TableCell>
                                       <TableCell>
                                         <TextField
+                                          size="small"
+                                          InputProps={{
+                                            style: {
+                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }
+                                          }}
                                           value={item.barcode}
-                                          onChange={(e) =>
+                                          ref={inputRef2}
+                                          onClick={handleClick2}
+                                          onChange={(e) => {
+                                            const newBarcode = e.target.value;
+
+                                            const updatedItems = items.map(
+                                              (i) =>
+                                                i.id === item.id
+                                                  ? {
+                                                      ...i,
+                                                      barcode: newBarcode
+                                                    }
+                                                  : i
+                                            );
+
                                             setMenu({
                                               ...menu,
                                               [categoryName]: {
                                                 ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        barcode: e.target.value
-                                                      }
-                                                    : i
-                                                )
+                                                items: updatedItems
                                               }
-                                            })
-                                          }
+                                            });
+
+                                            const matchedItem =
+                                              itemMater &&
+                                              itemMater?.find(
+                                                (i) => i.Barcode === newBarcode
+                                              );
+
+                                            if (matchedItem) {
+                                              // Update other fields if a match is found
+                                              const updatedItem = {
+                                                ...item,
+                                                barcode: newBarcode, // Ensure the barcode is set
+                                                name: matchedItem["item Name"],
+                                                storeName:
+                                                  matchedItem["item Name"],
+                                                price: matchedItem["srate"], // Assign sales rate to price
+                                                mrp: matchedItem["MRP"] // Update MRP
+                                              };
+
+                                              // Update the menu state again with the matched item data
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: items.map((i) =>
+                                                    i.id === item.id
+                                                      ? updatedItem
+                                                      : i
+                                                  )
+                                                }
+                                              });
+                                            }
+                                          }}
                                         />
                                       </TableCell>
                                       <TableCell>
                                         <TextField
+                                          size="small"
+                                          InputProps={{
+                                            style: {
+                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }
+                                          }}
                                           value={item.storeName}
                                           onChange={(e) =>
                                             setMenu({
@@ -493,6 +572,13 @@ const NewMenuPage = () => {
                                       </TableCell>
                                       <TableCell>
                                         <TextField
+                                          sx={{ width: "100%" }}
+                                          size="small"
+                                          InputProps={{
+                                            style: {
+                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }
+                                          }}
                                           value={item.name}
                                           onChange={(e) =>
                                             setMenu({
@@ -514,6 +600,12 @@ const NewMenuPage = () => {
                                       </TableCell>
                                       <TableCell>
                                         <TextField
+                                          size="small"
+                                          InputProps={{
+                                            style: {
+                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }
+                                          }}
                                           value={item.mrp}
                                           onChange={(e) =>
                                             setMenu({
@@ -535,6 +627,12 @@ const NewMenuPage = () => {
                                       </TableCell>
                                       <TableCell>
                                         <TextField
+                                          size="small"
+                                          InputProps={{
+                                            style: {
+                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }
+                                          }}
                                           value={item.price}
                                           onChange={(e) =>
                                             setMenu({

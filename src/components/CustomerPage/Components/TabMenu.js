@@ -43,7 +43,8 @@ const TabMenu = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff"
+        backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
+        maxHeight: "calc(80vh - 50px)"
       }}
     >
       <Box
@@ -62,7 +63,7 @@ const TabMenu = ({
             width: "auto",
             backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
             zIndex: 1,
-            height: "80vh"
+            height: "calc(80vh)"
           }}
         >
           <IconButton sx={{ flexShrink: 0 }} onClick={toggleDrawer(true)}>
@@ -113,6 +114,21 @@ const TabMenu = ({
                   />
                 );
               })}
+            <Tab
+              aria-controls={`vertical-tabpanel`}
+              label={
+                <div style={{ textAlign: "center" }}>
+                  <Box
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      objectFit: "cover",
+                      marginBottom: "8px"
+                    }}
+                  />
+                </div>
+              }
+            />
           </Tabs>
         </Box>
         <CategoryItems
@@ -258,7 +274,6 @@ const CategoryItems = ({
   return (
     <Box
       sx={{
-        mt: 2,
         width: "100%",
         backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff"
       }}

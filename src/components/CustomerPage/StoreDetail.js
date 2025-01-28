@@ -318,7 +318,7 @@ const StoreDetail = () => {
               isGrocery ? (
                 <Box
                   sx={{
-                    maxHeight: "calc(100vh - 50px)",
+                    // maxHeight: "calc(100vh - 50px)",
                     overflowY: "auto"
                   }}
                 >
