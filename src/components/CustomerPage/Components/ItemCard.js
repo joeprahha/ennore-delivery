@@ -15,8 +15,12 @@ import { isTokenValid, logout } from "../../../utils/auth";
 
 const getOptimizedImageUrl = (imageUrl) => {
   if (imageUrl) {
-    const [base, imgUrl] = imageUrl?.split("/upload/");
-    return `${base}/upload/w_300,h_300,c_fill,f_webp/${imgUrl}`;
+    if (imageUrl.includes("/upload/") && imageUrl.includes("cloudinary")) {
+      const [base, imgUrl] = imageUrl?.split("/upload/");
+      return `${base}/upload/w_300,h_300,c_fill,f_webp/${imgUrl}`;
+    } else {
+      return imageUrl;
+    }
   }
   return "";
 };
@@ -147,8 +151,12 @@ const ItemCard = ({
             fontWeight: 500,
             overflow: "hidden",
             textOverflow: "ellipsis",
-            height: "2.5rem",
+            height: "2rem",
+            lineHeight: "1rem",
             width: "100%",
+            display: "-webkit-box",
+            WebkitLineClamp: 2, // Limit to 2 lines
+            WebkitBoxOrient: "vertical", // Ensure the box is vertical
             mt: 0.5
           }}
         >

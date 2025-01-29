@@ -1032,7 +1032,7 @@ const Cart = () => {
                       </Typography>
                     </Box>
 
-                    {couponOffer.on === "deliveryFee" ? (
+                    {couponOffer?.on === "deliveryFee" ? (
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         {/* Coupon Applied Label */}
                         <Typography

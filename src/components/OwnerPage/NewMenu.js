@@ -49,7 +49,6 @@ const NewMenuPage = () => {
   });
   const inputRef = useRef(null);
   const inputRef2 = useRef(null);
-  localStorage.setItem("itemMaster", JSON.stringify([]));
   const itemMater = JSON.parse(localStorage.getItem("itemMater") || "[]");
   const itemRefs = useRef({});
   const [selectedStore, setSelectedStore] = useState(menuId);
