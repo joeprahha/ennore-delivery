@@ -60,7 +60,26 @@ const NewMenuPage = () => {
   const [openDeleteItemDialog, setOpenDeleteItemDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  const handleCategoryChange = (event, newValue) => {
+    const categoryItemsCount =
+      menu[Object.keys(menu)[newValue]]?.items?.length || 0;
+    if (categoryItemsCount > 30) {
+      setLoading(true);
+    }
+    setSelectedCategoryIndex(newValue);
+  };
+  useEffect(() => {
+    if (loading) {
+      const categoryItemsCount =
+        menu[Object.keys(menu)[selectedCategoryIndex]]?.items?.length || 0;
+      const dynamicDelay = categoryItemsCount * 1;
+      setTimeout(() => {
+        setLoading(false); // Stop loading after calculated delay
+      }, dynamicDelay);
+    }
+  }, [loading, selectedCategoryIndex, menu]);
   useEffect(() => {
     fetchMenu(menuId);
   }, [menuId]);
@@ -94,41 +113,6 @@ const NewMenuPage = () => {
     }, {});
     return newFilteredMenu;
   }, [menu, searchQuery]);
-
-  const handleImageChanged = async (event, categoryName, itemId) => {
-    const file = event.target.files[0];
-    if (!file) return; // If no file selected, return
-
-    // Create a FormData object to send the image file to the server
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      // Upload the image using your API endpoint
-      const response = await api.post("/upload-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-
-      // Get the image URL from the response
-      const imageUrl = response.data.url;
-
-      // Update the menu with the new image URL for the corresponding item
-      const updatedCategory = {
-        ...menu[categoryName],
-        items: menu[categoryName].items.map((item) =>
-          item.id === itemId ? { ...item, image: imageUrl } : item
-        )
-      };
-
-      setMenu({
-        ...menu,
-        [categoryName]: updatedCategory
-      });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      alert("Error uploading image");
-    }
-  };
 
   const handleClick = () => {
     console.log("i");
@@ -186,10 +170,11 @@ const NewMenuPage = () => {
 
   const handleSaveMenu = async () => {
     const formattedMenu = Object.entries(menu).map(
-      ([categoryName, { items, available }]) => ({
+      ([categoryName, { items, available, image }]) => ({
         categoryName,
         available,
-        items
+        items,
+        image
       })
     );
     setSave(true);
@@ -235,10 +220,6 @@ const NewMenuPage = () => {
     }
   };
 
-  const handleCategoryChange = (event, newValue) => {
-    setSelectedCategoryIndex(newValue);
-  };
-
   const handleDeleteCategory = (category) => {
     setCategoryToDelete(category);
     setOpenDeleteCategoryDialog(true);
@@ -270,6 +251,35 @@ const NewMenuPage = () => {
     });
     setOpenDeleteItemDialog(false);
     setItemToDelete(null);
+  };
+  const handleCategoryImageChange = async (event, categoryName) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await api.post("/upload-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      const imageUrl = response.data.url;
+
+      // Update the category with the new image
+      const updatedCategory = {
+        ...menu[categoryName],
+        image: imageUrl // Update the image for the category
+      };
+      // Update the menu state
+      setMenu({
+        ...menu,
+        [categoryName]: updatedCategory
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Error uploading image");
+    }
   };
 
   return (
@@ -335,12 +345,12 @@ const NewMenuPage = () => {
                 sx={{
                   borderRight: 1,
                   borderColor: "divider",
-                  position: "sticky", // Sticky position
-                  top: 0, // Stick to the top when scrolling
-                  height: "100%", // Full height to keep the tabs visible
-                  zIndex: 1, // Keeps the tabs above the content
-                  bgcolor: "background.paper", // Keeps background consistent while scrolling
-                  overflow: "hidden" // Prevents scrolling on the tabs
+                  position: "sticky",
+                  top: 0,
+                  height: "100%",
+                  zIndex: 1,
+                  bgcolor: "background.paper",
+                  overflow: "hidden"
                 }}
               >
                 {Object.keys(menu).map((categoryName, index) => (
@@ -361,341 +371,398 @@ const NewMenuPage = () => {
                 height: "100%"
               }}
             >
-              <Grid container spacing={3}>
-                {Object.entries(filteredMenu).map(
-                  ([categoryName, { items, available }], index) => {
-                    if (selectedCategoryIndex !== index && !searchQuery)
-                      return null; // Hide non-selected categories
+              {loading ? (
+                // Show a loader while loading data
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100%", // Ensure it takes full height of the viewport or set specific height
+                    width: "80%" // Ensure full width
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <Grid container spacing={3}>
+                  {Object.entries(filteredMenu).map(
+                    ([categoryName, { items, available }], index) => {
+                      if (selectedCategoryIndex !== index && !searchQuery)
+                        return null; // Hide non-selected categories
 
-                    return (
-                      <Grid item xs={12} key={categoryName}>
-                        <Card>
-                          <CardContent>
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Typography variant="h6">
-                                {categoryName}
-                              </Typography>
-                              <Box display="flex" alignItems="center">
-                                <IconButton
-                                  onClick={() =>
-                                    handleDeleteCategory(categoryName)
-                                  }
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                                <Switch
-                                  checked={available}
-                                  onChange={() =>
-                                    setMenu({
-                                      ...menu,
-                                      [categoryName]: {
-                                        ...menu[categoryName],
-                                        available: !available
+                      return (
+                        <Grid item xs={12} key={categoryName}>
+                          <Card>
+                            <CardContent>
+                              <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                <Box display="flex" alignItems="center">
+                                  {" "}
+                                  <Box sx={{ width: "50px", height: "50px" }}>
+                                    <input
+                                      id={`category-image-upload-${categoryName}`}
+                                      style={{ display: "none" }}
+                                      type="file"
+                                      onChange={
+                                        (e) =>
+                                          handleCategoryImageChange(
+                                            e,
+                                            categoryName
+                                          ) // Handle category image change
                                       }
-                                    })
-                                  }
-                                />
-                                <IconButton
-                                  onClick={() => handleAddItem(categoryName)}
-                                >
-                                  <AddIcon />
-                                </IconButton>
+                                    />
+                                    <Box
+                                      onClick={() =>
+                                        document
+                                          .getElementById(
+                                            `category-image-upload-${categoryName}`
+                                          )
+                                          .click()
+                                      }
+                                      sx={{ width: "50px", height: "50px" }}
+                                    >
+                                      <img
+                                        src={menu[categoryName]?.image} // Use category's image
+                                        alt={"image"}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ objectFit: "cover" }}
+                                      />
+                                    </Box>
+                                  </Box>
+                                  <Typography variant="h6">
+                                    {categoryName}
+                                  </Typography>{" "}
+                                </Box>
+                                <Box display="flex" alignItems="center">
+                                  <IconButton
+                                    onClick={() =>
+                                      handleDeleteCategory(categoryName)
+                                    }
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                  <Switch
+                                    checked={available}
+                                    onChange={() =>
+                                      setMenu({
+                                        ...menu,
+                                        [categoryName]: {
+                                          ...menu[categoryName],
+                                          available: !available
+                                        }
+                                      })
+                                    }
+                                  />
+                                  <IconButton
+                                    onClick={() => handleAddItem(categoryName)}
+                                  >
+                                    <AddIcon />
+                                  </IconButton>
+                                </Box>
                               </Box>
-                            </Box>
-                            <TableContainer>
-                              <Table>
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell sx={{ width: "5%" }}>
-                                      Image
-                                    </TableCell>
-                                    <TableCell sx={{ width: "15%" }}>
-                                      Barcode
-                                    </TableCell>
-                                    <TableCell sx={{ width: "15%" }}>
-                                      Store Name
-                                    </TableCell>
-                                    <TableCell sx={{ width: "25%" }}>
-                                      Website Name
-                                    </TableCell>{" "}
-                                    {/* Wider column */}
-                                    <TableCell sx={{ width: "9%" }}>
-                                      MRP
-                                    </TableCell>{" "}
-                                    {/* Narrower column */}
-                                    <TableCell sx={{ width: "9%" }}>
-                                      Price
-                                    </TableCell>{" "}
-                                    {/* Narrower column */}
-                                    <TableCell sx={{ width: "9%" }}>
-                                      Available
-                                    </TableCell>
-                                    <TableCell sx={{ width: "8%" }}>
-                                      Action
-                                    </TableCell>
-                                  </TableRow>
-                                </TableHead>
-
-                                <TableBody>
-                                  {items.map((item) => (
-                                    <TableRow key={item.id}>
-                                      <TableCell>
-                                        <input
-                                          id={`image-upload-${item.id}`}
-                                          style={{ display: "none" }}
-                                          type="file"
-                                          onChange={(e) =>
-                                            handleImageChange(
-                                              e,
-                                              categoryName,
-                                              item.id
-                                            )
-                                          }
-                                        />
-                                        <Box
-                                          onClick={() =>
-                                            document
-                                              .getElementById(
-                                                `image-upload-${item.id}`
-                                              )
-                                              .click()
-                                          }
-                                          sx={{ width: "50px", height: "50px" }}
-                                        >
-                                          <img
-                                            src={item.image}
-                                            alt={item?.name?.slice(0, 10)}
-                                            width="100%"
-                                            height="100%"
-                                            style={{ objectFit: "cover" }}
-                                          />
-                                        </Box>
+                              <TableContainer>
+                                <Table>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell sx={{ width: "5%" }}>
+                                        Image
                                       </TableCell>
-                                      <TableCell>
-                                        <TextField
-                                          size="small"
-                                          InputProps={{
-                                            style: {
-                                              fontSize: "0.8rem" // Apply font size to the input field
+                                      <TableCell sx={{ width: "15%" }}>
+                                        Barcode
+                                      </TableCell>
+                                      <TableCell sx={{ width: "15%" }}>
+                                        Store Name
+                                      </TableCell>
+                                      <TableCell sx={{ width: "25%" }}>
+                                        Website Name
+                                      </TableCell>{" "}
+                                      {/* Wider column */}
+                                      <TableCell sx={{ width: "9%" }}>
+                                        MRP
+                                      </TableCell>{" "}
+                                      {/* Narrower column */}
+                                      <TableCell sx={{ width: "9%" }}>
+                                        Price
+                                      </TableCell>{" "}
+                                      {/* Narrower column */}
+                                      <TableCell sx={{ width: "9%" }}>
+                                        Available
+                                      </TableCell>
+                                      <TableCell sx={{ width: "8%" }}>
+                                        Action
+                                      </TableCell>
+                                    </TableRow>
+                                  </TableHead>
+
+                                  <TableBody>
+                                    {items.map((item) => (
+                                      <TableRow key={item.id}>
+                                        <TableCell>
+                                          <input
+                                            id={`image-upload-${item.id}`}
+                                            style={{ display: "none" }}
+                                            type="file"
+                                            onChange={(e) =>
+                                              handleImageChange(
+                                                e,
+                                                categoryName,
+                                                item.id
+                                              )
                                             }
-                                          }}
-                                          value={item.barcode}
-                                          ref={inputRef2}
-                                          onClick={handleClick2}
-                                          onChange={(e) => {
-                                            const newBarcode = e.target.value;
-
-                                            const updatedItems = items.map(
-                                              (i) =>
-                                                i.id === item.id
-                                                  ? {
-                                                      ...i,
-                                                      barcode: newBarcode
-                                                    }
-                                                  : i
-                                            );
-
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: updatedItems
+                                          />
+                                          <Box
+                                            onClick={() =>
+                                              document
+                                                .getElementById(
+                                                  `image-upload-${item.id}`
+                                                )
+                                                .click()
+                                            }
+                                            sx={{
+                                              width: "50px",
+                                              height: "50px"
+                                            }}
+                                          >
+                                            <img
+                                              src={item.image}
+                                              alt={item?.name?.slice(0, 10)}
+                                              width="100%"
+                                              height="100%"
+                                              style={{ objectFit: "cover" }}
+                                            />
+                                          </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                          <TextField
+                                            size="small"
+                                            InputProps={{
+                                              style: {
+                                                fontSize: "0.8rem" // Apply font size to the input field
                                               }
-                                            });
+                                            }}
+                                            value={item.barcode}
+                                            ref={inputRef2}
+                                            onClick={handleClick2}
+                                            onChange={(e) => {
+                                              const newBarcode = e.target.value;
 
-                                            const matchedItem =
-                                              itemMater &&
-                                              itemMater?.find(
-                                                (i) => i.Barcode === newBarcode
+                                              const updatedItems = items.map(
+                                                (i) =>
+                                                  i.id === item.id
+                                                    ? {
+                                                        ...i,
+                                                        barcode: newBarcode
+                                                      }
+                                                    : i
                                               );
 
-                                            if (matchedItem) {
-                                              // Update other fields if a match is found
-                                              const updatedItem = {
-                                                ...item,
-                                                barcode: newBarcode, // Ensure the barcode is set
-                                                name: matchedItem["item Name"],
-                                                storeName:
-                                                  matchedItem["item Name"],
-                                                price: matchedItem["srate"], // Assign sales rate to price
-                                                mrp: matchedItem["MRP"] // Update MRP
-                                              };
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: updatedItems
+                                                }
+                                              });
 
-                                              // Update the menu state again with the matched item data
+                                              const matchedItem =
+                                                itemMater &&
+                                                itemMater?.find(
+                                                  (i) =>
+                                                    i.Barcode === newBarcode
+                                                );
+
+                                              if (matchedItem) {
+                                                // Update other fields if a match is found
+                                                const updatedItem = {
+                                                  ...item,
+                                                  barcode: newBarcode, // Ensure the barcode is set
+                                                  name: matchedItem[
+                                                    "item Name"
+                                                  ],
+                                                  storeName:
+                                                    matchedItem["item Name"],
+                                                  price: matchedItem["srate"], // Assign sales rate to price
+                                                  mrp: matchedItem["MRP"] // Update MRP
+                                                };
+
+                                                // Update the menu state again with the matched item data
+                                                setMenu({
+                                                  ...menu,
+                                                  [categoryName]: {
+                                                    ...menu[categoryName],
+                                                    items: items.map((i) =>
+                                                      i.id === item.id
+                                                        ? updatedItem
+                                                        : i
+                                                    )
+                                                  }
+                                                });
+                                              }
+                                            }}
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <TextField
+                                            size="small"
+                                            InputProps={{
+                                              style: {
+                                                fontSize: "0.8rem" // Apply font size to the input field
+                                              }
+                                            }}
+                                            value={item.storeName}
+                                            onChange={(e) =>
                                               setMenu({
                                                 ...menu,
                                                 [categoryName]: {
                                                   ...menu[categoryName],
                                                   items: items.map((i) =>
                                                     i.id === item.id
-                                                      ? updatedItem
+                                                      ? {
+                                                          ...i,
+                                                          storeName:
+                                                            e.target.value
+                                                        }
                                                       : i
                                                   )
                                                 }
-                                              });
+                                              })
                                             }
-                                          }}
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <TextField
-                                          size="small"
-                                          InputProps={{
-                                            style: {
-                                              fontSize: "0.8rem" // Apply font size to the input field
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <TextField
+                                            sx={{ width: "100%" }}
+                                            size="small"
+                                            InputProps={{
+                                              style: {
+                                                fontSize: "0.8rem" // Apply font size to the input field
+                                              }
+                                            }}
+                                            value={item.name}
+                                            onChange={(e) =>
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: items.map((i) =>
+                                                    i.id === item.id
+                                                      ? {
+                                                          ...i,
+                                                          name: e.target.value
+                                                        }
+                                                      : i
+                                                  )
+                                                }
+                                              })
                                             }
-                                          }}
-                                          value={item.storeName}
-                                          onChange={(e) =>
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        storeName:
-                                                          e.target.value
-                                                      }
-                                                    : i
-                                                )
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <TextField
+                                            size="small"
+                                            InputProps={{
+                                              style: {
+                                                fontSize: "0.8rem" // Apply font size to the input field
                                               }
-                                            })
-                                          }
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <TextField
-                                          sx={{ width: "100%" }}
-                                          size="small"
-                                          InputProps={{
-                                            style: {
-                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }}
+                                            value={item.mrp}
+                                            onChange={(e) =>
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: items.map((i) =>
+                                                    i.id === item.id
+                                                      ? {
+                                                          ...i,
+                                                          mrp: e.target.value
+                                                        }
+                                                      : i
+                                                  )
+                                                }
+                                              })
                                             }
-                                          }}
-                                          value={item.name}
-                                          onChange={(e) =>
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        name: e.target.value
-                                                      }
-                                                    : i
-                                                )
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <TextField
+                                            size="small"
+                                            InputProps={{
+                                              style: {
+                                                fontSize: "0.8rem" // Apply font size to the input field
                                               }
-                                            })
-                                          }
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <TextField
-                                          size="small"
-                                          InputProps={{
-                                            style: {
-                                              fontSize: "0.8rem" // Apply font size to the input field
+                                            }}
+                                            value={item.price}
+                                            onChange={(e) =>
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: items.map((i) =>
+                                                    i.id === item.id
+                                                      ? {
+                                                          ...i,
+                                                          price: e.target.value
+                                                        }
+                                                      : i
+                                                  )
+                                                }
+                                              })
                                             }
-                                          }}
-                                          value={item.mrp}
-                                          onChange={(e) =>
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        mrp: e.target.value
-                                                      }
-                                                    : i
-                                                )
-                                              }
-                                            })
-                                          }
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <TextField
-                                          size="small"
-                                          InputProps={{
-                                            style: {
-                                              fontSize: "0.8rem" // Apply font size to the input field
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <Switch
+                                            checked={item.available}
+                                            onChange={() =>
+                                              setMenu({
+                                                ...menu,
+                                                [categoryName]: {
+                                                  ...menu[categoryName],
+                                                  items: items.map((i) =>
+                                                    i.id === item.id
+                                                      ? {
+                                                          ...i,
+                                                          available:
+                                                            !i.available
+                                                        }
+                                                      : i
+                                                  )
+                                                }
+                                              })
                                             }
-                                          }}
-                                          value={item.price}
-                                          onChange={(e) =>
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        price: e.target.value
-                                                      }
-                                                    : i
-                                                )
-                                              }
-                                            })
-                                          }
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <Switch
-                                          checked={item.available}
-                                          onChange={() =>
-                                            setMenu({
-                                              ...menu,
-                                              [categoryName]: {
-                                                ...menu[categoryName],
-                                                items: items.map((i) =>
-                                                  i.id === item.id
-                                                    ? {
-                                                        ...i,
-                                                        available: !i.available
-                                                      }
-                                                    : i
-                                                )
-                                              }
-                                            })
-                                          }
-                                        />
-                                      </TableCell>
-                                      <TableCell>
-                                        <IconButton
-                                          onClick={() =>
-                                            handleDeleteItem(
-                                              categoryName,
-                                              item.id
-                                            )
-                                          }
-                                        >
-                                          <DeleteIcon />
-                                        </IconButton>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    );
-                  }
-                )}
-              </Grid>
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <IconButton
+                                            onClick={() =>
+                                              handleDeleteItem(
+                                                categoryName,
+                                                item.id
+                                              )
+                                            }
+                                          >
+                                            <DeleteIcon />
+                                          </IconButton>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      );
+                    }
+                  )}
+                </Grid>
+              )}
             </Box>
           </Box>
         )}

@@ -531,7 +531,9 @@ const Cart = () => {
         return;
       }
       //setCoupon(coupon);
-      const response = await api.get(`coupon/${coupon}`);
+      const response = await api.get(
+        `coupon/${coupon}?storeId=${cart.storeId}`
+      );
       if (response.data.valid) {
         const onWhat = response.data?.on;
         if (onWhat === "deliveryFee") {

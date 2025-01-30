@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Tabs,
@@ -11,7 +11,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  useTheme
+  useTheme,
+  CircularProgress
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -30,9 +31,27 @@ const TabMenu = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const theme = useTheme();
 
+  const [loading, setLoading] = useState(false);
+
   const handleTabChange = (event, newValue) => {
+    const categoryItemsCount =
+      menuItems[Object.keys(menuItems)[newValue]]?.items?.length || 0;
+    if (categoryItemsCount > 50) {
+      setLoading(true);
+    }
     setActiveTab(newValue);
   };
+
+  useEffect(() => {
+    if (loading) {
+      const categoryItemsCount =
+        menuItems[Object.keys(menuItems)[activeTab]]?.items?.length || 0;
+      const dynamicDelay = categoryItemsCount * 5;
+      setTimeout(() => {
+        setLoading(false); // Stop loading after calculated delay
+      }, dynamicDelay);
+    }
+  }, [loading, activeTab, menuItems]);
 
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
@@ -90,10 +109,12 @@ const TabMenu = ({
               .filter((c) => menuItems[c]?.available)
               .map((category, index) => {
                 const categoryImage =
+                  menuItems[category]?.image ??
                   "https://instamart-media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_240/NI_CATALOG/IMAGES/CIW/2024/8/20/c20eec04-70c9-4bab-b5ba-e90bf6889651_51ace0bb-7d70-49e5-899b-a68e20858bd8";
 
                 return (
                   <Tab
+                    sx={{ p: 1 }}
                     aria-controls={`vertical-tabpanel-${index}`}
                     label={
                       <div style={{ textAlign: "center" }}>
@@ -140,6 +161,7 @@ const TabMenu = ({
           handleOpenModal={handleOpenModal}
           storeInfo={storeInfo}
           theme={theme}
+          loading={loading}
         />
         {/* Swipeable Drawer for Categories */}
         <SwipeableDrawer
@@ -269,7 +291,8 @@ const CategoryItems = ({
   addToCart,
   handleOpenModal,
   storeInfo,
-  theme
+  theme,
+  loading = { loading }
 }) => {
   return (
     <Box
@@ -278,22 +301,37 @@ const CategoryItems = ({
         backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff"
       }}
     >
-      <Grid container spacing={2} sx={{ p: 1 }}>
-        {menuItems[category]?.available &&
-          menuItems[category]?.items
-            ?.filter((item) => item.available)
-            ?.map((item) => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                cart={cart}
-                setCart={setCart}
-                addToCart={addToCart}
-                handleOpenModal={handleOpenModal}
-                storeStatus={storeInfo}
-              />
-            ))}
-      </Grid>
+      {loading ? (
+        // Show a loader while loading data
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%", // Ensure it takes full height of the viewport or set specific height
+            width: "100%" // Ensure full width
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={2} sx={{ p: 1 }}>
+          {menuItems[category]?.available &&
+            menuItems[category]?.items
+              ?.filter((item) => item.available)
+              ?.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  cart={cart}
+                  setCart={setCart}
+                  addToCart={addToCart}
+                  handleOpenModal={handleOpenModal}
+                  storeStatus={storeInfo}
+                />
+              ))}
+        </Grid>
+      )}
       <Box sx={{ height: "50px" }}></Box>
     </Box>
   );
