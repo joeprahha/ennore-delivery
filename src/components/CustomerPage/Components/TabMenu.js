@@ -5,19 +5,14 @@ import {
   Tab,
   IconButton,
   Typography,
-  Divider,
   Grid,
   SwipeableDrawer,
-  List,
-  ListItem,
-  ListItemText,
   useTheme,
   CircularProgress
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "./ItemCard"; // Assuming you have ItemCard as a separate component
-import { act } from "react-dom/test-utils";
 
 const TabMenu = ({
   menuItems,
@@ -25,7 +20,8 @@ const TabMenu = ({
   setCart,
   addToCart,
   handleOpenModal,
-  storeInfo
+  storeInfo,
+  isReady
 }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -162,8 +158,9 @@ const TabMenu = ({
           storeInfo={storeInfo}
           theme={theme}
           loading={loading}
+          isReady={isReady}
         />
-        {/* Swipeable Drawer for Categories */}
+
         <SwipeableDrawer
           anchor="bottom"
           open={drawerOpen}
@@ -214,6 +211,7 @@ const TabMenu = ({
                 .filter((c) => menuItems[c]?.available)
                 .map((category, index) => {
                   const categoryImage =
+                    menuItems[category]?.image ??
                     "https://instamart-media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_240/NI_CATALOG/IMAGES/CIW/2024/8/20/c20eec04-70c9-4bab-b5ba-e90bf6889651_51ace0bb-7d70-49e5-899b-a68e20858bd8";
 
                   return (
@@ -292,7 +290,8 @@ const CategoryItems = ({
   handleOpenModal,
   storeInfo,
   theme,
-  loading = { loading }
+  loading,
+  isReady
 }) => {
   return (
     <Box
@@ -328,10 +327,12 @@ const CategoryItems = ({
                   addToCart={addToCart}
                   handleOpenModal={handleOpenModal}
                   storeStatus={storeInfo}
+                  isReady={isReady}
                 />
               ))}
         </Grid>
       )}
+
       <Box sx={{ height: "50px" }}></Box>
     </Box>
   );

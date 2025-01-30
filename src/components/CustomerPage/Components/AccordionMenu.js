@@ -21,7 +21,8 @@ const AccordionMenu = ({
   handleOpenModal,
   navigate,
   storeInfo,
-  categoryLength
+  categoryLength,
+  isReady
 }) => {
   const [expanded, setExpanded] = useState(categoryLength <= 5); // Default open if categoryLength <= 5
 
@@ -87,6 +88,7 @@ const AccordionMenu = ({
                   handleOpenModal={handleOpenModal}
                   navigate={navigate}
                   storeStatus={storeInfo}
+                  isReady={isReady}
                 />
               ))}
           </Grid>

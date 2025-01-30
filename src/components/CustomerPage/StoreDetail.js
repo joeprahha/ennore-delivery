@@ -7,8 +7,10 @@ import {
   Paper,
   InputAdornment,
   Grid,
-  useTheme
+  useTheme,
+  Divider
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "./Components/ItemCard";
 import ClearIcon from "@mui/icons-material/Clear";
 import { GoToOrdersButton } from "./Components/GoToOrdersButton";
@@ -22,6 +24,7 @@ import ItemDetailModal from "./Components/ItemModal";
 import { getCartFromLocalStorage } from "../../utils/localStorage";
 import AccordionMenu from "./Components/AccordionMenu";
 import TabMenu from "./Components/TabMenu";
+import { convertToMinutes } from "./Stores";
 
 const StoreDetail = () => {
   const theme = useTheme();
@@ -32,6 +35,8 @@ const StoreDetail = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [storeInfo, setStoreInfo] = useState(null);
   const [isGrocery, setIsGrocery] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
   const [isServices, setIsServices] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -161,7 +166,26 @@ const StoreDetail = () => {
 
     setMenuItems(menuData);
     setStoreInfo(storeData);
+    setIsReady(isAllReady(storeData));
     setIsGrocery(storeData?.category?.includes("roceries"));
+  };
+  const isAllReady = (store) => {
+    const now = new Date();
+    const currentTimeString = `${now
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    const currentMinutes = convertToMinutes(currentTimeString);
+    const openMinutes = convertToMinutes(store.open_time);
+    const closeMinutes = convertToMinutes(store.close_time);
+    const isTimeOpen =
+      closeMinutes > openMinutes
+        ? currentMinutes >= openMinutes && currentMinutes <= closeMinutes
+        : currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+    const isOpen = isTimeOpen && store.status === "open";
+    const isReady = store?.ready;
+    return isOpen && isReady;
   };
 
   useEffect(() => {
@@ -256,7 +280,7 @@ const StoreDetail = () => {
                       )
                     }}
                     sx={{
-                      width: "100%", // Initially full width for search bar when focused
+                      width: "100%",
                       pr: 1,
                       transition: "width 0.3s ease-in-out"
                     }}
@@ -287,8 +311,39 @@ const StoreDetail = () => {
                       />
                     ) : null}
 
-                    {/* Display the store name */}
-                    <Typography variant="h6">{storeInfo?.name}</Typography>
+                    <Box>
+                      {/* Display the store name with dynamic font size */}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontSize: "1.1rem",
+                          // storeInfo?.name.length > 20 ? "1rem" : "1.5rem", // Adjust font size based on length
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                          textOverflow: "ellipsis"
+                        }}
+                      >
+                        {storeInfo?.name}
+                      </Typography>
+
+                      {!isReady && (
+                        <Typography
+                          variant="h6"
+                          fontSize="0.70rem"
+                          sx={{
+                            color: "#FF6F61",
+                            display: "flex",
+                            alignItems: "center"
+                          }} // Use flex to align items
+                        >
+                          <CloseIcon
+                            fontSize="inherit"
+                            sx={{ marginRight: "2px" }}
+                          />
+                          Not accepting orders currently
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
                   <IconButton onClick={handleSearchFocus} sx={{ p: 1, mr: 2 }}>
                     <SearchIcon />
@@ -331,6 +386,7 @@ const StoreDetail = () => {
                     handleOpenModal={handleOpenModal}
                     navigate={navigate}
                     storeInfo={storeInfo}
+                    isReady={isReady}
                   />{" "}
                 </Box>
               ) : isServices ? (
@@ -351,6 +407,7 @@ const StoreDetail = () => {
                       navigate={navigate}
                       storeInfo={storeInfo}
                       categoryLength={Object.keys(menuItems).length}
+                      isReady={isReady}
                     />
                   ))
               )
@@ -366,6 +423,7 @@ const StoreDetail = () => {
                     handleOpenModal={handleOpenModal}
                     navigate={navigate}
                     storeStatus={storeInfo}
+                    isReady={isReady}
                   />
                 ))}
               </Grid>
@@ -443,6 +501,7 @@ const StoreDetail = () => {
           </Paper>
         </Box>
       )}
+      {isGrocery ? <Divider /> : <></>}
       {!isGrocery ? <Box sx={{ height: "80px" }} /> : <></>}
     </Box>
   );

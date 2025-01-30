@@ -19,7 +19,7 @@ import { getCartFromLocalStorage } from "../../utils/localStorage";
 import { GoToOrdersButton } from "./Components/GoToOrdersButton";
 import ClearIcon from "@mui/icons-material/Clear";
 
-const convertToMinutes = (timeString) => {
+export const convertToMinutes = (timeString) => {
   const [hours, minutes] = timeString.split(":").map(Number);
   return hours * 60 + minutes;
 };
@@ -305,11 +305,7 @@ const Stores = () => {
                         <Paper
                           key={store._id}
                           elevation={1}
-                          onClick={
-                            isOpen && isReady
-                              ? () => handleStoreClick(store._id)
-                              : null
-                          }
+                          onClick={() => handleStoreClick(store._id)}
                           sx={{
                             mb: 1,
                             width: "100%",

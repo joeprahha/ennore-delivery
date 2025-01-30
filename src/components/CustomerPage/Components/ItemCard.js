@@ -32,7 +32,8 @@ const ItemCard = ({
   addToCart,
   handleOpenModal,
   storeStatus,
-  navigate
+  navigate,
+  isReady
 }) => {
   const [selectedVariant, setSelectedVariant] = useState(
     item?.variant?.[0] ?? null
@@ -245,81 +246,52 @@ const ItemCard = ({
           )}
         </Box>
 
-        {storeStatus?.status !== "open" ? (
-          <Button
-            disableRipple
-            variant="outlined"
-            onClick={(e) => {
-              e.stopPropagation();
-              addToCart(item);
-            }}
-            sx={{
-              width: "100%",
-              mt: "auto",
-              height: "25px",
-              fontSize: "0.65rem",
-              mb: 0.5,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "transparent",
-                boxShadow: "none"
-              },
-              "&:active": {
-                backgroundColor: "#e0e0e0",
-                boxShadow: "none"
-              }
-            }}
-            disabled={true}
-          >
-            Store Closed
-          </Button>
-        ) : cartItem ? (
-          <QuantityButton
-            item={item}
-            cart={cart}
-            setCart={setCart}
-            cartItem={cartItem}
-          />
-        ) : (
-          <Button
-            disableRipple
-            variant="outlined"
-            onClick={(e) => {
-              e.stopPropagation();
+        {isReady &&
+          (cartItem ? (
+            <QuantityButton
+              item={item}
+              cart={cart}
+              setCart={setCart}
+              cartItem={cartItem}
+            />
+          ) : (
+            <Button
+              disableRipple
+              variant="outlined"
+              onClick={(e) => {
+                e.stopPropagation();
 
-              if (!isTokenValid()) {
-                alert("Sign in to Add Cart");
-                logout(navigate);
-                return;
-              }
-              addToCart(item);
-            }}
-            sx={{
-              width: "100%",
-              mt: "auto",
-              height: "25px",
-              fontSize: "0.95rem",
-              mb: 0.5,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "transparent",
-                boxShadow: "none"
-              },
-              "&:active": {
-                backgroundColor: "#e0e0e0",
-                boxShadow: "none"
-              }
-            }}
-          >
-            Add
-          </Button>
-        )}
+                if (!isTokenValid()) {
+                  alert("Sign in to Add Cart");
+                  logout(navigate);
+                  return;
+                }
+                addToCart(item);
+              }}
+              disabled={!isReady}
+              sx={{
+                width: "100%",
+                mt: "auto",
+                height: "25px",
+                fontSize: "0.95rem",
+                mb: 0.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: "transparent",
+                  boxShadow: "none"
+                },
+                "&:active": {
+                  backgroundColor: "#e0e0e0",
+                  boxShadow: "none"
+                }
+              }}
+            >
+              Add
+            </Button>
+          ))}
       </Paper>
     </Grid>
   );
