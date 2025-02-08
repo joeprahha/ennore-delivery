@@ -6,7 +6,7 @@ import {
   Paper,
   InputAdornment,
   IconButton,
-  Divider
+  Divider,
 } from "@mui/material";
 import BedtimeIcon from "@mui/icons-material/Bedtime";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +49,7 @@ const Stores = () => {
     "Groceries",
     "Bakes",
     "Meat & More",
-    "Fresh Meats & More"
+    "Fresh Meats & More",
   ];
 
   useEffect(() => {
@@ -60,10 +60,10 @@ const Stores = () => {
     const fetchStores = async () => {
       setLoading(true);
       try {
-        const cachedStores = false; //sessionStorage.getItem(`stores`);
+        const cachedStores = sessionStorage.getItem(`stores`);
         if (cachedStores) {
           const { stores, timestamp } = JSON.parse(cachedStores);
-          const isCacheValid = Date.now() - timestamp < 2 * 60 * 1000;
+          const isCacheValid = Date.now() - timestamp < 5 * 60 * 1000;
 
           if (isCacheValid) {
             setStores(stores);
@@ -133,7 +133,7 @@ const Stores = () => {
         p: 0,
         minHeight: "100vh",
         overflowX: "hidden",
-        backgroundColor: "rgba(95, 37, 159, 0.05)"
+        backgroundColor: "rgba(95, 37, 159, 0.05)",
       }}
     >
       <>
@@ -146,7 +146,7 @@ const Stores = () => {
             top: 0,
             zIndex: 10,
 
-            width: "100%"
+            width: "100%",
           }}
         >
           <Paper
@@ -155,7 +155,7 @@ const Stores = () => {
               width: "100%",
               height: "auto",
               textAlign: "center",
-              display: "flex"
+              display: "flex",
             }}
           >
             {isSearching ? (
@@ -164,7 +164,7 @@ const Stores = () => {
                   display: "flex",
                   width: "100%",
                   transition: "width 0.3s ease-in-out", // Slide-in transition
-                  height: "40px"
+                  height: "40px",
                 }}
               >
                 <TextField
@@ -178,8 +178,8 @@ const Stores = () => {
                     disableUnderline: true,
                     sx: {
                       "& .MuiOutlinedInput-notchedOutline": {
-                        border: "none"
-                      }
+                        border: "none",
+                      },
                     },
                     startAdornment: (
                       <InputAdornment position="start">
@@ -192,12 +192,12 @@ const Stores = () => {
                           <ClearIcon />
                         </IconButton>
                       </InputAdornment>
-                    )
+                    ),
                   }}
                   sx={{
                     width: "100%", // Initially full width for search bar when focused
                     pr: 1,
-                    transition: "width 0.3s ease-in-out"
+                    transition: "width 0.3s ease-in-out",
                   }}
                   placeholder={`Search stores in Ennore Delivery`}
                 />
@@ -209,7 +209,7 @@ const Stores = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  width: "100%"
+                  width: "100%",
                 }}
               >
                 <Box
@@ -218,7 +218,7 @@ const Stores = () => {
                     alignItems: "center",
                     p: 1,
                     pl: 2,
-                    flexGrow: 1
+                    flexGrow: 1,
                   }}
                 >
                   <Typography variant="subtitle2">All Stores</Typography>
@@ -259,7 +259,7 @@ const Stores = () => {
                     sx={{
                       display: "flex",
                       flexDirection: "row",
-                      alignItems: "center"
+                      alignItems: "center",
                     }}
                   >
                     <Typography
@@ -313,7 +313,7 @@ const Stores = () => {
                             cursor: "pointer",
                             position: "relative",
                             overflow: "hidden",
-                            borderRadius: "6px"
+                            borderRadius: "6px",
                           }}
                         >
                           <img
@@ -325,7 +325,7 @@ const Stores = () => {
                               objectFit: "cover",
                               objectPosition: "center",
                               borderTopLeftRadius: "6px",
-                              borderTopRightRadius: "6px"
+                              borderTopRightRadius: "6px",
                             }}
                             loading="lazy"
                           />
@@ -334,7 +334,7 @@ const Stores = () => {
                               display: "flex",
                               flexDirection: "column",
                               p: 0.5,
-                              pl: 2
+                              pl: 2,
                             }}
                           >
                             <Typography
@@ -359,7 +359,7 @@ const Stores = () => {
                                   mb: 1,
                                   fontSize: "0.75rem",
                                   color: "success.main",
-                                  fontWeight: "500"
+                                  fontWeight: "500",
                                 }}
                               >
                                 Cash on Delivery is available
@@ -385,7 +385,7 @@ const Stores = () => {
                                 borderTopLeftRadius: "6px",
                                 borderTopRightRadius: "6px",
                                 zIndex: 1,
-                                textAlign: "center"
+                                textAlign: "center",
                               }}
                             >
                               {isReady && (

@@ -8,7 +8,7 @@ import {
   InputAdornment,
   Grid,
   useTheme,
-  Divider
+  Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ItemCard from "./Components/ItemCard";
@@ -56,7 +56,7 @@ const StoreDetail = () => {
     getCartFromLocalStorage() || {
       storeId,
       storeName: storeInfo.name,
-      items: []
+      items: [],
     }
   );
   const goToCartButton = () =>
@@ -75,7 +75,7 @@ const StoreDetail = () => {
       const newCart = {
         storeId,
         storeName: storeInfo.name,
-        items: [{ ...item, count: 1 }]
+        items: [{ ...item, count: 1 }],
       };
       setCart(newCart);
       localStorage.setItem("cart", JSON.stringify(newCart));
@@ -115,7 +115,7 @@ const StoreDetail = () => {
 
     // Check and validate cached menu data
     const cachedMenu = sessionStorage.getItem(menuCacheKey);
-    const cachedStore = false; //sessionStorage.getItem(storeCacheKey);
+    const cachedStore = sessionStorage.getItem(storeCacheKey);
 
     const currentTime = Date.now();
 
@@ -141,7 +141,7 @@ const StoreDetail = () => {
       try {
         const [menuResponse, storeResponse] = await Promise.all([
           api.get(`menus/${storeId}`),
-          api.get(`stores/${storeId}`)
+          api.get(`stores/${storeId}`),
         ]);
 
         menuData = menuResponse.data;
@@ -234,7 +234,7 @@ const StoreDetail = () => {
               top: 0,
               zIndex: 10,
               backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
-              pt: 1
+              pt: 1,
             }}
           >
             <Box
@@ -242,7 +242,7 @@ const StoreDetail = () => {
                 display: "flex",
                 width: "100%",
                 alignItems: "center",
-                height: "50px"
+                height: "50px",
               }}
             >
               <IconButton onClick={() => navigate("/stores")} sx={{}}>
@@ -255,7 +255,7 @@ const StoreDetail = () => {
                   sx={{
                     display: "flex",
                     width: "100%",
-                    transition: "width 0.3s ease-in-out" // Slide-in transition
+                    transition: "width 0.3s ease-in-out", // Slide-in transition
                   }}
                 >
                   <TextField
@@ -277,12 +277,12 @@ const StoreDetail = () => {
                             <ClearIcon />
                           </IconButton>
                         </InputAdornment>
-                      )
+                      ),
                     }}
                     sx={{
                       width: "100%",
                       pr: 1,
-                      transition: "width 0.3s ease-in-out"
+                      transition: "width 0.3s ease-in-out",
                     }}
                     placeholder={`Search items in "${storeInfo?.name}"`}
                   />
@@ -294,7 +294,7 @@ const StoreDetail = () => {
                       display: "flex",
                       alignItems: "center",
                       p: 1,
-                      flexGrow: 1
+                      flexGrow: 1,
                     }}
                   >
                     {/* Display the logo or fallback to the image */}
@@ -306,7 +306,7 @@ const StoreDetail = () => {
                           width: 36,
                           height: 36,
                           borderRadius: "50%",
-                          marginRight: 7
+                          marginRight: 7,
                         }}
                       />
                     ) : null}
@@ -320,7 +320,7 @@ const StoreDetail = () => {
                           // storeInfo?.name.length > 20 ? "1rem" : "1.5rem", // Adjust font size based on length
                           overflow: "hidden",
                           whiteSpace: "nowrap",
-                          textOverflow: "ellipsis"
+                          textOverflow: "ellipsis",
                         }}
                       >
                         {storeInfo?.name}
@@ -333,7 +333,7 @@ const StoreDetail = () => {
                           sx={{
                             color: "#FF6F61",
                             display: "flex",
-                            alignItems: "center"
+                            alignItems: "center",
                           }} // Use flex to align items
                         >
                           <CloseIcon
@@ -358,7 +358,7 @@ const StoreDetail = () => {
                   display: "flex",
                   alignItems: "center",
                   width: "100%",
-                  overflow: "hidden"
+                  overflow: "hidden",
                 }}
               >
                 <Typography variant="h6" align="left" sx={{ m: 2 }}>
@@ -374,7 +374,7 @@ const StoreDetail = () => {
                 <Box
                   sx={{
                     // maxHeight: "calc(100vh - 50px)",
-                    overflowY: "auto"
+                    overflowY: "auto",
                   }}
                 >
                   {" "}
@@ -452,7 +452,7 @@ const StoreDetail = () => {
             sx={{
               padding: 2,
               fontSize: "0.75rem",
-              backgroundColor: "rgba(95, 37, 159, 0.05)"
+              backgroundColor: "rgba(95, 37, 159, 0.05)",
             }}
           >
             {/* Store Name Section */}
@@ -462,7 +462,7 @@ const StoreDetail = () => {
                 sx={{
                   fontWeight: 600,
                   color: "text.primary",
-                  fontSize: "0.75rem"
+                  fontSize: "0.75rem",
                 }}
               >
                 {storeInfo?.name || "Store Name"}
@@ -476,7 +476,7 @@ const StoreDetail = () => {
                 sx={{
                   color: "text.secondary",
                   fontWeight: 500,
-                  fontSize: "0.75rem"
+                  fontSize: "0.75rem",
                 }}
               >
                 FSSAI: {storeInfo?.fssai || "N/A"}
@@ -490,7 +490,7 @@ const StoreDetail = () => {
                 sx={{
                   color: "text.secondary",
                   fontWeight: 500,
-                  fontSize: "0.75rem"
+                  fontSize: "0.75rem",
                 }}
               >
                 Phone: {storeInfo?.phone || "N/A"}

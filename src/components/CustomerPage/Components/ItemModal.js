@@ -23,7 +23,6 @@ const ItemDetailModal = ({
   addToCart,
 }) => {
   const cartItem = cart.items.find((cartItem) => cartItem?.id === item?.id);
-console.log("a",cartItem)
   return (
     <SwipeableDrawer
       anchor="bottom"
@@ -39,7 +38,11 @@ console.log("a",cartItem)
       }}
     >
       {/* AppBar with title */}
-      <AppBar position="static" sx={{ backgroundColor: "#fff", color: "#000" }} elevation={0}>
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "#fff", color: "#000" }}
+        elevation={0}
+      >
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={onClose}>
             <CloseIcon />
@@ -61,7 +64,6 @@ console.log("a",cartItem)
             width: "100%",
             height: "40%",
             objectFit: "contain",
-
           }}
         />
 
@@ -71,10 +73,15 @@ console.log("a",cartItem)
           <Typography variant="h6" color="textSecondary">
             Rs. {item?.price}
           </Typography>
+          {item?.description && (
+            <Typography variant="h5" fontSize={"0.70rem"}>
+              {item.description}
+            </Typography>
+          )}
         </Box>
 
         {/* Action buttons */}
-        <Box sx={{ padding: 2}}>
+        <Box sx={{ padding: 2 }}>
           {storeInfo?.status !== "open" ? (
             <Button
               variant="outlined"
@@ -94,7 +101,7 @@ console.log("a",cartItem)
               cart={cart}
               setCart={setCart}
               cartItem={cartItem}
-              height={'60px'}
+              height={"60px"}
             />
           ) : (
             <Button
@@ -123,4 +130,3 @@ console.log("a",cartItem)
 };
 
 export default ItemDetailModal;
-

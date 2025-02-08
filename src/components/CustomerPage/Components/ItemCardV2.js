@@ -16,7 +16,7 @@ const ItemCardV2 = ({
   handleOpenModal,
   storeStatus,
   navigate,
-  isReady
+  isReady,
 }) => {
   const cartItem = cart.items.find((cartItem) => cartItem.id === item.id);
 
@@ -32,14 +32,14 @@ const ItemCardV2 = ({
           display: "flex",
           transition: "none",
           "&:hover": {
-            backgroundColor: "transparent"
+            backgroundColor: "transparent",
           },
           "&:active": {
-            backgroundColor: "transparent"
+            backgroundColor: "transparent",
           },
           "&:focus": {
-            outline: "none"
-          }
+            outline: "none",
+          },
         }}
         tabIndex={0}
         elevation={0}
@@ -48,7 +48,7 @@ const ItemCardV2 = ({
           sx={{
             display: "flex",
             width: "100%",
-            height: "100%"
+            height: "100%",
           }}
         >
           {/* Left Section: 60% */}
@@ -58,7 +58,7 @@ const ItemCardV2 = ({
               display: "flex",
               flexDirection: "column",
               //justifyContent: 'space-between',
-              overflow: "hidden"
+              overflow: "hidden",
             }}
           >
             {/* Item Name */}
@@ -68,7 +68,7 @@ const ItemCardV2 = ({
                 fontSize: "1rem",
                 fontWeight: 500,
                 overflow: "hidden",
-                mt: 2
+                mt: 2,
               }}
             >
               {item.name}
@@ -83,11 +83,23 @@ const ItemCardV2 = ({
                 color: "#555",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
+                whiteSpace: "nowrap",
               }}
             >
               ₹{item.price}
             </Typography>
+            {item.description && (
+              <Typography
+                variant="body2"
+                sx={{
+                  mt: 1,
+                  fontSize: "0.65rem",
+                  color: "#555",
+                }}
+              >
+                {item.description}
+              </Typography>
+            )}
           </Box>
 
           {/* Right Section: 40% */}
@@ -98,7 +110,7 @@ const ItemCardV2 = ({
               flexDirection: "column",
               alignItems: "center",
               // justifyContent: 'flex-end',
-              gap: 0.5
+              gap: 0.5,
             }}
           >
             {item.image && (
@@ -108,7 +120,7 @@ const ItemCardV2 = ({
                   height: "100px",
                   overflow: "hidden",
                   borderRadius: "4px",
-                  flexShrink: 0
+                  flexShrink: 0,
                 }}
               >
                 <img
@@ -117,7 +129,7 @@ const ItemCardV2 = ({
                   style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover"
+                    objectFit: "cover",
                   }}
                   loading="lazy"
                 />
@@ -149,11 +161,11 @@ const ItemCardV2 = ({
                     width: "100%",
                     fontSize: "0.75rem",
                     "&:hover": {
-                      backgroundColor: "transparent"
+                      backgroundColor: "transparent",
                     },
                     "&:active": {
-                      backgroundColor: "#e0e0e0"
-                    }
+                      backgroundColor: "#e0e0e0",
+                    },
                   }}
                   disabled={!isReady}
                 >
