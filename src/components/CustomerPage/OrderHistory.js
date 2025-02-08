@@ -13,7 +13,7 @@ import {
   Chip,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CloseIcon from "@mui/icons-material/Close";
@@ -55,7 +55,7 @@ const OrderHistory = ({ userId }) => {
 
   const storeImages = {
     "Fun O Feast":
-      "https://res.cloudinary.com/dq6e1ggmv/image/upload/v1729698487/IMG_3971-removebg-preview-Photoroom_i0fymt.png"
+      "https://res.cloudinary.com/dq6e1ggmv/image/upload/v1729698487/IMG_3971-removebg-preview-Photoroom_i0fymt.png",
   };
 
   const handleMenuClick = (event) => {
@@ -122,7 +122,7 @@ const OrderHistory = ({ userId }) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              height: "50vh"
+              height: "50vh",
             }}
           >
             <Box textAlign="center">
@@ -149,7 +149,7 @@ const OrderHistory = ({ userId }) => {
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -162,7 +162,7 @@ const OrderHistory = ({ userId }) => {
                         borderRadius: "50%",
                         marginRight: "8px",
                         objectFit: "contain",
-                        objectPosition: "center"
+                        objectPosition: "center",
                       }} // Adjust styles as needed
                     />
                     <Typography
@@ -182,7 +182,7 @@ const OrderHistory = ({ userId }) => {
                   sx={{
                     color: "text.secondary",
                     fontSize: "0.7rem",
-                    flexGrow: 1
+                    flexGrow: 1,
                   }}
                 >
                   Order id :{order._id}
@@ -220,12 +220,12 @@ const OrderHistory = ({ userId }) => {
                     sx={{
                       color: "text.secondary",
                       fontSize: "0.7rem",
-                      flexGrow: 1
+                      flexGrow: 1,
                     }}
                   >
                     Placed on:{" "}
                     {new Date(order.created_at).toLocaleString("en-IN", {
-                      timeZone: "Asia/Kolkata"
+                      timeZone: "Asia/Kolkata",
                     })}{" "}
                     <br />
                     Status: {order.status === "new" ? "Placed" : order.status}
@@ -249,7 +249,7 @@ const OrderHistory = ({ userId }) => {
                     mt: 2,
 
                     borderColor: order.payment === "paid" ? "green" : "red",
-                    borderRadius: 1
+                    borderRadius: 1,
                   }}
                 >
                   {order.payment === "paid" ||
@@ -260,7 +260,7 @@ const OrderHistory = ({ userId }) => {
                         color: "green",
                         fontSize: "0.75rem",
                         fontWeight: "bold",
-                        mr: 2
+                        mr: 2,
                       }}
                       textAlign="right"
                     >
@@ -274,7 +274,7 @@ const OrderHistory = ({ userId }) => {
                           color: "red",
                           fontSize: "0.75rem",
                           fontWeight: "bold",
-                          mr: 2
+                          mr: 2,
                         }}
                         textAlign="right"
                       >
@@ -290,7 +290,7 @@ const OrderHistory = ({ userId }) => {
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between"
+                            justifyContent: "space-between",
                           }}
                         >
                           {" "}
@@ -299,7 +299,7 @@ const OrderHistory = ({ userId }) => {
                             sx={{
                               fontSize: "0.75rem",
                               color: "text.secondary",
-                              marginTop: 1
+                              marginTop: 1,
                             }}
                           >
                             If the amount was debited
@@ -312,7 +312,7 @@ const OrderHistory = ({ userId }) => {
                             sx={{
                               width: "120px",
                               fontSize: "0.55rem",
-                              marginTop: 1
+                              marginTop: 1,
                             }}
                             onClick={(e) => refetchPaymentStatus(e, order._id)}
                           >
@@ -362,8 +362,8 @@ const OrderHistory = ({ userId }) => {
             height: "auto",
             bottom: 0,
 
-            overFlowY: "auto"
-          }
+            overFlowY: "auto",
+          },
         }}
       >
         <Box
@@ -374,7 +374,7 @@ const OrderHistory = ({ userId }) => {
             position: "sticky",
             top: 0,
             zIndex: 10,
-            backgroundColor: "inherit"
+            backgroundColor: "inherit",
           }}
         >
           <IconButton onClick={() => setDrawerOpen(false)}>
@@ -386,7 +386,7 @@ const OrderHistory = ({ userId }) => {
               display: "flex",
               flexGrow: 1,
               alignItems: "center",
-              flexDirection: "column"
+              flexDirection: "column",
             }}
           >
             <Typography variant="h6" align="left" sx={{ fontSize: "0.75rem" }}>
@@ -414,7 +414,7 @@ const OrderHistory = ({ userId }) => {
               pl: 2,
               color: "green",
               fontSize: "0.75rem",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
             Paid
@@ -426,7 +426,7 @@ const OrderHistory = ({ userId }) => {
               pl: 2,
               color: "red",
               fontSize: "0.55rem",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
             {selectedOrder?.payment === "failed"
@@ -440,7 +440,7 @@ const OrderHistory = ({ userId }) => {
             sx={{
               pl: 2,
               fontSize: "0.55rem",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
             Partially Paid: Rs {selectedOrder?.partiallyPaid}
@@ -453,9 +453,24 @@ const OrderHistory = ({ userId }) => {
         <Typography
           variant="h6"
           align="left"
-          sx={{ fontSize: "0.75rem", p: 2 }}
+          sx={{ fontSize: "0.75rem", pl: 2, pr: 2, pt: 0.5 }}
         >
           Your order is {selectedOrder?.status}
+        </Typography>
+
+        <Typography
+          variant="h6"
+          align="left"
+          sx={{ fontSize: "0.65rem", pl: 2, pr: 2, pb: 1 }}
+        >
+          If your order hasn't been accepted yet, please contact us at{" "}
+          <a
+            href="tel:+919087176604"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            9087176604
+          </a>
+          .
         </Typography>
 
         <Stepper
@@ -507,7 +522,7 @@ const OrderHistory = ({ userId }) => {
             display: "flex",
             justifyContent: "space-between",
             pl: 1,
-            pr: 1
+            pr: 1,
           }}
         >
           <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
@@ -522,7 +537,7 @@ const OrderHistory = ({ userId }) => {
             display: "flex",
             justifyContent: "space-between",
             pl: 1,
-            pr: 1
+            pr: 1,
           }}
         >
           <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
@@ -537,7 +552,7 @@ const OrderHistory = ({ userId }) => {
             display: "flex",
             justifyContent: "space-between",
             pl: 1,
-            pr: 1
+            pr: 1,
           }}
         >
           <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
@@ -552,7 +567,7 @@ const OrderHistory = ({ userId }) => {
             display: "flex",
             justifyContent: "space-between",
             pl: 1,
-            pr: 1
+            pr: 1,
           }}
         >
           <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
@@ -581,7 +596,7 @@ const OrderHistory = ({ userId }) => {
                 display: "flex",
                 justifyContent: "space-between",
                 pl: 1,
-                pr: 1
+                pr: 1,
               }}
             >
               <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
@@ -597,7 +612,7 @@ const OrderHistory = ({ userId }) => {
                 display: "flex",
                 justifyContent: "space-between",
                 p: 1,
-                pr: 1
+                pr: 1,
               }}
             >
               <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
